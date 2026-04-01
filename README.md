@@ -64,36 +64,37 @@ The system ensures that:
 graph TD
 
     %% Frontend Layer
-    A[🧑‍⚕️ Admin Dashboard] -->|Manage Servers & Hospitals| B(FastAPI API Gateway)
-    C[🏥 Hospital Dashboard] -->|Join Server / Upload Data| B
+    A[Admin Dashboard] -->|Manage Servers & Hospitals| B[FastAPI API Gateway]
+    C[Hospital Dashboard] -->|Join Server / Upload Data| B
 
     %% Backend Layer
-    B -->|Auth / Routing / RBAC| D[(PostgreSQL Database)]
-    B -->|Trigger Training| E((Federated Learning Server))
+    B -->|Auth / Routing / RBAC| D[PostgreSQL Database]
+    B -->|Trigger Training| E[Federated Learning Server]
 
-    %% Hospital Nodes
-    subgraph Hospital 1 🏥 Secure Environment
-        H1_Data[(Local Patient Data)]
+    %% Hospital 1
+    subgraph Hospital_1
+        H1_Data[Local Patient Data]
         H1_Pre[Preprocessing Pipeline]
         H1_Node[FL Client Node]
         H1_Data --> H1_Pre --> H1_Node
     end
 
-    subgraph Hospital 2 🏥 Secure Environment
-        H2_Data[(Local Patient Data)]
+    %% Hospital 2
+    subgraph Hospital_2
+        H2_Data[Local Patient Data]
         H2_Pre[Preprocessing Pipeline]
         H2_Node[FL Client Node]
         H2_Data --> H2_Pre --> H2_Node
     end
 
-    %% Federated Learning Flow
-    H1_Node <-->|Send Weights Only| E
-    H2_Node <-->|Send Weights Only| E
+    %% Federated Flow
+    H1_Node <-->|Weights Only| E
+    H2_Node <-->|Weights Only| E
 
     %% Global Model
-    E -->|Aggregate (FedAvg / FedProx)| F[Global Model Registry]
-    F -->|Distribute Updated Model| H1_Node
-    F -->|Distribute Updated Model| H2_Node
+    E -->|Aggregate (FedAvg / FedProx)| F[Global Model]
+    F -->|Send Updated Model| H1_Node
+    F -->|Send Updated Model| H2_Node
 
 ```
 
@@ -226,6 +227,7 @@ Each hospital runs:
 > FedCare AI transforms isolated hospital data silos into a **collaborative intelligence network** — without compromising privacy.
 
 ---
+
 
 
 > **🔒 Privacy Guarantee:** Under no circumstances does the system design permit raw images, audio, or text to traverse the network boundary of the Hospital Client Node.
