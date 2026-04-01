@@ -47,34 +47,186 @@ Coupled with **Explainable AI (XAI)**, FedCare AI provides not only highly accur
 
 ## 🏛️ System Architecture
 
-FedCare AI employs a decoupled, highly secure design intended for strict HIPAA/GDPR compliance.
+FedCare AI employs a **decoupled, distributed, and privacy-first architecture** designed for **real-world healthcare deployment** under strict **HIPAA / GDPR compliance**.
+
+The system ensures that:
+
+* ✅ **Patient data never leaves hospital infrastructure**
+* ✅ Only **model weights are shared**
+* ✅ Full **multi-tenant scalability** across hospitals
+* ✅ Modular expansion for new disease servers
+
+---
+
+## 🔷 High-Level Architecture Overview
 
 ```mermaid
 graph TD
-    A[Admin Dashboard] -->|Manage| B(FastAPI Gateway)
-    C[Hospital Dashboard] -->|Join/Upload| B
-    
-    B --> D[(PostgreSQL DB)]
-    
-    subgraph Hospital 1 Environment 🏥
+
+    %% Frontend Layer
+    A[🧑‍⚕️ Admin Dashboard] -->|Manage Servers & Hospitals| B(FastAPI API Gateway)
+    C[🏥 Hospital Dashboard] -->|Join Server / Upload Data| B
+
+    %% Backend Layer
+    B -->|Auth / Routing / RBAC| D[(PostgreSQL Database)]
+    B -->|Trigger Training| E((Federated Learning Server))
+
+    %% Hospital Nodes
+    subgraph Hospital 1 🏥 Secure Environment
         H1_Data[(Local Patient Data)]
-        H1_Node[Local FL Client Node]
-        H1_Data --> H1_Node
+        H1_Pre[Preprocessing Pipeline]
+        H1_Node[FL Client Node]
+        H1_Data --> H1_Pre --> H1_Node
     end
-    
-    subgraph Hospital 2 Environment 🏥
+
+    subgraph Hospital 2 🏥 Secure Environment
         H2_Data[(Local Patient Data)]
-        H2_Node[Local FL Client Node]
-        H2_Data --> H2_Node
+        H2_Pre[Preprocessing Pipeline]
+        H2_Node[FL Client Node]
+        H2_Data --> H2_Pre --> H2_Node
     end
-    
-    B -->|Trigger Round| E((Flower FL Server))
-    
+
+    %% Federated Learning Flow
     H1_Node <-->|Send Weights Only| E
     H2_Node <-->|Send Weights Only| E
-    
-    E -->|Aggregate Model| F(Global Model Registry)
+
+    %% Global Model
+    E -->|Aggregate (FedAvg / FedProx)| F[Global Model Registry]
+    F -->|Distribute Updated Model| H1_Node
+    F -->|Distribute Updated Model| H2_Node
+
 ```
+
+---
+
+## 🧩 Core Components Explained
+
+### 🖥️ 1. Frontend Layer
+
+* **Admin Dashboard**
+
+  * Create and manage Disease Servers
+  * Approve hospitals
+  * Monitor training rounds
+* **Hospital Dashboard**
+
+  * Join AI servers
+  * Upload datasets
+  * Run training and predictions
+  * View XAI results
+
+---
+
+### ⚙️ 2. Backend API Gateway (FastAPI)
+
+* Central orchestration layer
+* Handles:
+
+  * Authentication (JWT)
+  * Role-based access (ADMIN / HOSPITAL)
+  * Server management
+  * Dataset metadata
+* Exposes REST APIs:
+
+  * `/servers`
+  * `/datasets`
+  * `/train`
+  * `/predict`
+
+---
+
+### 🗄️ 3. Database Layer (PostgreSQL)
+
+Stores:
+
+* Users & roles
+* Disease servers
+* Hospital participation
+* Training logs
+
+❌ Does NOT store:
+
+* Raw patient data
+
+---
+
+### 🌐 4. Federated Learning Server (Flower)
+
+* Coordinates training rounds
+* Implements:
+
+  * **FedAvg**
+  * **FedProx**
+* Responsibilities:
+
+  * Send global model
+  * Aggregate local weights
+  * Update global model
+
+---
+
+### 🏥 5. Hospital Client Nodes (CRITICAL 🔥)
+
+Each hospital runs:
+
+* Local dataset storage
+* Preprocessing pipeline
+* Model training engine
+
+✔ Data never leaves
+✔ Only model updates shared
+
+---
+
+### 🤖 6. AI Service Layer
+
+* Handles:
+
+  * Model training (CNN / XGBoost / Audio)
+  * Prediction generation
+  * Model checkpointing
+* Integrated with:
+
+  * Backend APIs
+  * Federated clients
+
+---
+
+### 🔍 7. Explainable AI (XAI) Layer
+
+* Grad-CAM → Image heatmaps
+* SHAP → Feature importance
+
+✔ Provides **clinical trust**
+✔ Helps doctors interpret predictions
+
+---
+
+## 🔐 Privacy & Security Design
+
+* 🔒 Data stays within hospital boundary
+* 🔒 Secure communication (HTTPS/gRPC)
+* 🔒 JWT authentication + RBAC
+* 🔒 No raw data transmission
+* 🔒 Optional: Differential Privacy (future)
+
+---
+
+## 🚀 Scalability Design
+
+* Multi-hospital support
+* Multi-disease server architecture
+* Microservices-ready backend
+* Horizontal scaling (Docker + Cloud)
+
+---
+
+## 🧠 Key Insight
+
+> FedCare AI transforms isolated hospital data silos into a **collaborative intelligence network** — without compromising privacy.
+
+---
+
 
 > **🔒 Privacy Guarantee:** Under no circumstances does the system design permit raw images, audio, or text to traverse the network boundary of the Hospital Client Node.
 
