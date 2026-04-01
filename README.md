@@ -107,57 +107,804 @@ The lifecycle of creating, joining, and training within a FedCare AI pipeline fo
 
 The platform structure is being executed across a massively expanded 12-phase pipeline for maximum scalability:
 
-### Phase 1: Project Setup & Microservices Architecture
-* **Goal:** Establish a secure, scalable module structure and environment configurations.
-* **Tech:** Python, Poetry/Pip, FastAPI skeleton.
+# 🧱 PHASE 1 — PROJECT FOUNDATION (VERY IMPORTANT)
 
-### Phase 2: Authentication & RBAC Engine
-* **Goal:** Secure the platform from Day 1.
-* **Tech:** FastAPI, JWT, PostgreSQL, Alembic, Passlib.
-* **Details:** Complete User/Hospital tables and Middleware definitions.
+## 🎯 Goal:
 
-### Phase 3: Disease Server System & Tenant Management
-* **Goal:** Create the core multi-tenant routing structure.
-* **Tech:** Pydantic, SQLAlchemy.
-* **Details:** APIs for Admins to create "Pipelines" for different medical tasks.
+Create a **scalable, production-grade backend system** with clean architecture, authentication, and database integration, ready for microservices expansion.
 
-### Phase 4: Hospital Node Data Ingestion Pipeline
-* **Goal:** Enable localized, secure data ingestion algorithms.
-* **Tech:** Local Storage Abstractions, FastAPI Upload.
+---
 
-### Phase 5: Automated Preprocessing & Augmentation
-* **Goal:** Normalize incoming medical data automatically.
-* **Tech:** OpenCV (Images), Pandas/Scikit-Learn (Tabular), Librosa (Audio).
+## ✅ PROMPT 1 (Paste in Antigravity)
 
-### Phase 6: Core AI Model Service (CNNs & Trees)
-* **Goal:** Establish fundamental training and prediction logic.
-* **Tech:** PyTorch, XGBoost.
+Create a **production-grade backend system** using FastAPI for a healthcare AI SaaS platform named **FedCare AI**.
 
-### Phase 7: Federated Learning Hub (Flower) 🔥
-* **Goal:** Implement the privacy-preserving cross-hospital training mesh.
-* **Tech:** Flower (`flwr`), gRPC.
-* **Details:** Aggregation server scripts and PyTorch client adapters.
+### Core Requirements:
 
-### Phase 8: Differential Privacy Integration 🔒
-* **Goal:** Add mathematical guarantees that reverse-engineering model weights is impossible.
-* **Tech:** Opacus, Flower.
+* Python 3.10+
+* FastAPI (async support)
+* Clean Architecture:
 
-### Phase 9: Explainable AI (XAI) Engine 🔍
-* **Goal:** Provide clinical transparency to model predictions.
-* **Tech:** captum (Grad-CAM), SHAP.
-* **Details:** Visual heatmaps showing *why* the AI made a diagnosis.
+  * Controllers (API routes)
+  * Services (business logic)
+  * Repositories (DB layer)
+* PostgreSQL database
+* SQLAlchemy ORM (async preferred)
+* Alembic for migrations
+* JWT Authentication:
 
-### Phase 10: Frontend Admin & Hospital Dashboards
-* **Goal:** Craft a highly premium, intuitive SaaS interface.
-* **Tech:** React, Vite, TailwindCSS, TypeScript.
+  * Access token
+  * Refresh token
+* Role-Based Access Control:
 
-### Phase 11: Real-time Analytics & Monitoring
-* **Goal:** Track model accuracy metrics and system health live.
-* **Tech:** Prometheus, Grafana, Recharts.
+  * ADMIN
+  * HOSPITAL
 
-### Phase 12: Production CI/CD & Deployment
-* **Goal:** Prepare the platform for real-world staging.
-* **Tech:** Docker Compose, Nginx Reverse Proxy, GitHub Actions.
+---
+
+### Project Structure:
+
+```
+app/
+  api/
+  core/
+  models/
+  schemas/
+  services/
+  db/
+  utils/
+  middleware/
+```
+
+---
+
+### Core Features:
+
+#### 1. Authentication System
+
+* Register (Admin & Hospital)
+* Login
+* Password hashing (bcrypt)
+* Token generation (JWT)
+* Refresh token system
+
+#### 2. Authorization
+
+* Middleware for RBAC
+* Route protection
+
+---
+
+### Database Tables:
+
+* users (id, name, email, password, role, created_at)
+* hospitals (id, name, admin_id)
+* audit_logs (id, action, user_id, timestamp)
+
+---
+
+### Additional Requirements:
+
+* .env configuration
+* Logging system (info, error)
+* Global exception handler
+* CORS setup
+* API versioning (/api/v1)
+
+---
+
+### Output:
+
+* Complete backend code
+* Folder structure
+* Setup instructions
+* Run commands
+
+---
+
+# 🧱 PHASE 2 — DISEASE SERVER SYSTEM (CORE FEATURE)
+
+## 🎯 Goal:
+
+Enable **multi-tenant AI system** where admin creates disease-specific AI servers.
+
+---
+
+## ✅ PROMPT 2
+
+Extend the existing backend to implement a **Disease Server System**.
+
+### Concept:
+
+Each server = one AI pipeline (e.g., Lung AI, Brain Tumor AI)
+
+---
+
+### Features:
+
+#### Admin Capabilities:
+
+* Create server
+* Configure:
+
+  * name
+  * disease_type
+  * input_type (image, tabular, audio)
+  * model_type
+  * federated_algorithm (FedAvg, FedProx)
+* Activate / deactivate server
+
+---
+
+### Database:
+
+* disease_servers
+* server_members
+
+---
+
+### APIs:
+
+* POST /servers/create
+* GET /servers
+* GET /servers/{id}
+* PATCH /servers/{id}/status
+
+---
+
+### Rules:
+
+* Only ADMIN can create
+* Hospitals can view
+
+---
+
+### Output:
+
+* Full backend code
+* Swagger API docs
+
+---
+
+# 🧱 PHASE 3 — HOSPITAL JOIN + DATA PIPELINE
+
+## 🎯 Goal:
+
+Hospitals join servers and upload data securely.
+
+---
+
+## ✅ PROMPT 3
+
+Extend backend with:
+
+### Features:
+
+* Join request system
+* Admin approval
+* Dataset upload (image/csv/audio)
+
+---
+
+### APIs:
+
+* POST /servers/{id}/join
+* POST /servers/{id}/approve
+* POST /datasets/upload
+
+---
+
+### Preprocessing:
+
+* Image → resize, normalize
+* Tabular → clean, encode
+* Audio → spectrogram
+
+---
+
+### Security:
+
+* Data isolation per hospital
+* No cross-access
+
+---
+
+### Output:
+
+* Upload system
+* Preprocessing module
+
+---
+
+# 🧱 PHASE 4 — AI MODEL SERVICE
+
+## 🎯 Goal:
+
+Add training + prediction capabilities.
+
+---
+
+## ✅ PROMPT 4
+
+Create AI module:
+
+### Models:
+
+* CNN (images)
+* XGBoost (tabular)
+* Audio CNN
+
+---
+
+### APIs:
+
+* POST /train/{server_id}
+* POST /predict/{server_id}
+
+---
+
+### Features:
+
+* Model selection based on server config
+* Save checkpoints
+* Return prediction + confidence
+
+---
+
+### Output:
+
+* Training pipeline
+* Prediction pipeline
+
+---
+
+# 🧱 PHASE 5 — FEDERATED LEARNING SYSTEM 🔥
+
+## 🎯 Goal:
+
+Enable multi-hospital collaborative training.
+
+---
+
+## ✅ PROMPT 5
+
+Integrate Flower framework:
+
+### Components:
+
+* FL Server
+* Hospital Clients
+
+---
+
+### Workflow:
+
+* Initialize global model
+* Local training
+* Weight aggregation
+* Global update
+
+---
+
+### Features:
+
+* FedAvg
+* FedProx
+* Configurable rounds
+
+---
+
+### Output:
+
+* FL server
+* Client code
+* Integration
+
+---
+
+# 🧱 PHASE 6 — EXPLAINABLE AI 🔍
+
+## 🎯 Goal:
+
+Add explainability to predictions.
+
+---
+
+## ✅ PROMPT 6
+
+### Implement:
+
+* Grad-CAM (image)
+* SHAP (tabular)
+
+---
+
+### API:
+
+* GET /explain/{prediction_id}
+
+---
+
+### Output:
+
+* Heatmaps
+* Feature importance
+
+---
+
+# 🧱 PHASE 7 — FRONTEND DASHBOARD (ADVANCED 🔥)
+
+## 🎯 Goal:
+
+Build a **professional SaaS dashboard**
+
+---
+
+
+# 🧩 PHASE 7A — FRONTEND SETUP (ENTERPRISE LEVEL)
+
+### 🎯 Goal:
+
+Create a **scalable, production-grade frontend architecture** using React.
+
+---
+
+### ✅ PROMPT 7A
+
+Create a production-grade frontend application for **FedCare AI** using:
+
+### Tech Stack:
+
+* React (Vite)
+* TypeScript
+* Bootstrap (primary UI)
+* Axios (API communication)
+* React Router (routing)
+* Context API (global state)
+
+---
+
+### Project Structure:
+
+```id="fe1"
+src/
+  api/
+  assets/
+  components/
+  contexts/
+  hooks/
+  layouts/
+  pages/
+  routes/
+  services/
+  utils/
+```
+
+---
+
+### Core Setup:
+
+#### 1. Routing System
+
+* Public routes (login/register)
+* Protected routes (dashboard)
+* Role-based routing (ADMIN / HOSPITAL)
+
+#### 2. Axios Setup
+
+* Base URL config
+* Request interceptor (attach JWT)
+* Response interceptor (handle 401 → logout)
+
+#### 3. Auth Context
+
+* Store user + token
+* Login/logout functions
+* Auto token persistence (localStorage)
+
+#### 4. UI Base
+
+* Responsive layout
+* Sidebar + Topbar layout
+
+---
+
+### Additional Requirements:
+
+* Environment variables (.env)
+* Error boundary component
+* Loading spinner component
+* Toast notifications
+
+---
+
+### Output:
+
+* Full React setup
+* Folder structure
+* Config files
+
+---
+
+# 🧩 PHASE 7B — AUTH UI (SECURE SYSTEM)
+
+### 🎯 Goal:
+
+Build secure authentication system with proper UX
+
+---
+
+### ✅ PROMPT 7B
+
+Create authentication module:
+
+---
+
+### Pages:
+
+* Login Page
+* Register Page
+
+---
+
+### Features:
+
+#### 1. Login
+
+* Email + password
+* API integration
+* Store JWT
+* Redirect to dashboard
+
+#### 2. Register
+
+* Hospital/Admin registration
+* Form validation
+
+---
+
+### Security:
+
+* JWT storage (secure)
+* Auto logout on token expiry
+* Protected route wrapper
+
+---
+
+### UX Enhancements:
+
+* Error messages
+* Loading states
+* Success alerts
+
+---
+
+### Output:
+
+* Auth pages
+* Auth context integration
+* Route protection
+
+---
+
+# 🧩 PHASE 7C — ADMIN DASHBOARD (CORE CONTROL PANEL)
+
+### 🎯 Goal:
+
+Build powerful admin control panel
+
+---
+
+### ✅ PROMPT 7C
+
+Create Admin Dashboard:
+
+---
+
+### Features:
+
+#### 1. Server Management
+
+* Create disease server form
+* Edit/delete server
+* Toggle active/inactive
+
+---
+
+#### 2. Hospital Management
+
+* View hospitals
+* Approve/reject requests
+
+---
+
+#### 3. Analytics Dashboard
+
+* Active servers count
+* Participating hospitals
+* Training progress charts
+
+---
+
+### UI:
+
+* Sidebar navigation
+* Cards (metrics)
+* Tables (data)
+* Charts (Chart.js)
+
+---
+
+### API Integration:
+
+* Fetch servers
+* Create server API
+* Approve hospital API
+
+---
+
+### Output:
+
+* Fully functional admin panel
+
+---
+
+# 🧩 PHASE 7D — HOSPITAL DASHBOARD (CLIENT PANEL)
+
+### 🎯 Goal:
+
+Enable hospitals to interact with system
+
+---
+
+### ✅ PROMPT 7D
+
+Create Hospital Dashboard:
+
+---
+
+### Features:
+
+#### 1. Server Discovery
+
+* View available servers
+* Request to join
+
+---
+
+#### 2. Dataset Upload
+
+* Upload images / CSV / audio
+* Show upload progress
+* Validate file types
+
+---
+
+#### 3. Training Panel
+
+* Start training button
+* Show training logs
+* Training status
+
+---
+
+#### 4. Prediction Panel
+
+* Upload sample data
+* Show predictions + confidence
+
+---
+
+### UI:
+
+* Cards + tables
+* Progress bars
+* File upload UI
+
+---
+
+### Output:
+
+* Full hospital panel
+
+---
+
+# 🧩 PHASE 7E — REUSABLE UI COMPONENTS (DESIGN SYSTEM)
+
+### 🎯 Goal:
+
+Create reusable UI system
+
+---
+
+### ✅ PROMPT 7E
+
+Build reusable components:
+
+---
+
+### Components:
+
+* Navbar (user info, logout)
+* Sidebar (role-based menu)
+* Card component
+* Table component
+* Modal component
+* Form components
+* Loader
+* Notification (toast)
+
+---
+
+### Charts:
+
+* Bar chart
+* Line chart
+* Pie chart
+
+---
+
+### Design:
+
+* Clean SaaS UI
+* Responsive
+* Consistent styling
+
+---
+
+### Output:
+
+* Component library
+
+---
+
+# 🧩 PHASE 7F — XAI VISUALIZATION (ADVANCED UI)
+
+### 🎯 Goal:
+
+Display AI explanations clearly
+
+---
+
+### ✅ PROMPT 7F
+
+Create XAI visualization module:
+
+---
+
+### Features:
+
+#### 1. Heatmap Viewer
+
+* Overlay Grad-CAM on image
+* Toggle original vs heatmap
+
+---
+
+#### 2. Prediction Panel
+
+* Disease name
+* Confidence score
+* Probability chart
+
+---
+
+#### 3. Tabular Explanation
+
+* SHAP graph
+* Feature importance list
+
+---
+
+### UI:
+
+* Side-by-side comparison
+* Interactive charts
+
+---
+
+### Output:
+
+* XAI UI module
+
+---
+
+# 🧩 PHASE 7G — ADVANCED FRONTEND FEATURES (PRO LEVEL 🔥)
+
+### 🎯 Goal:
+
+Make frontend industry-ready
+
+---
+
+### ✅ PROMPT 7G
+
+Add advanced features:
+
+---
+
+### Features:
+
+* Role-based dashboards
+* Dark/light mode toggle
+* Real-time updates (polling)
+* Pagination + search
+* Form validation
+* Error handling UI
+* API retry mechanism
+
+---
+
+### Output:
+
+* Enhanced UX system
+
+---
+
+# 🧱 PHASE 8 — DEPLOYMENT (PRODUCTION READY)
+
+### 🎯 Goal:
+
+Deploy full system for real-world use
+
+---
+
+## ✅ PROMPT 8
+
+Create production deployment setup:
+
+---
+
+### Docker Setup:
+
+* Backend container
+* Frontend container
+* PostgreSQL container
+
+---
+
+### Nginx:
+
+* Reverse proxy
+* Route frontend/backend
+
+---
+
+### CI/CD:
+
+* GitHub Actions
+* Auto build & deploy
+
+---
+
+### Security:
+
+* Environment configs
+* HTTPS ready
+* Secret management
+
+---
+
+### Output:
+
+* docker-compose.yml
+* Dockerfiles
+* Deployment guide
+
+---
+
+# 🏁 FINAL RESULT
+
+After completing:
+
+✔ Enterprise UI
+✔ Full SaaS dashboard
+✔ Real hospital-ready system
+✔ Production deployment
+
+---
+
+
 
 ---
 
