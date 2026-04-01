@@ -111,30 +111,32 @@ The platform structure is being executed across a massively expanded 12-phase pi
 
 ## 🎯 Goal:
 
-Create a **scalable, production-grade backend system** with clean architecture, authentication, and database integration, ready for microservices expansion.
+Design and implement a **production-ready, scalable backend system** using clean architecture principles, supporting authentication, authorization, and database integration, ready for microservices and cloud deployment.
 
 ---
 
-## ✅ PROMPT 1 (Paste in Antigravity)
+## ✅ PROMPT 1 (Paste FIRST in Antigravity)
 
 Create a **production-grade backend system** using FastAPI for a healthcare AI SaaS platform named **FedCare AI**.
 
-### Core Requirements:
+---
+
+### 🧰 Core Requirements:
 
 * Python 3.10+
-* FastAPI (async support)
+* FastAPI with async support
 * Clean Architecture:
 
   * Controllers (API routes)
   * Services (business logic)
-  * Repositories (DB layer)
+  * Repositories (data access layer)
 * PostgreSQL database
-* SQLAlchemy ORM (async preferred)
-* Alembic for migrations
+* SQLAlchemy ORM (async version preferred)
+* Alembic for database migrations
 * JWT Authentication:
 
-  * Access token
-  * Refresh token
+  * Access tokens (short-lived)
+  * Refresh tokens (long-lived)
 * Role-Based Access Control:
 
   * ADMIN
@@ -142,58 +144,63 @@ Create a **production-grade backend system** using FastAPI for a healthcare AI S
 
 ---
 
-### Project Structure:
+### 📁 Project Structure:
 
-```
+```id="p1code"
 app/
-  api/
-  core/
-  models/
-  schemas/
-  services/
-  db/
-  utils/
-  middleware/
+  api/            # route handlers
+  core/           # configs, security
+  models/         # DB models
+  schemas/        # request/response validation
+  services/       # business logic
+  db/             # database setup
+  utils/          # helper functions
+  middleware/     # auth, logging middleware
 ```
 
 ---
 
-### Core Features:
+### 🔐 Authentication System:
 
-#### 1. Authentication System
-
-* Register (Admin & Hospital)
-* Login
-* Password hashing (bcrypt)
-* Token generation (JWT)
-* Refresh token system
-
-#### 2. Authorization
-
-* Middleware for RBAC
-* Route protection
+* User registration (Admin / Hospital)
+* Secure password hashing using bcrypt
+* Login endpoint with JWT generation
+* Refresh token mechanism
+* Token validation middleware
 
 ---
 
-### Database Tables:
+### 🛡️ Authorization:
 
-* users (id, name, email, password, role, created_at)
-* hospitals (id, name, admin_id)
-* audit_logs (id, action, user_id, timestamp)
-
----
-
-### Additional Requirements:
-
-* .env configuration
-* Logging system (info, error)
-* Global exception handler
-* CORS setup
-* API versioning (/api/v1)
+* RBAC middleware
+* Protect routes based on roles
+* Admin-only routes
 
 ---
 
-### Output:
+### 🗄️ Database Design:
+
+* users (id, name, email, password_hash, role, created_at)
+* hospitals (id, name, admin_id, created_at)
+* audit_logs (id, action, user_id, timestamp, metadata)
+
+---
+
+### ⚙️ Additional Requirements:
+
+* Environment variables using `.env`
+* Logging system:
+
+  * INFO logs
+  * ERROR logs
+* Global exception handling middleware
+* CORS configuration
+* API versioning: `/api/v1`
+* Health check endpoint `/health`
+
+---
+
+### 📤 Output:
 
 * Complete backend code
 * Folder structure
@@ -206,7 +213,7 @@ app/
 
 ## 🎯 Goal:
 
-Enable **multi-tenant AI system** where admin creates disease-specific AI servers.
+Implement a **multi-tenant AI orchestration system** where admins create disease-specific AI pipelines.
 
 ---
 
@@ -214,17 +221,21 @@ Enable **multi-tenant AI system** where admin creates disease-specific AI server
 
 Extend the existing backend to implement a **Disease Server System**.
 
-### Concept:
+---
 
-Each server = one AI pipeline (e.g., Lung AI, Brain Tumor AI)
+### 🧠 Concept:
+
+Each Disease Server represents an independent AI pipeline:
+
+* Example: Lung Disease AI, Brain Tumor AI
 
 ---
 
-### Features:
+### ⚙️ Features:
 
 #### Admin Capabilities:
 
-* Create server
+* Create new disease server
 * Configure:
 
   * name
@@ -233,17 +244,21 @@ Each server = one AI pipeline (e.g., Lung AI, Brain Tumor AI)
   * model_type
   * federated_algorithm (FedAvg, FedProx)
 * Activate / deactivate server
+* Update server configuration
 
 ---
 
-### Database:
+### 🗄️ Database:
 
 * disease_servers
+  (id, name, disease_type, input_type, model_type, fl_algorithm, created_by, status, created_at)
+
 * server_members
+  (id, server_id, hospital_id, status, joined_at)
 
 ---
 
-### APIs:
+### 🌐 APIs:
 
 * POST /servers/create
 * GET /servers
@@ -252,17 +267,17 @@ Each server = one AI pipeline (e.g., Lung AI, Brain Tumor AI)
 
 ---
 
-### Rules:
+### 🔐 Rules:
 
-* Only ADMIN can create
-* Hospitals can view
+* Only ADMIN can create/update servers
+* Hospitals can view available servers
 
 ---
 
-### Output:
+### 📤 Output:
 
-* Full backend code
-* Swagger API docs
+* Full backend implementation
+* API documentation (Swagger)
 
 ---
 
@@ -270,23 +285,31 @@ Each server = one AI pipeline (e.g., Lung AI, Brain Tumor AI)
 
 ## 🎯 Goal:
 
-Hospitals join servers and upload data securely.
+Allow hospitals to securely join servers and upload datasets with preprocessing.
 
 ---
 
 ## ✅ PROMPT 3
 
-Extend backend with:
-
-### Features:
-
-* Join request system
-* Admin approval
-* Dataset upload (image/csv/audio)
+Extend backend to support hospital participation and dataset handling.
 
 ---
 
-### APIs:
+### ⚙️ Features:
+
+#### Hospital Actions:
+
+* Request to join a server
+* Admin approval system
+* Upload dataset:
+
+  * Image (X-ray, MRI)
+  * CSV (tabular)
+  * Audio (wav/mp3)
+
+---
+
+### 🌐 APIs:
 
 * POST /servers/{id}/join
 * POST /servers/{id}/approve
@@ -294,25 +317,43 @@ Extend backend with:
 
 ---
 
-### Preprocessing:
+### 📂 Dataset Handling:
 
-* Image → resize, normalize
-* Tabular → clean, encode
-* Audio → spectrogram
+* Store metadata in database
+* Save files in structured directories
+* Validate file types per server
 
 ---
 
-### Security:
+### 🔄 Preprocessing Pipeline:
+
+* Image:
+
+  * Resize (224x224)
+  * Normalize
+* Tabular:
+
+  * Missing value handling
+  * Encoding
+* Audio:
+
+  * Convert to spectrogram
+
+---
+
+### 🔐 Security:
 
 * Data isolation per hospital
-* No cross-access
+* Prevent cross-hospital access
+* Secure file storage paths
 
 ---
 
-### Output:
+### 📤 Output:
 
-* Upload system
-* Preprocessing module
+* Dataset upload system
+* Preprocessing services
+* Storage structure
 
 ---
 
@@ -320,41 +361,51 @@ Extend backend with:
 
 ## 🎯 Goal:
 
-Add training + prediction capabilities.
+Enable training and prediction across multiple modalities.
 
 ---
 
 ## ✅ PROMPT 4
 
-Create AI module:
-
-### Models:
-
-* CNN (images)
-* XGBoost (tabular)
-* Audio CNN
+Create AI service module integrated with backend.
 
 ---
 
-### APIs:
+### 🤖 Models:
+
+* Image: CNN (PyTorch)
+* Tabular: XGBoost
+* Audio: CNN on spectrogram
+
+---
+
+### 🌐 APIs:
 
 * POST /train/{server_id}
 * POST /predict/{server_id}
 
 ---
 
-### Features:
+### ⚙️ Features:
 
 * Model selection based on server config
-* Save checkpoints
-* Return prediction + confidence
+* Load dataset dynamically
+* Training pipeline:
+
+  * epochs
+  * loss tracking
+* Save model checkpoints
+* Prediction output:
+
+  * disease label
+  * confidence score
 
 ---
 
-### Output:
+### 📤 Output:
 
-* Training pipeline
-* Prediction pipeline
+* Training module
+* Prediction module
 
 ---
 
@@ -362,43 +413,60 @@ Create AI module:
 
 ## 🎯 Goal:
 
-Enable multi-hospital collaborative training.
+Enable distributed training across hospitals using federated learning.
 
 ---
 
 ## ✅ PROMPT 5
 
-Integrate Flower framework:
-
-### Components:
-
-* FL Server
-* Hospital Clients
+Integrate Flower framework into system.
 
 ---
 
-### Workflow:
+### 🌐 Components:
 
-* Initialize global model
-* Local training
-* Weight aggregation
-* Global update
+* Federated Learning Server
+* Hospital Client Nodes
 
 ---
 
-### Features:
+### 🔄 Workflow:
 
-* FedAvg
-* FedProx
-* Configurable rounds
+1. Initialize global model
+2. Distribute to hospitals
+3. Local training
+4. Send weights
+5. Aggregate (FedAvg / FedProx)
+6. Update global model
 
 ---
 
-### Output:
+### ⚙️ Features:
+
+* Configurable:
+
+  * number of clients
+  * rounds
+  * local epochs
+* Monitoring:
+
+  * training progress
+  * metrics logging
+
+---
+
+### 🔐 Constraint:
+
+* No raw data transfer
+* Only model weights shared
+
+---
+
+### 📤 Output:
 
 * FL server
-* Client code
-* Integration
+* Client implementation
+* Backend integration
 
 ---
 
@@ -406,31 +474,45 @@ Integrate Flower framework:
 
 ## 🎯 Goal:
 
-Add explainability to predictions.
+Provide transparent AI predictions for clinical trust.
 
 ---
 
 ## ✅ PROMPT 6
 
-### Implement:
-
-* Grad-CAM (image)
-* SHAP (tabular)
+Add Explainable AI module.
 
 ---
 
-### API:
+### 🧠 Methods:
+
+* Grad-CAM (image models)
+* SHAP (tabular models)
+
+---
+
+### 🌐 API:
 
 * GET /explain/{prediction_id}
 
 ---
 
-### Output:
+### ⚙️ Features:
 
-* Heatmaps
-* Feature importance
+* Generate heatmaps
+* Overlay on image
+* Feature importance graphs
+* Save explanation results
 
 ---
+
+### 📤 Output:
+
+* XAI module
+* Visualization outputs
+
+---
+
 
 # 🧱 PHASE 7 — FRONTEND DASHBOARD (ADVANCED 🔥)
 
