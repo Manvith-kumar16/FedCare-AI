@@ -1,3 +1,64 @@
+# FedCare AI — Backend
+
+This repository contains a production-grade FastAPI backend scaffold for FedCare AI. It includes:
+
+- Async SQLAlchemy with PostgreSQL
+- JWT authentication with access + refresh tokens
+- Role-based access control (RBAC) scaffolding
+- Alembic-ready models (see instructions)
+- Logging, CORS and global exception handling
+
+## Requirements
+
+- Python 3.10+
+- PostgreSQL
+
+## Setup
+
+1. Copy and edit environment variables:
+
+   - Copy `.env.example` to `.env` and update values.
+
+2. Create a virtual environment and install dependencies:
+
+```powershell
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+3. Initialize the database (example):
+
+- Create the database in PostgreSQL matching `DATABASE_URL`.
+- Initialize Alembic and run migrations. Example:
+
+```powershell
+alembic init alembic
+# Edit alembic/env.py to import models metadata from `app.models.base`/your models
+alembic revision --autogenerate -m "create initial tables"
+alembic upgrade head
+```
+
+4. Run the app:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+## Project Structure
+
+app/
+  api/            # route handlers (versioned: v1)
+  core/           # configuration
+  models/         # SQLAlchemy models
+  schemas/        # pydantic schemas
+  services/       # business logic
+  db/             # database session
+  utils/          # helpers (hash, jwt)
+  middleware/     # logging, error handlers
+
+## Notes
+
+- This scaffold focuses on correctness and async patterns. It intentionally leaves some parts (detailed RBAC enforcement, advanced auditing, pagination) as small next-step tasks to adapt to your product requirements.
 <div align="center">
   <h1>🏥 FedCare AI</h1>
   <h3>A Multi-Tenant Federated Learning Platform for Privacy-Preserving Healthcare AI</h3>
