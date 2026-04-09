@@ -1,1 +1,1 @@
-from . import auth, users, hospitals, health  # expose routers for app main
+from . import auth, users, hospitals, health, servers  # expose routers for app main
