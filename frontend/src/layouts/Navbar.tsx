@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, Search, LogOut, User as UserIcon, Menu } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { Bell, Search, LogOut, User as UserIcon, Menu, Sun, Moon } from 'lucide-react';
 import { Dropdown, InputGroup, Form } from 'react-bootstrap';
 
 interface NavbarProps {
@@ -9,6 +10,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="glass-effect border-bottom border-light px-4 py-3 d-flex align-items-center justify-content-between sticky-top z-1000" style={{ height: 'var(--header-height)' }}>
@@ -29,6 +31,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
       </div>
 
       <div className="d-flex align-items-center gap-3">
+        <button 
+          className="btn btn-link link-dark p-2" 
+          onClick={toggleTheme}
+          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+        >
+          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
+
         <button className="btn btn-link link-dark p-2 position-relative">
           <Bell size={20} />
           <span className="position-absolute top-2 end-2 p-1 bg-danger border border-light rounded-circle">
