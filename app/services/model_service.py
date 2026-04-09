@@ -14,6 +14,7 @@ import xgboost as xgb
 from app.utils.ml import save_torch_model, save_xgb_model, load_xgb_model, load_torch_model
 from app.utils.files import STORAGE_ROOT
 from app.repositories.dataset import DatasetRepository
+from app.repositories.prediction import PredictionRepository
 
 
 class SimpleImageCNN(nn.Module):
@@ -199,7 +200,7 @@ class ModelService:
     async def predict(self, server_id: int, payload: Dict[str, Any]):
         # payload contains model_type and a single file path or features
         model_type = payload.get('model_type')
-        if model_type == 'tabular':
+            if model_type == 'tabular':
             model_files = list((Path(STORAGE_ROOT) / f"server_{server_id}" / 'models').glob('xgb_model_*.joblib'))
             if not model_files:
                 raise RuntimeError("No xgb model found")
@@ -208,7 +209,10 @@ class ModelService:
             pred = model.predict_proba([features])[0]
             label = model.predict([features])[0]
             conf = float(max(pred))
-            return {"label": int(label), "confidence": conf}
+            # persist prediction
+            repo = PredictionRepository(self.session)
+            pred_rec = await repo.create(server_id=server_id, model_type='tabular', input_path=None, model_path=str(model_files[-1]), label=str(int(label)), confidence=str(conf), metadata={"features": features})
+            return {"label": int(label), "confidence": conf, "prediction_id": pred_rec.id}
 
         elif model_type in ('image', 'audio'):
             model_files = list((Path(STORAGE_ROOT) / f"server_{server_id}" / 'models').glob(f"{model_type}_model_*.pt"))
@@ -232,7 +236,11 @@ class ModelService:
                 probs = torch.softmax(out, dim=1).numpy()[0]
                 label = int(probs.argmax())
                 conf = float(probs.max())
-            return {"label": label, "confidence": conf}
+            # persist prediction
+            repo = PredictionRepository(self.session)
+            # If input was provided as array we don't have path
+            pred_rec = await repo.create(server_id=server_id, model_type=model_type, input_path=None, model_path=latest, label=str(int(label)), confidence=str(conf), metadata={})
+            return {"label": label, "confidence": conf, "prediction_id": pred_rec.id}
 
         else:
             raise ValueError("Unsupported model_type for prediction")
