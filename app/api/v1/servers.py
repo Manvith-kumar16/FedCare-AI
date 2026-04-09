@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
+from app.repositories.disease_server import ServerMemberRepository
 from app.services.disease_service import DiseaseService
 from app.schemas.disease_server import DiseaseServerCreate, DiseaseServerRead
 from app.core.security import require_roles, get_current_user
@@ -39,3 +40,38 @@ async def update_status(server_id: int, payload: dict, session: AsyncSession = D
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
     return server
+
+
+@router.post("/servers/{server_id}/join")
+async def join_server(server_id: int, session: AsyncSession = Depends(get_session), user=Depends(get_current_user)):
+    # Only hospital users can request join
+    if user.role != 'HOSPITAL':
+        raise HTTPException(status_code=403, detail="Only hospitals can request to join")
+    # create ServerMember pending
+    repo = ServerMemberRepository(session)
+    # check existing
+    members = await repo.list_for_server(server_id)
+    if any(m.hospital_id == user.id for m in members):
+        raise HTTPException(status_code=400, detail="Already requested or member")
+    from app.models.server_member import ServerMember
+    obj = ServerMember(server_id=server_id, hospital_id=user.id, status='pending')
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj)
+    return {"detail": "join request created", "member_id": obj.id}
+
+
+@router.post("/servers/{server_id}/approve")
+async def approve_server(server_id: int, hospital_id: int, session: AsyncSession = Depends(get_session), user=Depends(require_roles("ADMIN"))):
+    # Admin approves a hospital into server
+    repo = ServerMemberRepository(session)
+    members = await repo.list_for_server(server_id)
+    target = next((m for m in members if m.hospital_id == hospital_id), None)
+    if not target:
+        raise HTTPException(status_code=404, detail="Join request not found")
+    # update status
+    from sqlalchemy import update
+    q = update(target.__class__).where(target.__class__.id == target.id).values(status='approved')
+    await session.execute(q)
+    await session.commit()
+    return {"detail": "hospital approved"}
