@@ -5,7 +5,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
-from app.api.v1 import auth, users, hospitals, health, servers, datasets, models
+from app.api.v1 import auth, users, hospitals, health, servers, datasets, models, fl
 from app.middleware.logging import setup_logging
 
 
@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     app.include_router(servers.router, prefix=f"/api/{settings.API_V1_STR}")
     app.include_router(datasets.router, prefix=f"/api/{settings.API_V1_STR}")
     app.include_router(models.router, prefix=f"/api/{settings.API_V1_STR}")
+    app.include_router(fl.router, prefix=f"/api/{settings.API_V1_STR}")
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
