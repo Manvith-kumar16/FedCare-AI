@@ -1,1 +1,1 @@
-from . import auth, users, hospitals, health, servers, datasets  # expose routers for app main
+from . import auth, users, hospitals, health, servers, datasets, models  # expose routers for app main
