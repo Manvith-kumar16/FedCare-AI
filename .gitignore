@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.log
+.env
+*.zip
+*.exe
+*.h5
+*.pt
+*.pth
+*.pkl
+*.csv
+*.xlsx
