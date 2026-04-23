@@ -5,6 +5,7 @@ const AppContext = createContext()
 export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const [currentServer, setCurrentServer] = useState(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now()
@@ -22,6 +23,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       toasts, addToast, removeToast,
       currentServer, setCurrentServer,
+      isAuthenticated, setIsAuthenticated,
     }}>
       {children}
       {/* Toast container */}
