@@ -11,27 +11,23 @@ from sklearn.preprocessing import StandardScaler
 from typing import Dict, Tuple, List, Optional
 from app.core import settings
 
-
-FEATURE_COLUMNS = [
-    "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
-    "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
-]
-TARGET_COLUMN = "Outcome"
+# Removed hardcoded FEATURE_COLUMNS and TARGET_COLUMN
 
 
-def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Preprocess diabetes dataset - handle missing values encoded as 0."""
+def preprocess_data(df: pd.DataFrame, target_column: str) -> pd.DataFrame:
+    """Preprocess dataset - dynamically handle missing values."""
     df = df.copy()
-    # Columns where 0 is biologically implausible (treat as missing)
-    zero_as_missing = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
-    for col in zero_as_missing:
-        if col in df.columns:
-            df[col] = df[col].replace(0, np.nan)
+    
+    # Simple dynamic imputation: replace NA with median for numeric columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    for col in numeric_cols:
+        if col != target_column:
             df[col] = df[col].fillna(df[col].median())
+            
     return df
 
 
-def load_hospital_data(hospital_id: int, server_id: int) -> Optional[pd.DataFrame]:
+def load_hospital_data(hospital_id: int, server_id: int, target_column: str) -> Optional[pd.DataFrame]:
     """Load dataset for a specific hospital."""
     data_dir = os.path.join(settings.DATA_DIR, f"hospital_{hospital_id}", f"server_{server_id}")
     if not os.path.exists(data_dir):
@@ -45,23 +41,37 @@ def load_hospital_data(hospital_id: int, server_id: int) -> Optional[pd.DataFram
         return None
 
     df = pd.read_csv(os.path.join(data_dir, csv_files[0]))
-    return preprocess_data(df)
+    return preprocess_data(df, target_column)
 
 
 def train_local_model(
     df: pd.DataFrame,
+    feature_columns: List[str],
+    target_column: str,
     params: Optional[Dict] = None,
     num_boost_round: int = 50,
     existing_model: Optional[xgb.Booster] = None
 ) -> Tuple[xgb.Booster, Dict[str, float]]:
     """Train XGBoost model on local hospital data."""
-    X = df[FEATURE_COLUMNS].values
-    y = df[TARGET_COLUMN].values
+    X = df[feature_columns].values
+    y = df[target_column].values
 
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    # Handle small datasets or single-class datasets for stratification
+    unique_classes, class_counts = np.unique(y, return_counts=True)
+    can_stratify = len(unique_classes) > 1 and np.min(class_counts) > 1
+    
+    try:
+        if can_stratify:
+            X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        else:
+            X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    except Exception:
+        # Final fallback: just use everything for training if split fails (very small data)
+        X_train, y_train = X, y
+        X_val, y_val = X, y
 
-    dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=FEATURE_COLUMNS)
-    dval = xgb.DMatrix(X_val, label=y_val, feature_names=FEATURE_COLUMNS)
+    dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=feature_columns)
+    dval = xgb.DMatrix(X_val, label=y_val, feature_names=feature_columns)
 
     if params is None:
         params = {
@@ -100,16 +110,16 @@ def train_local_model(
     return model, metrics
 
 
-def predict_single(model: xgb.Booster, features: Dict[str, float]) -> Dict:
+def predict_single(model: xgb.Booster, features: Dict[str, float], feature_columns: List[str]) -> Dict:
     """Make prediction for a single input."""
-    input_array = np.array([[features.get(col, 0) for col in FEATURE_COLUMNS]])
-    dmatrix = xgb.DMatrix(input_array, feature_names=FEATURE_COLUMNS)
+    input_array = np.array([[features.get(col, 0) for col in feature_columns]])
+    dmatrix = xgb.DMatrix(input_array, feature_names=feature_columns)
     proba = model.predict(dmatrix)[0]
 
     prediction = 1 if proba > 0.5 else 0
     return {
         "prediction": prediction,
-        "prediction_label": "Diabetic" if prediction == 1 else "Non-Diabetic",
+        "prediction_label": "Positive" if prediction == 1 else "Negative",
         "confidence": float(max(proba, 1 - proba)),
         "probability_positive": float(proba),
         "probability_negative": float(1 - proba),

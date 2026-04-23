@@ -1,27 +1,69 @@
-import { useState } from 'react'
-import { makePrediction, getPredictionHistory } from '../api'
+import { useState, useEffect } from 'react'
+import { makePrediction, getPredictionHistory, getServers } from '../api'
 import { useApp } from '../contexts/AppContext'
 
-const featureInfo = [
-  { key: 'Pregnancies', label: 'Pregnancies', placeholder: 'e.g. 2', desc: 'Number of pregnancies' },
-  { key: 'Glucose', label: 'Glucose', placeholder: 'e.g. 120', desc: 'Plasma glucose (mg/dL)' },
-  { key: 'BloodPressure', label: 'Blood Pressure', placeholder: 'e.g. 72', desc: 'Diastolic BP (mm Hg)' },
-  { key: 'SkinThickness', label: 'Skin Thickness', placeholder: 'e.g. 30', desc: 'Triceps fold (mm)' },
-  { key: 'Insulin', label: 'Insulin', placeholder: 'e.g. 100', desc: '2-Hour serum insulin (mu U/ml)' },
-  { key: 'BMI', label: 'BMI', placeholder: 'e.g. 32.5', desc: 'Body mass index (kg/m²)' },
-  { key: 'DiabetesPedigreeFunction', label: 'Diabetes Pedigree', placeholder: 'e.g. 0.5', desc: 'Genetic function score' },
-  { key: 'Age', label: 'Age', placeholder: 'e.g. 35', desc: 'Age in years' },
-]
-
 export default function Predictions() {
-  const [form, setForm] = useState(
-    Object.fromEntries(featureInfo.map(f => [f.key, '']))
-  )
+  const [servers, setServers] = useState([])
+  const [selectedServer, setSelectedServer] = useState(null)
+
+  const [featureColumns, setFeatureColumns] = useState([])
+  const [form, setForm] = useState({})
+
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
   const [predicting, setPredicting] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [loading, setLoading] = useState(false)
+
   const { addToast } = useApp()
+
+  useEffect(() => {
+    loadServers()
+  }, [])
+
+  useEffect(() => {
+    if (selectedServer) {
+      if (selectedServer.feature_columns) {
+        try {
+          const cols = JSON.parse(selectedServer.feature_columns)
+          setFeatureColumns(cols)
+          setForm(Object.fromEntries(cols.map(c => [c, ''])))
+        } catch (e) {
+          console.error("Failed to parse features", e)
+          setFeatureColumns([])
+          setForm({})
+        }
+      } else {
+        setFeatureColumns([])
+        setForm({})
+      }
+    }
+  }, [selectedServer])
+
+  async function loadServers() {
+    setLoading(true)
+    try {
+      const res = await getServers()
+      // Only show active or completed servers
+      const validServers = res.data.filter(s => s.status !== 'PENDING')
+      setServers(validServers)
+      if (validServers.length > 0) {
+        setSelectedServer(validServers[0])
+      }
+    } catch (err) {
+      addToast("Failed to load servers", "error")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleServerChange(e) {
+    const srv = servers.find(s => s.id === parseInt(e.target.value))
+    setSelectedServer(srv)
+    setResult(null)
+    setShowHistory(false)
+    setHistory([])
+  }
 
   function updateField(key, value) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -29,33 +71,37 @@ export default function Predictions() {
 
   async function handlePredict(e) {
     if (e) e.preventDefault()
-    
+
     // Validate all fields are filled
-    const unfilled = featureInfo.filter(f => !form[f.key])
+    const unfilled = featureColumns.filter(f => !form[f])
     if (unfilled.length > 0) {
-      addToast(`Please fill all fields: ${unfilled.map(f => f.label).join(', ')}`, 'warning')
+      addToast(`Please fill all fields: ${unfilled.join(', ')}`, 'warning')
       return
     }
 
     setPredicting(true)
     try {
-      const payload = { server_id: 1 }
-      featureInfo.forEach(f => {
-        payload[f.key] = parseFloat(form[f.key]) || 0
+      const payload = {
+        server_id: selectedServer.id,
+        features: {}
+      }
+      featureColumns.forEach(f => {
+        payload.features[f] = parseFloat(form[f]) || 0
       })
       const res = await makePrediction(payload)
       setResult(res.data)
-      addToast('Prediction generated using global model!', 'success')
+      addToast('Prediction generated successfully!', 'success')
     } catch (err) {
-      addToast(err.response?.data?.detail || 'Prediction failed. Train the global model first.', 'error')
+      addToast(err.response?.data?.detail || 'Prediction failed. Global model may not be trained yet.', 'error')
     } finally {
       setPredicting(false)
     }
   }
 
   async function loadHistory() {
+    if (!selectedServer) return
     try {
-      const res = await getPredictionHistory(1)
+      const res = await getPredictionHistory(selectedServer.id)
       setHistory(res.data)
       setShowHistory(true)
     } catch (e) {
@@ -64,11 +110,16 @@ export default function Predictions() {
   }
 
   function fillSample() {
-    setForm({
-      Pregnancies: '5', Glucose: '166', BloodPressure: '72',
-      SkinThickness: '19', Insulin: '175', BMI: '25.8',
-      DiabetesPedigreeFunction: '0.587', Age: '51',
+    const newForm = {}
+    featureColumns.forEach(c => {
+      // just inject random reasonable values based on name
+      let val = (Math.random() * 100).toFixed(1)
+      if (c.toLowerCase().includes('age')) val = Math.floor(Math.random() * 50 + 20)
+      else if (c.toLowerCase().includes('bmi')) val = (Math.random() * 15 + 18).toFixed(1)
+
+      newForm[c] = val
     })
+    setForm(newForm)
   }
 
   const shapValues = result?.explanation_data ? JSON.parse(result.explanation_data) : null
@@ -78,11 +129,11 @@ export default function Predictions() {
       <div className="page-header">
         <div>
           <h1>🔮 Predictions</h1>
-          <p>Make diabetes predictions using the federated model</p>
+          <p>Run inference on your federated global models</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" onClick={fillSample}>Fill Sample</button>
-          <button className="btn btn-secondary" onClick={loadHistory}>View History</button>
+          <button className="btn btn-secondary" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0}>Fill Sample</button>
+          <button className="btn btn-secondary" onClick={loadHistory} disabled={!selectedServer}>View History</button>
         </div>
       </div>
 
@@ -92,41 +143,62 @@ export default function Predictions() {
           <div className="section-header">
             <h3>📋 Patient Features</h3>
           </div>
-          <form onSubmit={handlePredict}>
-            <div className="form-row">
-              {featureInfo.map(f => (
-                <div className="form-group" key={f.key}>
-                  <label className="form-label">{f.label}</label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="form-input"
-                    placeholder={f.placeholder}
-                    value={form[f.key]}
-                    onChange={e => updateField(f.key, e.target.value)}
-                  />
-                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                    {f.desc}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              disabled={predicting}
-              style={{ width: '100%', justifyContent: 'center', marginTop: '8px' }}
+
+          <div className="form-group" style={{ marginBottom: '24px' }}>
+            <label className="form-label">Select Disease Model Pipeline</label>
+            <select
+              className="form-input"
+              value={selectedServer?.id || ''}
+              onChange={handleServerChange}
+              disabled={servers.length === 0}
             >
-              {predicting ? 'Analyzing...' : '🔮 Predict Diabetes Risk'}
-            </button>
-          </form>
+              {servers.length === 0 && <option value="">No Active Models Available</option>}
+              {servers.map(s => (
+                <option key={s.id} value={s.id}>{s.name} ({s.disease_type})</option>
+              ))}
+            </select>
+          </div>
+
+          {selectedServer && featureColumns.length === 0 && (
+            <div className="empty-state" style={{ padding: '24px 0' }}>
+              <p>No feature mapping found. Please upload a dataset to this server first.</p>
+            </div>
+          )}
+
+          {selectedServer && featureColumns.length > 0 && (
+            <form onSubmit={handlePredict}>
+              <div className="form-row">
+                {featureColumns.map(f => (
+                  <div className="form-group" key={f}>
+                    <label className="form-label">{f}</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className="form-input"
+                      placeholder={`Enter ${f}...`}
+                      value={form[f]}
+                      onChange={e => updateField(f, e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg"
+                disabled={predicting}
+                style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}
+              >
+                {predicting ? 'Analyzing...' : `🔮 Predict ${selectedServer.disease_type} Risk`}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Result */}
         <div className="card">
           {result ? (
             <div>
-              <div className="prediction-result">
+              <div className="prediction-result" style={{ marginTop: 0 }}>
                 <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`}>
                   {result.prediction === 1 ? '⚠️' : '✅'}
                 </div>
@@ -144,8 +216,8 @@ export default function Predictions() {
               {/* Probability bar */}
               <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(15, 23, 52, 0.5)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: 'var(--font-size-sm)' }}>
-                  <span style={{ color: 'var(--color-accent-green)' }}>Non-Diabetic: {(result.probability_negative * 100).toFixed(1)}%</span>
-                  <span style={{ color: 'var(--color-accent-red)' }}>Diabetic: {(result.probability_positive * 100).toFixed(1)}%</span>
+                  <span style={{ color: 'var(--color-accent-green)' }}>Negative: {(result.probability_negative * 100).toFixed(1)}%</span>
+                  <span style={{ color: 'var(--color-accent-red)' }}>Positive: {(result.probability_positive * 100).toFixed(1)}%</span>
                 </div>
                 <div className="progress-bar" style={{ height: '12px' }}>
                   <div className="progress-fill" style={{
@@ -167,7 +239,7 @@ export default function Predictions() {
                       const width = (Math.abs(value) / maxVal) * 100
                       return (
                         <div key={feature} className="shap-bar-container">
-                          <span className="shap-feature-name">{feature}</span>
+                          <span className="shap-feature-name">{feature.length > 15 ? feature.substring(0, 15) + '...' : feature}</span>
                           <div className="shap-bar-wrapper">
                             <div className={`shap-bar ${value > 0 ? 'positive' : 'negative'}`}
                               style={{ width: `${Math.max(width, 5)}%` }}
@@ -185,8 +257,8 @@ export default function Predictions() {
           ) : (
             <div className="empty-state">
               <div className="empty-icon">🔮</div>
-              <h4>Enter Patient Data</h4>
-              <p>Fill in the patient features and click predict to get a diabetes risk assessment</p>
+              <h4>Awaiting Input</h4>
+              <p>Select a model and fill in the patient features to get a prediction</p>
             </div>
           )}
         </div>
@@ -205,7 +277,7 @@ export default function Predictions() {
                 <th>ID</th>
                 <th>Result</th>
                 <th>Confidence</th>
-                <th>P(Diabetic)</th>
+                <th>P(Positive)</th>
                 <th>Timestamp</th>
               </tr>
             </thead>
@@ -234,3 +306,4 @@ export default function Predictions() {
     </div>
   )
 }
+

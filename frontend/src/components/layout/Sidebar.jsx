@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { 
-  HiOutlineViewGrid, HiOutlineServer, HiOutlineDatabase,
+import {
+  HiOutlineViewGrid, HiOutlineServer,
   HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineEye,
   HiOutlineShieldCheck
 } from 'react-icons/hi'
@@ -8,7 +8,6 @@ import {
 const navItems = [
   { path: '/', label: 'Dashboard', icon: <HiOutlineViewGrid />, section: 'overview' },
   { path: '/servers', label: 'Disease Servers', icon: <HiOutlineServer />, section: 'management' },
-  { path: '/datasets', label: 'Datasets', icon: <HiOutlineDatabase />, section: 'management' },
   { path: '/training', label: 'FL Training', icon: <HiOutlineLightningBolt />, section: 'ai' },
   { path: '/predictions', label: 'Predictions', icon: <HiOutlineChartBar />, section: 'ai' },
   { path: '/explainability', label: 'Explainability', icon: <HiOutlineEye />, section: 'ai' },

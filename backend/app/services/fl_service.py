@@ -6,7 +6,6 @@ import pandas as pd
 import xgboost as xgb
 from typing import Dict, List, Optional, Tuple
 from app.services.ai_service import (
-    FEATURE_COLUMNS, TARGET_COLUMN,
     preprocess_data, load_hospital_data,
     train_local_model, save_model, load_model,
 )
@@ -16,8 +15,10 @@ from app.core import settings
 class FederatedLearningEngine:
     """Simulated Federated Learning engine using FedAvg for XGBoost."""
 
-    def __init__(self, server_id: int, num_rounds: int = 5, local_epochs: int = 10):
+    def __init__(self, server_id: int, feature_columns: List[str], target_column: str, num_rounds: int = 5, local_epochs: int = 10):
         self.server_id = server_id
+        self.feature_columns = feature_columns
+        self.target_column = target_column
         self.num_rounds = num_rounds
         self.local_epochs = local_epochs
         self.global_model: Optional[xgb.Booster] = None
@@ -27,7 +28,7 @@ class FederatedLearningEngine:
         """Load data for all participating hospitals."""
         data = {}
         for hid in hospital_ids:
-            df = load_hospital_data(hid, self.server_id)
+            df = load_hospital_data(hid, self.server_id, self.target_column)
             if df is not None and len(df) > 0:
                 data[hid] = df
         return data
@@ -122,6 +123,8 @@ class FederatedLearningEngine:
             for hid, df in hospital_data.items():
                 model, metrics = train_local_model(
                     df,
+                    feature_columns=self.feature_columns,
+                    target_column=self.target_column,
                     params=params,
                     num_boost_round=self.local_epochs + (round_num * 5),
                     existing_model=self.global_model,
@@ -154,9 +157,9 @@ class FederatedLearningEngine:
             all_accuracies = []
             all_losses = []
             for hid, df in hospital_data.items():
-                X = df[FEATURE_COLUMNS].values
-                y = df[TARGET_COLUMN].values
-                dtest = xgb.DMatrix(X, feature_names=FEATURE_COLUMNS)
+                X = df[self.feature_columns].values
+                y = df[self.target_column].values
+                dtest = xgb.DMatrix(X, feature_names=self.feature_columns)
                 preds = self.global_model.predict(dtest)
                 pred_labels = (preds > 0.5).astype(int)
                 from sklearn.metrics import accuracy_score, log_loss

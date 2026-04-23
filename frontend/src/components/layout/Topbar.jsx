@@ -1,4 +1,5 @@
 import { useLocation, Link } from 'react-router-dom'
+import { useApp } from '../../contexts/AppContext'
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -13,6 +14,10 @@ const pageTitles = {
 export default function Topbar() {
   const location = useLocation()
   const title = pageTitles[location.pathname] || 'FedCare AI'
+  const { userName, userRole, hospitalName } = useApp()
+
+  const displayName = userRole === 'HOSPITAL' ? (hospitalName || userName) : userName
+  const displayRole = userRole === 'ADMIN' ? 'FedCare Admin' : 'Hospital Partner'
 
   return (
     <header className="topbar" id="main-topbar">
@@ -36,8 +41,8 @@ export default function Topbar() {
           transition: 'all 0.2s',
         }} onMouseOver={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'} 
            onMouseOut={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}>
-          <span>🏥</span>
-          <span>FedCare Admin</span>
+          <span>{userRole === 'ADMIN' ? '🛡️' : '🏥'}</span>
+          <span>{displayName || displayRole}</span>
         </Link>
       </div>
     </header>

@@ -8,21 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class PredictionInput(BaseModel):
     server_id: int = Field(..., description="ID of the disease server")
-    Pregnancies: float = Field(..., ge=0, le=20, description="Number of pregnancies")
-    Glucose: float = Field(..., ge=0, le=300, description="Plasma glucose concentration")
-    BloodPressure: float = Field(..., ge=0, le=200, description="Diastolic blood pressure (mm Hg)")
-    SkinThickness: float = Field(..., ge=0, le=100, description="Triceps skin fold thickness (mm)")
-    Insulin: float = Field(..., ge=0, le=1000, description="2-Hour serum insulin (mu U/ml)")
-    BMI: float = Field(..., ge=0, le=70, description="Body mass index (weight in kg/(height in m)^2)")
-    DiabetesPedigreeFunction: float = Field(..., ge=0, le=3.0, description="Diabetes pedigree function")
-    Age: float = Field(..., ge=0, le=120, description="Age (years)")
-
-    @field_validator("Glucose", "BloodPressure", "BMI", "Age")
-    @classmethod
-    def validate_non_zero(cls, v):
-        if v <= 0:
-            raise ValueError("Value must be greater than zero for clinical assessment")
-        return v
+    features: Dict[str, float] = Field(..., description="Key-value pairs of feature names and their values")
 
 
 class PredictionResponse(BaseModel):

@@ -11,12 +11,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from typing import Dict, List, Optional
-from app.services.ai_service import FEATURE_COLUMNS, load_model
+from app.services.ai_service import load_model
 
 
 def generate_shap_explanation(
     server_id: int,
     input_features: Dict[str, float],
+    feature_columns: List[str]
 ) -> Dict:
     """Generate SHAP explanation for a prediction."""
     model = load_model(server_id)
@@ -24,8 +25,8 @@ def generate_shap_explanation(
         return {"error": "No trained model found"}
 
     # Create input array
-    input_array = np.array([[input_features.get(col, 0) for col in FEATURE_COLUMNS]])
-    input_df = pd.DataFrame(input_array, columns=FEATURE_COLUMNS)
+    input_array = np.array([[input_features.get(col, 0) for col in feature_columns]])
+    input_df = pd.DataFrame(input_array, columns=feature_columns)
 
     # Create SHAP explainer
     explainer = shap.TreeExplainer(model)
@@ -42,7 +43,7 @@ def generate_shap_explanation(
     # Build per-feature breakdown
     shap_dict = {}
     feature_importance_list = []
-    for i, col in enumerate(FEATURE_COLUMNS):
+    for i, col in enumerate(feature_columns):
         val = float(shap_vals[i])
         shap_dict[col] = val
         feature_importance_list.append({
@@ -61,7 +62,7 @@ def generate_shap_explanation(
         base_value = float(explainer.expected_value[0])
 
     # Generate SHAP bar plot as base64
-    plot_base64 = _generate_shap_plot(shap_vals, FEATURE_COLUMNS, input_features)
+    plot_base64 = _generate_shap_plot(shap_vals, feature_columns, input_features)
 
     return {
         "shap_values": shap_dict,
@@ -71,7 +72,7 @@ def generate_shap_explanation(
     }
 
 
-def generate_global_feature_importance(server_id: int) -> Dict:
+def generate_global_feature_importance(server_id: int, feature_columns: List[str]) -> Dict:
     """Generate global feature importance from the model."""
     model = load_model(server_id)
     if model is None:
@@ -85,10 +86,10 @@ def generate_global_feature_importance(server_id: int) -> Dict:
         try:
             scores = model.get_score(importance_type=imp_type)
             importance_data[imp_type] = {
-                col: float(scores.get(col, 0)) for col in FEATURE_COLUMNS
+                col: float(scores.get(col, 0)) for col in feature_columns
             }
         except Exception:
-            importance_data[imp_type] = {col: 0.0 for col in FEATURE_COLUMNS}
+            importance_data[imp_type] = {col: 0.0 for col in feature_columns}
 
     # Normalize gain-based importance
     gain_scores = importance_data.get("gain", {})
@@ -97,7 +98,7 @@ def generate_global_feature_importance(server_id: int) -> Dict:
 
     feature_list = [
         {"feature": col, "importance": normalized.get(col, 0)}
-        for col in FEATURE_COLUMNS
+        for col in feature_columns
     ]
     feature_list.sort(key=lambda x: x["importance"], reverse=True)
 

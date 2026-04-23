@@ -11,7 +11,7 @@ from app.models.disease_server import ServerStatus, InputType, ModelType, FLAlgo
 from app.core import settings
 from passlib.context import CryptContext
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.core.security import pwd_context
 
 # Source CSV files (the hospital datasets in the project root)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -56,7 +56,31 @@ async def seed_database():
 
         # 2. Create Hospital users and hospitals
         hospital_records = []
-        for i, hosp_info in enumerate(HOSPITALS, 1):
+        
+        # Add user's custom account
+        HOSPITALS.insert(0, {"name": "User Hospital", "location": "System"})
+        custom_user = User(
+            name="AJ User",
+            email="aj@gmail.com",
+            password_hash=pwd_context.hash("123456"), # Using a common 6-digit password for the demo
+            role=UserRole.HOSPITAL,
+            is_active=True,
+        )
+        session.add(custom_user)
+        await session.flush()
+        
+        custom_hosp = Hospital(
+            name="Primary Healthcare Center",
+            location="Remote",
+            user_id=custom_user.id,
+            dataset_count=0,
+        )
+        session.add(custom_hosp)
+        await session.flush()
+        hospital_records.append(custom_hosp)
+        print(f"  [OK] Custom user aj@gmail.com created")
+
+        for i, hosp_info in enumerate(HOSPITALS[1:], 1):
             user = User(
                 name=f"{hosp_info['name']} User",
                 email=f"hospital{i}@fedcare.ai",

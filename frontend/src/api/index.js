@@ -1,10 +1,14 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+const API_BASE_URL = '/api/v1'
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 })
+
+// Auth
+export const login = (data) => api.post('/auth/login', data)
 
 // Servers
 export const getServers = () => api.get('/servers/')
@@ -37,6 +41,7 @@ export const uploadDataset = (serverId, file) => {
 
 // Training
 export const startTraining = (data) => api.post('/training/start', data)
+export const trainFullModel = (data) => api.post('/training/train-full', data)
 export const getTrainingStatus = (serverId) => api.get(`/training/status/${serverId}`)
 export const getTrainingLogs = (serverId, logType) => api.get(`/training/logs/${serverId}`, { params: { log_type: logType } })
 
@@ -50,10 +55,13 @@ export const getFeatureImportance = (serverId) => api.get(`/predictions/feature-
 export const getHealth = () => api.get('/health/')
 
 export default {
+  login,
   getServers, getServer, createServer, updateServer, deleteServer, getServerMembers,
-  getDatasets, getDatasetStats, getDatasetPreview, uploadDataset,
-  startTraining, getTrainingStatus, getTrainingLogs,
+  joinServer, updateMemberStatus,
+  getDatasets, getDatasetStats, getDatasetPreview, uploadDataset, clearDatasets,
+  startTraining, trainFullModel, getTrainingStatus, getTrainingLogs,
   makePrediction, getPredictionHistory, getExplanation, getFeatureImportance,
   getHealth
 }
+
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getServers, getServerMembers, joinServer, updateMemberStatus, createServer, deleteServer } from '../api'
 import { useApp } from '../contexts/AppContext'
 
@@ -12,6 +13,7 @@ export default function Servers() {
   const [newServerForm, setNewServerForm] = useState({ name: '', disease_type: '', description: '', num_rounds: 5, target_column: 'target' })
   const { addToast, userRole } = useApp()
   const isAdmin = userRole === 'admin'
+  const navigate = useNavigate()
 
   useEffect(() => { loadServers() }, [])
 
@@ -151,8 +153,9 @@ export default function Servers() {
           {servers.map(srv => (
             <div
               key={srv.id}
-              onClick={() => selectServer(srv)}
+              onClick={() => navigate(`/servers/${srv.id}`)}
               className={`server-item ${selectedServer?.id === srv.id ? 'active' : ''}`}
+              style={{ cursor: 'pointer' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontWeight: 600, color: 'var(--color-text-bright)' }}>{srv.name}</span>

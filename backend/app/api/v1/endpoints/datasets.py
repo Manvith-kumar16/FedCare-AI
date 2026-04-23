@@ -62,6 +62,11 @@ async def upload_dataset(
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
 
+    # Validate file extension
+    filename_lower = (file.filename or '').lower()
+    if not (filename_lower.endswith('.csv') or filename_lower.endswith('.txt')):
+        raise HTTPException(status_code=400, detail="Only .csv and .txt files are supported")
+
     # Create directories
     upload_dir = os.path.join(settings.DATA_DIR, f"hospital_{hospital_id}", f"server_{server_id}")
     os.makedirs(upload_dir, exist_ok=True)
@@ -75,18 +80,58 @@ async def upload_dataset(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not save file: {str(e)}")
 
-    # Parse CSV for metadata
+    # Parse file for metadata (supports .csv and .txt with various delimiters)
+    import asyncio
+    from functools import partial
+    loop = asyncio.get_event_loop()
+    
     try:
-        df = pd.read_csv(file_path)
+        # Enhanced robust delimiter detection - Run in executor to avoid blocking loop
+        async def parse_data():
+            try:
+                df = pd.read_csv(file_path, sep=None, engine='python')
+                if df.shape[1] <= 1:
+                    for s in [',', '\t', ';', r'\s+']:
+                        df = pd.read_csv(file_path, sep=s, engine='python')
+                        if df.shape[1] > 1:
+                            break
+            except Exception:
+                df = pd.read_csv(file_path)
+            return df
+
+        df = await loop.run_in_executor(None, parse_data)
+
+        if df.shape[1] <= 1:
+            raise ValueError("CSV/TXT parsing failed: Only one column detected. Please check delimiters (comma, tab, or space).")
+
         row_count = len(df)
         columns = list(df.columns)
-        feature_count = len(columns) - 1 # Assuming last is target
-        target_column = columns[-1]
+        
+        # Determine target column — auto-detect if configured name not in CSV
+        configured_target = server.target_column  
+        common_targets = [configured_target, 'target', 'outcome', 'Outcome', 'label', 'Label',
+                          'class', 'Class', 'diagnosis', 'Diagnosis', 'result', 'Result', 'y']
+        
+        target_column = None
+        for candidate in common_targets:
+            if candidate and candidate in columns:
+                target_column = candidate
+                break
+        
+        if target_column is None:
+            target_column = columns[-1]
+        
+        server.target_column = target_column
+        feature_columns = [col for col in columns if col != target_column]
+        feature_count = len(feature_columns)
         file_size_kb = round(os.path.getsize(file_path) / 1024, 2)
+        server.feature_columns = json.dumps(feature_columns)
+            
     except Exception as e:
         if os.path.exists(file_path):
             os.remove(file_path)
         raise HTTPException(status_code=400, detail=f"Invalid CSV file: {str(e)}")
+
 
     # Create database record
     dataset = Dataset(

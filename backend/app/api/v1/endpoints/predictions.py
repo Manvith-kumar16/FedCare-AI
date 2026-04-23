@@ -7,7 +7,7 @@ from typing import List
 from app.db import get_db
 from app.models import DiseaseServer, Prediction
 from app.schemas.prediction import PredictionInput, PredictionResponse, ExplanationResponse
-from app.services.ai_service import load_model, predict_single, FEATURE_COLUMNS
+from app.services.ai_service import load_model, predict_single
 from app.services.xai_service import generate_shap_explanation, generate_global_feature_importance
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
@@ -26,25 +26,18 @@ async def make_prediction(data: PredictionInput, db: AsyncSession = Depends(get_
     model = load_model(data.server_id)
     if model is None:
         raise HTTPException(status_code=400, detail="No trained model found. Please run training first.")
-
-    # Prepare features
-    features = {
-        "Pregnancies": data.Pregnancies,
-        "Glucose": data.Glucose,
-        "BloodPressure": data.BloodPressure,
-        "SkinThickness": data.SkinThickness,
-        "Insulin": data.Insulin,
-        "BMI": data.BMI,
-        "DiabetesPedigreeFunction": data.DiabetesPedigreeFunction,
-        "Age": data.Age,
-    }
+        
+    feature_columns = json.loads(server.feature_columns) if server.feature_columns else []
+    
+    # Filter features based on what was parsed from dataset
+    features = { col: float(data.features.get(col, 0.0)) for col in feature_columns }
 
     # Make prediction
-    pred_result = predict_single(model, features)
+    pred_result = predict_single(model, features, feature_columns)
 
     # Generate SHAP explanation
     try:
-        explanation = generate_shap_explanation(data.server_id, features)
+        explanation = generate_shap_explanation(data.server_id, features, feature_columns)
         explanation_json = json.dumps(explanation.get("shap_values", {}))
         importance_json = json.dumps(explanation.get("feature_importance", []))
     except Exception as e:
@@ -121,8 +114,12 @@ async def get_explanation(prediction_id: int, db: AsyncSession = Depends(get_db)
         raise HTTPException(status_code=404, detail="Prediction not found")
 
     # Re-generate SHAP explanation
+    result_server = await db.execute(select(DiseaseServer).where(DiseaseServer.id == prediction.server_id))
+    server = result_server.scalar_one_or_none()
+    feature_columns = json.loads(server.feature_columns) if server and server.feature_columns else []
+
     input_data = json.loads(prediction.input_data)
-    explanation = generate_shap_explanation(prediction.server_id, input_data)
+    explanation = generate_shap_explanation(prediction.server_id, input_data, feature_columns)
 
     if "error" in explanation:
         raise HTTPException(status_code=500, detail=explanation["error"])
@@ -139,9 +136,16 @@ async def get_explanation(prediction_id: int, db: AsyncSession = Depends(get_db)
 
 
 @router.get("/feature-importance/{server_id}")
-async def get_feature_importance(server_id: int):
+async def get_feature_importance(server_id: int, db: AsyncSession = Depends(get_db)):
     """Get global feature importance for a server's model."""
-    result = generate_global_feature_importance(server_id)
+    result_server = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+    server = result_server.scalar_one_or_none()
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+        
+    feature_columns = json.loads(server.feature_columns) if server.feature_columns else []
+    
+    result = generate_global_feature_importance(server_id, feature_columns)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result

@@ -3,6 +3,7 @@ import { AppProvider, useApp } from './contexts/AppContext'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
 import Servers from './pages/Servers'
+import ServerDetail from './pages/ServerDetail'
 import Datasets from './pages/Datasets'
 import Training from './pages/Training'
 import Predictions from './pages/Predictions'
@@ -26,6 +27,7 @@ function AppContent() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="servers" element={<Servers />} />
+          <Route path="servers/:id" element={<ServerDetail />} />
           <Route path="datasets" element={<Datasets />} />
           <Route path="training" element={<Training />} />
           <Route path="predictions" element={<Predictions />} />

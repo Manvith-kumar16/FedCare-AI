@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiOutlineOfficeBuilding, HiOutlineShieldCheck, HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi'
 import { useApp } from '../contexts/AppContext'
+import api from '../api'
 import './Login.css'
 
 export default function Login() {
@@ -13,24 +14,31 @@ export default function Login() {
   })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { addToast, setIsAuthenticated, setUserRole } = useApp()
+  const { addToast, handleLoginSuccess } = useApp()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate authentication
-    setTimeout(() => {
-      setLoading(false)
-      setIsAuthenticated(true)
-      setUserRole(role)
-      addToast(`Successfully logged in as ${role === 'hospital' ? 'Hospital' : 'Admin'}`, 'success')
+    try {
+      const response = await api.login({
+        email: formData.email,
+        password: formData.password
+      })
+      
+      handleLoginSuccess(response.data)
+      addToast(`Welcome back, ${response.data.user.name}!`, 'success')
       navigate('/')
-    }, 1500)
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Authentication failed'
+      addToast(msg, 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -70,22 +78,7 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
-          {role === 'hospital' && (
-            <div className="input-group slide-down">
-              <label>Hospital Name</label>
-              <div className="input-field">
-                <HiOutlineOfficeBuilding className="input-icon" />
-                <input
-                  type="text"
-                  name="hospitalName"
-                  placeholder="e.g. Mount Sinai Medical"
-                  value={formData.hospitalName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-          )}
+          {/* Hospital Name field is no longer needed during login since we look it up by email */}
 
           <div className="input-group slide-down" style={{ animationDelay: '0.1s' }}>
             <label>Email Address</label>

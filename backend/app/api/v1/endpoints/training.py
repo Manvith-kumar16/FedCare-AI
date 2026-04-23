@@ -69,13 +69,18 @@ async def start_training(
     await db.commit()
 
     # Background task for federated learning
+    feature_columns = json.loads(server.feature_columns) if server.feature_columns else []
+    target_column = server.target_column
+
     background_tasks.add_task(
         run_training_simulation,
         data.server_id,
         hospital_ids,
         hospital_names,
         num_rounds,
-        data.local_epochs or 10
+        data.local_epochs or 10,
+        feature_columns,
+        target_column
     )
 
     return {
@@ -85,13 +90,15 @@ async def start_training(
     }
 
 
-async def run_training_simulation(server_id, hospital_ids, hospital_names, num_rounds, local_epochs):
+async def run_training_simulation(server_id, hospital_ids, hospital_names, num_rounds, local_epochs, feature_columns, target_column):
     """Internal task to run the FL engine and update DB."""
     from app.db.session import AsyncSessionLocal
     
     async with AsyncSessionLocal() as db:
         fl_engine = FederatedLearningEngine(
             server_id=server_id,
+            feature_columns=feature_columns,
+            target_column=target_column,
             num_rounds=num_rounds,
             local_epochs=local_epochs,
         )
@@ -238,3 +245,218 @@ async def get_training_logs(
         )
         for log in logs
     ]
+
+
+# ─── Direct Full XGBoost Training (no FedAvg) ─────────────────────────────
+
+@router.post("/train-full")
+async def train_full_model(
+    data: TrainingRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db)
+):
+    """Train a single full XGBoost model on all server datasets (no federated averaging)."""
+    result = await db.execute(select(DiseaseServer).where(DiseaseServer.id == data.server_id))
+    server = result.scalar_one_or_none()
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    if server.status == ServerStatus.TRAINING:
+        raise HTTPException(status_code=400, detail="Training already in progress")
+
+    ds_result = await db.execute(select(Dataset).where(Dataset.server_id == data.server_id))
+    datasets = ds_result.scalars().all()
+    if not datasets:
+        raise HTTPException(status_code=400, detail="No datasets uploaded for this server")
+
+    feature_columns = json.loads(server.feature_columns) if server.feature_columns else []
+    target_column = server.target_column
+
+    server.status = ServerStatus.TRAINING
+    await db.commit()
+
+    background_tasks.add_task(
+        _run_full_xgboost_training,
+        data.server_id,
+        feature_columns,
+        target_column,
+        data.num_rounds or 100,   # use num_rounds as num_boost_round for XGBoost trees
+    )
+
+    return {
+        "status": "training_started",
+        "server_id": data.server_id,
+        "message": f"Full XGBoost training started on {len(datasets)} dataset(s)"
+    }
+
+
+async def _run_full_xgboost_training(server_id: int, feature_columns: list, target_column: str, num_boost_round: int):
+    """Background task: load all datasets, concat, train one XGBoost, save & log results."""
+    import os
+    import pandas as pd
+    from app.db.session import AsyncSessionLocal
+    from app.services.ai_service import train_local_model, save_model, preprocess_data
+    from app.core import settings
+    from sqlalchemy import delete, select, func
+    import traceback
+    import asyncio
+    from functools import partial
+
+    async with AsyncSessionLocal() as db:
+        async def emit_log(msg: str, round_num: int = 0):
+            l = TrainingLog(
+                server_id=server_id,
+                round_number=round_num,
+                hospital_name="SYSTEM",
+                log_type="info",
+                details=msg
+            )
+            db.add(l)
+            await db.commit()
+
+        with open("training_debug.log", "a") as f_log:
+            try:
+                await emit_log("Initializing XGBoost Training...")
+                f_log.write(f"\n--- Training session {server_id} started ---\n")
+                f_log.flush()
+                
+                # Load all dataset file paths for this server
+                print(f"[train-full] Starting training session for server {server_id}")
+                f_log.write(f"Querying datasets for server {server_id}...\n")
+                f_log.flush()
+                
+                ds_result = await db.execute(select(Dataset).where(Dataset.server_id == server_id))
+                datasets = ds_result.scalars().all()
+                await emit_log(f"Found {len(datasets)} datasets. Loading files...")
+                print(f"[train-full] Found {len(datasets)} dataset(s)")
+                f_log.write(f"Found {len(datasets)} datasets.\n")
+                f_log.flush()
+
+                dfs = []
+                loop = asyncio.get_event_loop()
+                for ds in datasets:
+                    try:
+                        fp = ds.file_path
+                        f_log.write(f"Loading {fp}...\n")
+                        f_log.flush()
+                        if not os.path.exists(fp):
+                            f_log.write(f"File {fp} does not exist!\n")
+                            continue
+                        
+                        # Run blocking IO/Parsing in a thread
+                        df = await loop.run_in_executor(None, partial(pd.read_csv, fp, sep=None, engine='python'))
+                        
+                        if df.shape[1] <= 1:
+                            # Fallback if auto-detection failed but we suspect it's whitespace-split
+                            df = await loop.run_in_executor(None, partial(pd.read_csv, fp, sep=r'\s+', engine='python'))
+
+                        df = await loop.run_in_executor(None, preprocess_data, df, target_column)
+                        dfs.append(df)
+                        f_log.write(f"Loaded {fp} with shape {df.shape}\n")
+                        f_log.flush()
+                    except Exception as e:
+                        f_log.write(f"Loaded {fp} with shape {df.shape}\n")
+                        f_log.flush()
+                    except Exception as e:
+                        f_log.write(f"Error loading {ds.id}: {str(e)}\n")
+                        f_log.flush()
+                        print(f"[train-full] Could not load dataset {ds.id}: {e}")
+
+                if not dfs:
+                    raise ValueError("No readable datasets found (files might be empty or missing)")
+
+                combined_df = await loop.run_in_executor(None, partial(pd.concat, dfs, ignore_index=True))
+                print(f"[train-full] Combined data: {combined_df.shape[0]} rows, {combined_df.shape[1]} columns")
+                f_log.write(f"Combined data shape: {combined_df.shape}\n")
+                f_log.flush()
+
+                # --- AUTO-REPAIR SCHEMA IF CORRUPTED ---
+                # If target_column looks like a header or features are empty, re-detect
+                if not feature_columns or len(target_column) > 50 or target_column not in combined_df.columns:
+                    await emit_log("Schema mismatch detected. Auto-repairing server configuration...")
+                    f_log.write("Malformed schema detected. Repairing...\n")
+                    cols = list(combined_df.columns)
+                    # Common target names
+                    candidates = ['outcome', 'target', 'label', 'Outcome', 'class', 'diagnosis', 'diabetes', 'y']
+                    new_target = None
+                    for c in candidates:
+                        if c in cols:
+                            new_target = c
+                            break
+                    if not new_target:
+                        new_target = cols[-1]
+                    
+                    target_column = new_target
+                    feature_columns = [c for c in cols if c != target_column]
+                    f_log.write(f"Repaired Schema -> Target: {target_column}, Features: {len(feature_columns)}\n")
+                    
+                    # Update server permanently
+                    srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+                    server = srv_res.scalar_one()
+                    server.target_column = target_column
+                    server.feature_columns = json.dumps(feature_columns)
+                    await db.commit()
+
+                # Validate columns
+                missing = [c for c in feature_columns + [target_column] if c not in combined_df.columns]
+                if missing:
+                    raise ValueError(f"Columns missing in data: {missing}")
+
+                # Train full XGBoost
+                print(f"[train-full] Starting XGBoost training (rounds={num_boost_round})...")
+                f_log.write(f"Starting XGBoost training...\n")
+                await emit_log(f"Training XGBoost Model ({num_boost_round} rounds)...")
+                f_log.flush()
+                
+                # Execute heavy model training in a thread to avoid blocking the event loop
+                model, metrics = await loop.run_in_executor(
+                    None, 
+                    partial(train_local_model, df=combined_df, feature_columns=feature_columns, target_column=target_column, num_boost_round=num_boost_round)
+                )
+                print(f"[train-full] Training complete. Accuracy: {metrics['accuracy']:.4f}")
+                f_log.write(f"Training complete. Metrics: {metrics}\n")
+                f_log.flush()
+
+                save_model(model, server_id, round_num=0)
+                f_log.write(f"Model saved.\n")
+                f_log.flush()
+
+                # Clear previous logs and write single-round result
+                await db.execute(delete(TrainingLog).where(TrainingLog.server_id == server_id))
+                log = TrainingLog(
+                    server_id=server_id,
+                    round_number=1,
+                    hospital_id=None,
+                    hospital_name="All Hospitals",
+                    local_accuracy=metrics["accuracy"],
+                    local_loss=metrics["loss"],
+                    local_f1=metrics["f1"],
+                    local_precision=metrics["precision"],
+                    local_recall=metrics["recall"],
+                    global_accuracy=metrics["accuracy"],
+                    global_loss=metrics["loss"],
+                    samples_trained=metrics["samples"],
+                    log_type="global",
+                )
+                db.add(log)
+
+                # Update server
+                srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+                server = srv_res.scalar_one()
+                server.status = ServerStatus.COMPLETED
+                server.current_round = 1
+                server.num_rounds = 1
+                server.global_accuracy = metrics["accuracy"]
+                await db.commit()
+                f_log.write(f"Database updated successfully. Training session {server_id} COMPLETED.\n")
+                f_log.flush()
+
+            except Exception as e:
+                err_msg = f"[train-full] CRITICAL ERROR: {str(e)}\n{traceback.format_exc()}"
+                print(err_msg)
+                f_log.write(err_msg + "\n")
+                f_log.flush()
+                srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+                server = srv_res.scalar_one()
+                server.status = ServerStatus.ACTIVE
+                await db.commit()

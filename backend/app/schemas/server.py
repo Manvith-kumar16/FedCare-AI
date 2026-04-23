@@ -13,6 +13,8 @@ class ServerCreate(BaseModel):
     fl_algorithm: str = "FedAvg"
     num_rounds: int = 5
     target_column: str = "Outcome"
+    
+    model_config = {"protected_namespaces": ()}
 
 
 class ServerUpdate(BaseModel):
@@ -41,8 +43,10 @@ class ServerResponse(BaseModel):
     member_count: Optional[int] = 0
     dataset_count: Optional[int] = 0
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True,
+        "protected_namespaces": ()
+    }
 
 
 class ServerMemberResponse(BaseModel):
