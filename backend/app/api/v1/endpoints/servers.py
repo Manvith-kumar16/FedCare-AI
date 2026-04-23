@@ -1,10 +1,10 @@
 """Disease Server endpoints"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from typing import List
 from app.db import get_db
-from app.models import DiseaseServer, ServerMember, Hospital, Dataset, MemberStatus
+from app.models import DiseaseServer, ServerMember, Hospital, Dataset, MemberStatus, TrainingLog, Prediction
 from app.models.disease_server import ServerStatus, InputType, ModelType, FLAlgorithm
 from app.schemas.server import (
     ServerCreate, ServerUpdate, ServerResponse, 
@@ -214,7 +214,7 @@ async def join_server(data: MemberJoin, db: AsyncSession = Depends(get_db)):
     member = ServerMember(
         server_id=data.server_id,
         hospital_id=data.hospital_id,
-        status=MemberStatus.PENDING
+        status=MemberStatus.APPROVED
     )
     db.add(member)
     await db.commit()
@@ -262,3 +262,22 @@ async def update_member_status(member_id: int, data: MemberUpdate, db: AsyncSess
         status=member.status.value,
         created_at=member.created_at
     )
+
+
+@router.delete("/{server_id}")
+async def delete_server(server_id: int, db: AsyncSession = Depends(get_db)):
+    """Delete a disease server."""
+    result = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+    server = result.scalar_one_or_none()
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    # Clean up associated records before deleting server
+    await db.execute(delete(TrainingLog).where(TrainingLog.server_id == server_id))
+    await db.execute(delete(Prediction).where(Prediction.server_id == server_id))
+    await db.execute(delete(ServerMember).where(ServerMember.server_id == server_id))
+    await db.execute(delete(Dataset).where(Dataset.server_id == server_id))
+    await db.delete(server)
+    await db.commit()
+
+    return {"message": "Server deleted successfully"}

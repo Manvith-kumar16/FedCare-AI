@@ -11,6 +11,7 @@ export const getServers = () => api.get('/servers/')
 export const getServer = (id) => api.get(`/servers/${id}`)
 export const createServer = (data) => api.post('/servers/', data)
 export const updateServer = (id, data) => api.patch(`/servers/${id}`, data)
+export const deleteServer = (id) => api.delete(`/servers/${id}`)
 export const getServerMembers = (id) => api.get(`/servers/${id}/members`)
 export const joinServer = (data) => api.post('/servers/join', data)
 export const updateMemberStatus = (memberId, data) => api.patch(`/servers/members/${memberId}`, data)
@@ -26,7 +27,7 @@ export const uploadDataset = (serverId, file) => {
   formData.append('file', file)
   formData.append('server_id', serverId)
   formData.append('hospital_id', 1) // Default for demo
-  
+
   return api.post('/datasets/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -48,11 +49,11 @@ export const getFeatureImportance = (serverId) => api.get(`/predictions/feature-
 // Health
 export const getHealth = () => api.get('/health/')
 
-export default { 
-  getServers, getServer, createServer, updateServer, getServerMembers, 
+export default {
+  getServers, getServer, createServer, updateServer, deleteServer, getServerMembers,
   getDatasets, getDatasetStats, getDatasetPreview, uploadDataset,
-  startTraining, getTrainingStatus, getTrainingLogs, 
+  startTraining, getTrainingStatus, getTrainingLogs,
   makePrediction, getPredictionHistory, getExplanation, getFeatureImportance,
-  getHealth 
+  getHealth
 }
 

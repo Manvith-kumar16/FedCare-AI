@@ -13,7 +13,7 @@ export default function Login() {
   })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const { addToast, setIsAuthenticated } = useApp()
+  const { addToast, setIsAuthenticated, setUserRole } = useApp()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -27,6 +27,7 @@ export default function Login() {
     setTimeout(() => {
       setLoading(false)
       setIsAuthenticated(true)
+      setUserRole(role)
       addToast(`Successfully logged in as ${role === 'hospital' ? 'Hospital' : 'Admin'}`, 'success')
       navigate('/')
     }, 1500)
@@ -50,7 +51,7 @@ export default function Login() {
 
         {/* Role Toggle */}
         <div className="role-toggle">
-          <button 
+          <button
             className={`toggle-btn ${role === 'hospital' ? 'active' : ''}`}
             onClick={() => setRole('hospital')}
             type="button"
@@ -58,7 +59,7 @@ export default function Login() {
             <HiOutlineOfficeBuilding className="toggle-icon" />
             Hospital
           </button>
-          <button 
+          <button
             className={`toggle-btn ${role === 'admin' ? 'active' : ''}`}
             onClick={() => setRole('admin')}
             type="button"
@@ -74,13 +75,13 @@ export default function Login() {
               <label>Hospital Name</label>
               <div className="input-field">
                 <HiOutlineOfficeBuilding className="input-icon" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="hospitalName"
-                  placeholder="e.g. Mount Sinai Medical" 
+                  placeholder="e.g. Mount Sinai Medical"
                   value={formData.hospitalName}
                   onChange={handleChange}
-                  required 
+                  required
                 />
               </div>
             </div>
@@ -90,13 +91,13 @@ export default function Login() {
             <label>Email Address</label>
             <div className="input-field">
               <HiOutlineMail className="input-icon" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 name="email"
-                placeholder="admin@hospital.org" 
+                placeholder="admin@hospital.org"
                 value={formData.email}
                 onChange={handleChange}
-                required 
+                required
               />
             </div>
           </div>
@@ -105,13 +106,13 @@ export default function Login() {
             <label>Password</label>
             <div className="input-field">
               <HiOutlineLockClosed className="input-icon" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 name="password"
-                placeholder="••••••••" 
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                required 
+                required
               />
             </div>
           </div>

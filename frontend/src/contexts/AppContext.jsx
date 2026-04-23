@@ -6,6 +6,7 @@ export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const [currentServer, setCurrentServer] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userRole, setUserRole] = useState(null)
 
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now()
@@ -24,6 +25,7 @@ export function AppProvider({ children }) {
       toasts, addToast, removeToast,
       currentServer, setCurrentServer,
       isAuthenticated, setIsAuthenticated,
+      userRole, setUserRole,
     }}>
       {children}
       {/* Toast container */}
