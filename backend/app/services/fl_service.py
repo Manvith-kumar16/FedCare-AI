@@ -144,6 +144,7 @@ class FederatedLearningEngine:
                     "local_recall": metrics["recall"],
                     "samples_trained": metrics["samples"],
                     "log_type": "local",
+                    "details": f"Local training complete.\n{metrics.get('report', '')}"
                 }
                 round_logs.append(log_entry)
 

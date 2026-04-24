@@ -751,10 +751,26 @@ export default function ServerDetail() {
                 {l.log_type === 'info' ? (
                   <span style={{ color: '#e2e8f0' }}>{l.details}</span>
                 ) : (
-                  <>
-                    FedAvg ✓ — Acc: <span style={{ color: '#00d2ff' }}>{(l.global_accuracy * 100).toFixed(2)}%</span>{' '}
-                    Loss: <span style={{ color: '#ff6b6b' }}>{l.global_loss.toFixed(4)}</span>
-                  </>
+                  <div>
+                    <div style={{ marginBottom: '4px' }}>
+                      FedAvg ✓ — Acc: <span style={{ color: '#00d2ff' }}>{(l.global_accuracy * 100).toFixed(2)}%</span>{' '}
+                      Loss: <span style={{ color: '#ff6b6b' }}>{l.global_loss.toFixed(4)}</span>
+                    </div>
+                    {l.details && (
+                      <pre style={{ 
+                        margin: '8px 0 0 0', 
+                        fontSize: '0.7rem', 
+                        color: 'var(--color-text-muted)',
+                        background: 'rgba(255,255,255,0.03)',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'monospace'
+                      }}>
+                        {l.details}
+                      </pre>
+                    )}
+                  </div>
                 )}
               </div>
             ))}

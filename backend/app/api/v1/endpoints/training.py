@@ -107,6 +107,14 @@ async def run_training_simulation(server_id, hospital_ids, hospital_names, num_r
             result = fl_engine.run_federated_training(hospital_ids, hospital_names)
             
             if "error" in result:
+                log = TrainingLog(
+                    server_id=server_id,
+                    round_number=0,
+                    hospital_name="SYSTEM",
+                    log_type="info",
+                    details=f"CRITICAL ERROR: {result['error']}. Please ensure datasets are uploaded and approved."
+                )
+                db.add(log)
                 query = select(DiseaseServer).where(DiseaseServer.id == server_id)
                 res = await db.execute(query)
                 server = res.scalar_one()
@@ -130,6 +138,7 @@ async def run_training_simulation(server_id, hospital_ids, hospital_names, num_r
                     global_loss=log_data.get("global_loss", 0),
                     samples_trained=log_data.get("samples_trained", 0),
                     log_type=log_data.get("log_type", "local"),
+                    details=log_data.get("details")
                 )
                 db.add(log)
 
@@ -445,6 +454,12 @@ async def _run_full_xgboost_training(server_id: int, feature_columns: list, targ
                 f_log.write(f"Training complete. Metrics: {metrics}\n")
                 f_log.flush()
 
+                # Create a mini history log
+                hist = metrics.get('history', {}).get('eval', {}).get('logloss', [])
+                hist_str = ""
+                if hist:
+                    hist_str = f"Loss History: {hist[0]:.4f} -> {hist[-1]:.4f} ({len(hist)} rounds)\n"
+
                 save_model(model, server_id, round_num=0)
                 f_log.write(f"Model saved.\n")
                 f_log.flush()
@@ -465,6 +480,7 @@ async def _run_full_xgboost_training(server_id: int, feature_columns: list, targ
                     global_loss=metrics["loss"],
                     samples_trained=metrics["samples"],
                     log_type="global",
+                    details=f"XGBoost Compiler Output:\n{hist_str}\nClassification Report:\n{metrics.get('report', '')}"
                 )
                 db.add(log)
 

@@ -28,20 +28,35 @@ def preprocess_data(df: pd.DataFrame, target_column: str) -> pd.DataFrame:
 
 
 def load_hospital_data(hospital_id: int, server_id: int, target_column: str) -> Optional[pd.DataFrame]:
-    """Load dataset for a specific hospital."""
+    """Load dataset for a specific hospital (supports CSV and TXT)."""
     data_dir = os.path.join(settings.DATA_DIR, f"hospital_{hospital_id}", f"server_{server_id}")
     if not os.path.exists(data_dir):
         # Try legacy path
         data_dir = os.path.join(settings.DATA_DIR, f"hospital_{hospital_id}")
+    
     if not os.path.exists(data_dir):
         return None
 
-    csv_files = [f for f in os.listdir(data_dir) if f.endswith('.csv')]
-    if not csv_files:
+    # Find all data files
+    valid_extensions = ('.csv', '.txt')
+    data_files = [f for f in os.listdir(data_dir) if f.lower().endswith(valid_extensions)]
+    
+    if not data_files:
         return None
 
-    df = pd.read_csv(os.path.join(data_dir, csv_files[0]))
-    return preprocess_data(df, target_column)
+    # Load the first valid file
+    file_path = os.path.join(data_dir, data_files[0])
+    try:
+        # Try comma or semicolon first
+        df = pd.read_csv(file_path, sep=None, engine='python')
+        if df.shape[1] <= 1:
+            # Fallback to whitespace
+            df = pd.read_csv(file_path, sep=r'\s+', engine='python')
+        
+        return preprocess_data(df, target_column)
+    except Exception as e:
+        print(f"Error loading file {file_path}: {e}")
+        return None
 
 
 def train_local_model(
@@ -85,6 +100,7 @@ def train_local_model(
             "seed": 42,
         }
 
+    evals_result = {}
     model = xgb.train(
         params,
         dtrain,
@@ -92,11 +108,15 @@ def train_local_model(
         evals=[(dval, "eval")],
         verbose_eval=False,
         xgb_model=existing_model,
+        evals_result=evals_result
     )
 
     # Evaluate
     y_pred_proba = model.predict(dval)
     y_pred = (y_pred_proba > 0.5).astype(int)
+
+    from sklearn.metrics import classification_report
+    report = classification_report(y_val, y_pred, zero_division=0)
 
     metrics = {
         "accuracy": float(accuracy_score(y_val, y_pred)),
@@ -105,6 +125,8 @@ def train_local_model(
         "recall": float(recall_score(y_val, y_pred, zero_division=0)),
         "loss": float(log_loss(y_val, y_pred_proba)),
         "samples": len(X_train),
+        "report": report,
+        "history": evals_result
     }
 
     return model, metrics
