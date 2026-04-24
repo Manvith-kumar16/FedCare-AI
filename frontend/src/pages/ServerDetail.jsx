@@ -11,6 +11,12 @@ import {
   uploadDataset, trainFullModel, startTraining, getTrainingStatus, clearDatasets
 } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { 
+  HiOutlineChevronLeft, HiOutlineCloud, HiOutlineOfficeBuilding, 
+  HiOutlineDesktopComputer, HiOutlineTrash, HiOutlineRefresh,
+  HiOutlineDatabase, HiOutlineUserGroup, HiOutlineAdjustments,
+  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineLightningBolt
+} from 'react-icons/hi'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)
 
@@ -93,11 +99,13 @@ function FederatedTopology({ server, members, trainingPhase }) {
       <div className="topology-grid">
         <div className="global-model-node">
           <div className="cloud-icon">
-            <div className="node-icon" style={{ color: '#fff', fontSize: '2rem' }}>☁️</div>
+            <div className="node-icon" style={{ color: '#fff', fontSize: '1.5rem', display: 'flex', alignItems: 'center' }}>
+              <HiOutlineCloud />
+            </div>
           </div>
           <div style={{ marginTop: '12px', textAlign: 'center' }}>
-            <div style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem' }}>Global Model</div>
-            <div className="node-acc">Accuracy: {(server.global_accuracy * 100).toFixed(2)}%</div>
+            <div style={{ fontWeight: 800, color: '#fff', fontSize: '0.9rem' }}>Global Model</div>
+            <div className="node-acc">Accuracy: {((server?.global_accuracy || 0) * 100).toFixed(2)}%</div>
           </div>
         </div>
 
@@ -106,11 +114,13 @@ function FederatedTopology({ server, members, trainingPhase }) {
             <div key={m.id} className="hospital-node">
               <div className="node-frame">
                 <div className="node-glow" style={{ animationDelay: `${i * 0.5}s` }} />
-                <div className="node-icon">🏥</div>
+                <div className="node-icon" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-accent-blue)' }}>
+                  <HiOutlineOfficeBuilding />
+                </div>
               </div>
               <div className="node-name">{m.hospital_name}</div>
               {m.last_accuracy > 0 ? (
-                <div className="node-acc">Acc: {(m.last_accuracy * 100).toFixed(1)}%</div>
+                <div className="node-acc">Acc: {((m.last_accuracy || 0) * 100).toFixed(1)}%</div>
               ) : (
                 <div className="node-acc" style={{ color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.05)', borderColor: 'transparent' }}>Idle</div>
               )}
@@ -422,8 +432,8 @@ export default function ServerDetail() {
   if (loading) return <div className="loader"><div className="spinner"></div></div>
   if (!server) return (
     <div className="empty-state">
-      <div className="empty-icon">⚠️</div><h4>Server Not Found</h4>
-      <button className="btn btn-primary" onClick={() => navigate('/servers')}>← Back</button>
+      <div className="empty-icon"><HiOutlineExclamationCircle /></div><h4>Server Not Found</h4>
+      <button className="btn btn-primary" onClick={() => navigate('/servers')}><HiOutlineChevronLeft /> Back</button>
     </div>
   )
 
@@ -433,11 +443,13 @@ export default function ServerDetail() {
       <div className="page-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/servers')}>← Back</button>
-            <h1 style={{ margin: 0 }}>🖥️ {server.name}</h1>
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/servers')}><HiOutlineChevronLeft /> Back</button>
+            <h1 style={{ margin: 0, fontSize: 'var(--font-size-2xl)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HiOutlineDesktopComputer style={{ opacity: 0.7 }} /> {server.name}
+            </h1>
             <span className={`badge badge-${server.status.toLowerCase()}`}>{server.status}</span>
           </div>
-          <p>{server.description || `${server.disease_type} federated prediction pipeline`}</p>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>{server.description || `${server.disease_type} federated prediction pipeline`}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {!isAdmin && !isMember && (
@@ -446,14 +458,14 @@ export default function ServerDetail() {
             </button>
           )}
           {!isAdmin && isMember && (
-            <span className={`badge badge-${myMember?.status?.toLowerCase()}`} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+            <span className={`badge badge-${myMember?.status?.toLowerCase()}`} style={{ padding: '6px 14px', fontSize: '0.75rem' }}>
               Your Status: {myMember?.status}
             </span>
           )}
           {isAdmin && (
             <button className="btn btn-secondary btn-sm" onClick={handleDeleteServer} disabled={actionLoading}
               style={{ color: 'var(--color-accent-red)', borderColor: 'rgba(255,82,82,0.3)', background: 'rgba(255,82,82,0.1)' }}>
-              🗑️ Delete
+              <HiOutlineTrash /> Delete
             </button>
           )}
         </div>
@@ -465,14 +477,14 @@ export default function ServerDetail() {
       {/* ── Stats ── */}
       <div className="metrics-grid" style={{ marginBottom: 'var(--space-xl)' }}>
         {[
-          { icon: '🦠', label: 'Disease', value: server.disease_type },
-          { icon: '🤖', label: 'Model', value: server.model_type },
-          { icon: '🔄', label: 'Algorithm', value: server.fl_algorithm },
-          { icon: '🎯', label: 'Global Accuracy', value: `${(server.global_accuracy * 100).toFixed(2)}%`, cyan: true },
-          { icon: '🔁', label: 'Rounds', value: `${server.current_round} / ${server.num_rounds}` },
-          { icon: '🏥', label: 'Hospitals', value: members.length },
-          { icon: '📁', label: 'Datasets', value: datasets.length },
-          { icon: '📐', label: 'Features', value: featureCols.length || '—' },
+          { icon: <HiOutlineLightningBolt />, label: 'Disease', value: server.disease_type },
+          { icon: <HiOutlineAdjustments />, label: 'Model', value: server.model_type },
+          { icon: <HiOutlineRefresh />, label: 'Algorithm', value: server.fl_algorithm },
+          { icon: <HiOutlineCheckCircle />, label: 'Global Accuracy', value: `${((server?.global_accuracy || 0) * 100).toFixed(2)}%`, cyan: true },
+          { icon: <HiOutlineRefresh />, label: 'Rounds', value: `${server?.current_round || 0} / ${server?.num_rounds || 0}` },
+          { icon: <HiOutlineUserGroup />, label: 'Hospitals', value: members.length },
+          { icon: <HiOutlineDatabase />, label: 'Datasets', value: datasets.length },
+          { icon: <HiOutlineAdjustments />, label: 'Features', value: featureCols.length || '—' },
         ].map((m, i) => (
           <div className="metric-card" key={i}>
             <div className="metric-icon blue">{m.icon}</div>
@@ -485,13 +497,15 @@ export default function ServerDetail() {
       {/* ── Hospitals ── */}
       <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
         <div className="section-header">
-          <h3>🏥 Participating Hospitals</h3>
+          <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HiOutlineOfficeBuilding style={{ opacity: 0.7 }} /> Participating Hospitals
+          </h3>
           <span className="badge badge-active">{members.length} hospitals</span>
         </div>
 
         {members.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏥</div><h4>No Hospitals Yet</h4>
+            <div className="empty-icon"><HiOutlineOfficeBuilding /></div><h4>No Hospitals Yet</h4>
             <p>Join this server to participate in federated training</p>
           </div>
         ) : (
@@ -513,10 +527,11 @@ export default function ServerDetail() {
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', cursor: isMe || isAdmin ? 'pointer' : 'default' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{
-                        width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem',
+                        width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem',
                         background: isMe ? 'rgba(102,126,234,0.2)' : 'rgba(255,255,255,0.05)',
                         border: isMe ? '1px solid rgba(102,126,234,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                      }}>🏥</span>
+                        color: isMe ? 'var(--color-accent-blue)' : 'var(--color-text-muted)'
+                      }}><HiOutlineOfficeBuilding /></span>
                       <div>
                         <div style={{ fontWeight: 600, color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {m.hospital_name}
@@ -561,12 +576,12 @@ export default function ServerDetail() {
                   {isExpanded && (
                     <div style={{ borderTop: '1px solid rgba(102,126,234,0.2)', padding: '20px 18px', background: 'rgba(10,18,45,0.4)' }}>
                       <div className="section-header" style={{ marginBottom: '16px' }}>
-                        <h4 style={{ color: 'var(--color-text-bright)', margin: 0 }}>
-                          📂 {isMe ? 'My' : m.hospital_name + "'s"} Datasets
+                        <h4 style={{ color: 'var(--color-text-bright)', margin: 0, fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <HiOutlineDatabase /> {isMe ? 'My' : m.hospital_name + "'s"} Datasets
                         </h4>
                         {isMe && (
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            {hDatasets.length > 0 && <button className="btn btn-secondary btn-sm" onClick={handleClearDatasets}>🗑️ Clear</button>}
+                            {hDatasets.length > 0 && <button className="btn btn-secondary btn-sm" onClick={handleClearDatasets}><HiOutlineTrash /> Clear</button>}
                             <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} accept=".csv,.txt" />
                             <button className="btn btn-primary btn-sm" onClick={() => fileInputRef.current.click()} disabled={uploading}>
                               {uploading ? '⌛ Uploading...' : '📤 Upload CSV / TXT'}
@@ -596,7 +611,9 @@ export default function ServerDetail() {
                           {preview && (
                             <div style={{ marginTop: '16px' }}>
                               <div className="section-header" style={{ marginBottom: '10px' }}>
-                                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>👁️ Preview</span>
+                                <span style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <HiOutlineEye /> Preview
+                                </span>
                                 <button className="btn btn-secondary btn-sm" onClick={() => setPreview(null)}>Close</button>
                               </div>
                               <div style={{ overflowX: 'auto' }}>
@@ -615,10 +632,10 @@ export default function ServerDetail() {
                         </>
                       ) : isMe ? (
                         <div style={{ textAlign: 'center', padding: '28px 0' }}>
-                          <div style={{ fontSize: '2rem', marginBottom: '10px' }}>📂</div>
-                          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '14px' }}>No datasets yet. Upload your CSV or TXT to start.</p>
+                          <div style={{ fontSize: '1.5rem', marginBottom: '10px', color: 'var(--color-text-muted)' }}><HiOutlineDatabase /></div>
+                          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '14px', fontSize: 'var(--font-size-sm)' }}>No datasets yet. Upload your CSV or TXT to start.</p>
                           <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} accept=".csv,.txt" />
-                          <button className="btn btn-primary" onClick={() => fileInputRef.current.click()} disabled={uploading}>📤 Upload Dataset</button>
+                          <button className="btn btn-primary btn-sm" onClick={() => fileInputRef.current.click()} disabled={uploading}>Upload Dataset</button>
                         </div>
                       ) : (
                         <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '24px 0' }}>No datasets uploaded by this hospital yet.</p>
@@ -644,8 +661,8 @@ export default function ServerDetail() {
           gap: '24px',
         }}>
           <div>
-            <h3 style={{ margin: '0 0 6px', color: 'var(--color-text-bright)', fontSize: '1.15rem' }}>
-              🚀 Ready to Train XGBoost
+            <h3 style={{ margin: '0 0 6px', color: 'var(--color-text-bright)', fontSize: 'var(--font-size-md)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HiOutlineLightningBolt style={{ color: 'var(--color-accent-blue)' }} /> Ready to Train XGBoost
             </h3>
             <p style={{ margin: 0, color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>
               {datasets.length} dataset{datasets.length !== 1 ? 's' : ''} across {members.length} hospital{members.length !== 1 ? 's' : ''} will be combined and used to train a single full XGBoost classifier (100 boosting rounds).

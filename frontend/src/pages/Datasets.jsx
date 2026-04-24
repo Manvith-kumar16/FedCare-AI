@@ -14,7 +14,12 @@ import {
 } from 'chart.js'
 import { getDatasets, getDatasetStats, getDatasetPreview, uploadDataset, startTraining, getTrainingStatus, clearDatasets, getServers } from '../api'
 import { useApp } from '../contexts/AppContext'
-import { HiOutlineLightningBolt, HiOutlineShieldCheck, HiOutlineDatabase } from 'react-icons/hi'
+import { 
+  HiOutlineDatabase, HiOutlineLightningBolt, HiOutlineShieldCheck,
+  HiOutlineTrash, HiOutlineUpload, HiOutlineChartBar,
+  HiOutlineOfficeBuilding, HiOutlineAdjustments, HiOutlineEye,
+  HiOutlineRefresh, HiOutlineTemplate
+} from 'react-icons/hi'
 
 ChartJS.register(
   BarElement,
@@ -228,8 +233,10 @@ export default function Datasets() {
       <div className="page-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div>
-            <h1>📊 Datasets</h1>
-            <p>Hospital datasets for federated learning</p>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <HiOutlineDatabase style={{ color: 'var(--color-accent-orange)' }} /> Hospital Datasets
+            </h1>
+            <p style={{ fontSize: 'var(--font-size-sm)' }}>Manage local datasets for federated learning nodes</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             {simulationActive && (
@@ -239,15 +246,16 @@ export default function Datasets() {
             )}
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
             <div className="card-controls" style={{ display: 'flex', gap: '8px' }}>
-              <button className="btn btn-secondary btn-sm" onClick={handleClearDatasets} style={{ marginRight: '8px' }}>
-                🗑️ Clear All Dummy Data
+              <button className="btn btn-secondary btn-sm" onClick={handleClearDatasets} style={{ marginRight: '8px', fontSize: '0.75rem' }}>
+                <HiOutlineTrash /> Clear All Data
               </button>
               <button
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 onClick={() => fileInputRef.current.click()}
                 disabled={uploading}
+                style={{ fontSize: '0.75rem' }}
               >
-                {uploading ? '⌛ Uploading...' : '📤 Upload Local Dataset'}
+                {uploading ? '⌛ Uploading...' : <><HiOutlineUpload /> Upload Dataset</>}
               </button>
             </div>
           </div>
@@ -309,7 +317,7 @@ export default function Datasets() {
                     <div className="metric-card" style={{ padding: '12px' }}>
                       <div className="metric-label" style={{ fontSize: '0.7rem' }}>Global Accuracy</div>
                       <div className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--color-accent-cyan)' }}>
-                        {simLogs.length > 0 ? (simLogs[simLogs.length - 1].accuracy * 100).toFixed(1) : '0.0'}%
+                        {simLogs.length > 0 ? ((simLogs[simLogs.length - 1].accuracy || 0) * 100).toFixed(1) : '0.0'}%
                       </div>
                     </div>
                   </div>
@@ -352,22 +360,22 @@ export default function Datasets() {
           {/* Stats */}
           <div className="metrics-grid">
             <div className="metric-card">
-              <div className="metric-icon blue">📁</div>
+              <div className="metric-icon blue"><HiOutlineDatabase /></div>
               <div className="metric-value">{stats?.total_datasets || 0}</div>
               <div className="metric-label">Total Datasets</div>
             </div>
             <div className="metric-card">
-              <div className="metric-icon green">📋</div>
+              <div className="metric-icon green"><HiOutlineChartBar /></div>
               <div className="metric-value">{(stats?.total_rows || 0).toLocaleString()}</div>
               <div className="metric-label">Total Records</div>
             </div>
             <div className="metric-card">
-              <div className="metric-icon cyan">🏥</div>
+              <div className="metric-icon cyan"><HiOutlineOfficeBuilding /></div>
               <div className="metric-value">{stats?.total_hospitals || 0}</div>
               <div className="metric-label">Contributing Hospitals</div>
             </div>
             <div className="metric-card">
-              <div className="metric-icon orange">📐</div>
+              <div className="metric-icon orange"><HiOutlineAdjustments /></div>
               <div className="metric-value">{stats?.columns?.length ? stats.columns.length - 1 : 8}</div>
               <div className="metric-label">Features</div>
             </div>
@@ -377,7 +385,9 @@ export default function Datasets() {
             {/* Chart */}
             <div className="card">
               <div className="section-header">
-                <h3>📊 Records per Hospital</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineChartBar /> Records per Hospital
+                </h3>
               </div>
               <div className="chart-container">
                 <Bar data={barData} options={{
@@ -395,7 +405,9 @@ export default function Datasets() {
             {/* Feature List */}
             <div className="card">
               <div className="section-header">
-                <h3>🧬 Feature Columns</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineTemplate /> Feature Columns
+                </h3>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {(stats?.columns || []).map((col, i) => (
@@ -421,7 +433,9 @@ export default function Datasets() {
           {/* Datasets Table */}
           <div className="card">
             <div className="section-header">
-              <h3>📁 All Datasets</h3>
+              <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <HiOutlineDatabase /> All Datasets
+              </h3>
             </div>
             <table className="data-table">
               <thead>
@@ -457,7 +471,9 @@ export default function Datasets() {
           {preview && (
             <div className="card" style={{ marginTop: 'var(--space-lg)' }}>
               <div className="section-header">
-                <h3>👁️ Data Preview</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineEye /> Data Preview
+                </h3>
                 <button className="btn btn-secondary btn-sm" onClick={() => setPreview(null)}>Close</button>
               </div>
               <div style={{ overflowX: 'auto' }}>

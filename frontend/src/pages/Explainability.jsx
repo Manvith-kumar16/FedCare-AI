@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react'
 import { Bar } from 'react-chartjs-2'
 import { getFeatureImportance, getPredictionHistory, getExplanation, getServers } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { 
+  HiOutlineSearch, HiOutlineChartBar, HiOutlineSparkles,
+  HiOutlineDatabase, HiOutlineExclamationCircle, HiOutlinePuzzle,
+  HiOutlineEye, HiOutlineServer
+} from 'react-icons/hi'
 
 export default function Explainability() {
   const [servers, setServers] = useState([])
@@ -99,8 +104,10 @@ export default function Explainability() {
     <div>
       <div className="page-header" style={{ marginBottom: '16px' }}>
         <div>
-          <h1>🔍 Explainable AI</h1>
-          <p>Understand AI decisions with SHAP explanations and feature importance</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineSearch style={{ color: 'var(--color-accent-blue)' }} /> Explainable AI
+          </h1>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>Understand AI decisions with SHAP explanations and feature importance</p>
         </div>
       </div>
 
@@ -126,7 +133,9 @@ export default function Explainability() {
           {/* Global Feature Importance */}
           <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
             <div className="section-header">
-              <h3>📊 Global Feature Importance</h3>
+              <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <HiOutlineChartBar /> Global Feature Importance
+              </h3>
               <span className="badge badge-training">XGBoost Model</span>
             </div>
             {featureRanking.length > 0 ? (
@@ -148,8 +157,8 @@ export default function Explainability() {
               </div>
             ) : (
               <div className="empty-state">
-                <div className="empty-icon">📊</div>
-                <h4>No Model Data</h4>
+                <div className="empty-icon"><HiOutlineChartBar /></div>
+                <h4 style={{ fontSize: 'var(--font-size-md)' }}>No Model Data</h4>
                 <p>Train the federated model first to see feature importance</p>
               </div>
             )}
@@ -160,7 +169,9 @@ export default function Explainability() {
             {/* Prediction list */}
             <div className="card">
               <div className="section-header">
-                <h3>🔮 Prediction Explanations</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineSparkles /> Prediction Explanations
+                </h3>
               </div>
               {predictions.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -193,9 +204,9 @@ export default function Explainability() {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-icon">🔮</div>
-                  <h4>No Predictions Yet</h4>
-                  <p>Make predictions on the Predictions tab to see explanations</p>
+                  <div className="empty-icon"><HiOutlineSparkles /></div>
+                  <h4 style={{ fontSize: 'var(--font-size-md)' }}>No Predictions Yet</h4>
+                  <p style={{ fontSize: 'var(--font-size-sm)' }}>Make predictions on the Predictions tab to see explanations</p>
                 </div>
               )}
             </div>
@@ -203,7 +214,9 @@ export default function Explainability() {
             {/* SHAP Explanation Detail */}
             <div className="card">
               <div className="section-header">
-                <h3>🧩 SHAP Explanation</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlinePuzzle /> SHAP Explanation
+                </h3>
               </div>
               {selectedExplanation ? (
                 <div>
@@ -265,9 +278,9 @@ export default function Explainability() {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <div className="empty-icon">🧩</div>
-                  <h4>Select a Prediction</h4>
-                  <p>Click on a prediction to see its SHAP explanation</p>
+                  <div className="empty-icon"><HiOutlineEye /></div>
+                  <h4 style={{ fontSize: 'var(--font-size-md)' }}>Select a Prediction</h4>
+                  <p style={{ fontSize: 'var(--font-size-sm)' }}>Click on a prediction to see its SHAP explanation</p>
                 </div>
               )}
             </div>

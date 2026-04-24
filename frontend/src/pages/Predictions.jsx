@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import { makePrediction, getPredictionHistory, getServers } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { 
+  HiOutlineSparkles, HiOutlineClipboardList, HiOutlineSearch,
+  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineClock,
+  HiOutlineAdjustments, HiOutlineTemplate
+} from 'react-icons/hi'
 
 export default function Predictions() {
   const [servers, setServers] = useState([])
@@ -130,12 +135,14 @@ export default function Predictions() {
     <div>
       <div className="page-header">
         <div>
-          <h1>🔮 Predictions</h1>
-          <p>Run inference on your federated global models</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineSparkles style={{ color: 'var(--color-accent-violet)' }} /> AI Predictions
+          </h1>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>Run inference on your federated global models</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0}>Fill Sample</button>
-          <button className="btn btn-secondary" onClick={loadHistory} disabled={!selectedServer}>View History</button>
+          <button className="btn btn-secondary btn-sm" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0}><HiOutlineTemplate /> Fill Sample</button>
+          <button className="btn btn-secondary btn-sm" onClick={loadHistory} disabled={!selectedServer}><HiOutlineClock /> View History</button>
         </div>
       </div>
 
@@ -143,7 +150,9 @@ export default function Predictions() {
         {/* Input Form */}
         <div className="card">
           <div className="section-header">
-            <h3>📋 Patient Features</h3>
+            <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HiOutlineClipboardList /> Patient Features
+            </h3>
           </div>
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
@@ -188,9 +197,9 @@ export default function Predictions() {
                 type="submit"
                 className="btn btn-primary btn-lg"
                 disabled={predicting}
-                style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}
+                style={{ width: '100%', justifyContent: 'center', marginTop: '16px', fontSize: 'var(--font-size-md)' }}
               >
-                {predicting ? 'Analyzing...' : `🔮 Predict ${selectedServer.disease_type} Risk`}
+                {predicting ? 'Analyzing...' : `Predict ${selectedServer.disease_type} Risk`}
               </button>
             </form>
           )}
@@ -201,25 +210,25 @@ export default function Predictions() {
           {result ? (
             <div>
               <div className="prediction-result" style={{ marginTop: 0 }}>
-                <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`}>
-                  {result.prediction === 1 ? '⚠️' : '✅'}
+                <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`} style={{ fontSize: '2.5rem' }}>
+                  {result.prediction === 1 ? <HiOutlineExclamationCircle /> : <HiOutlineCheckCircle />}
                 </div>
                 <div className="result-label" style={{
                   color: result.prediction === 1 ? 'var(--color-accent-red)' : 'var(--color-accent-green)'
                 }}>
                   {result.prediction_label}
                 </div>
-                <div className="confidence-value">{(result.confidence * 100).toFixed(1)}%</div>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)', marginTop: '8px' }}>
-                  Confidence Score
-                </p>
+                <div className="prediction-result" style={{ animationDelay: '0.4s' }}>
+                  <div className="confidence-label">Model Confidence</div>
+                  <div className="confidence-value">{((result?.confidence || 0) * 100).toFixed(1)}%</div>
+                </div>
               </div>
 
               {/* Probability bar */}
               <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(15, 23, 52, 0.5)', borderRadius: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: 'var(--font-size-sm)' }}>
-                  <span style={{ color: 'var(--color-accent-green)' }}>Negative: {(result.probability_negative * 100).toFixed(1)}%</span>
-                  <span style={{ color: 'var(--color-accent-red)' }}>Positive: {(result.probability_positive * 100).toFixed(1)}%</span>
+                  <span style={{ color: 'var(--color-accent-green)' }}>Negative: {((result?.probability_negative || 0) * 100).toFixed(1)}%</span>
+                  <span style={{ color: 'var(--color-accent-red)' }}>Positive: {((result?.probability_positive || 0) * 100).toFixed(1)}%</span>
                 </div>
                 <div className="progress-bar" style={{ height: '12px' }}>
                   <div className="progress-fill" style={{
@@ -232,7 +241,9 @@ export default function Predictions() {
               {/* SHAP mini-view */}
               {shapValues && Object.keys(shapValues).length > 0 && (
                 <div style={{ marginTop: '24px' }}>
-                  <h4 style={{ marginBottom: '12px', color: 'var(--color-text-bright)' }}>🔍 Feature Impact (SHAP)</h4>
+                  <h4 style={{ marginBottom: '12px', color: 'var(--color-text-bright)', fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineSearch style={{ opacity: 0.7 }} /> Feature Impact (SHAP)
+                  </h4>
                   {Object.entries(shapValues)
                     .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
                     .slice(0, 5)
@@ -258,9 +269,9 @@ export default function Predictions() {
             </div>
           ) : (
             <div className="empty-state">
-              <div className="empty-icon">🔮</div>
-              <h4>Awaiting Input</h4>
-              <p>Select a model and fill in the patient features to get a prediction</p>
+              <div className="empty-icon"><HiOutlineSparkles /></div>
+              <h4 style={{ fontSize: 'var(--font-size-md)' }}>Awaiting Input</h4>
+              <p style={{ fontSize: 'var(--font-size-sm)' }}>Select a model and fill in the patient features to get a prediction</p>
             </div>
           )}
         </div>
@@ -270,8 +281,8 @@ export default function Predictions() {
       {showHistory && history.length > 0 && (
         <div className="card" style={{ marginTop: 'var(--space-xl)' }}>
           <div className="section-header">
-            <h3>📜 Prediction History</h3>
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowHistory(false)}>Hide</button>
+            <h3><HiOutlineClock /> Prediction History</h3>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowHistory(false)}>✕ Close</button>
           </div>
           <table className="data-table">
             <thead>

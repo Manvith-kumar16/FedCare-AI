@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react'
 import { Line } from 'react-chartjs-2'
 import { startTraining, getTrainingStatus } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { 
+  HiOutlineLightningBolt, HiOutlineAdjustments, HiOutlineShieldCheck,
+  HiOutlineCheckCircle, HiOutlineTrendingUp, HiOutlineOfficeBuilding,
+  HiOutlineClipboardList, HiOutlineLockClosed, HiOutlineRefresh
+} from 'react-icons/hi'
 
 export default function Training() {
   const [training, setTraining] = useState(null)
@@ -113,14 +118,16 @@ export default function Training() {
     <div>
       <div className="page-header">
         <div>
-          <h1>⚡ Federated Training</h1>
-          <p>Train XGBoost models across hospital nodes with FedAvg aggregation</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineLightningBolt style={{ color: 'var(--color-accent-blue)' }} /> Federated Training
+          </h1>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>Train XGBoost models across hospital nodes with FedAvg aggregation</p>
         </div>
       </div>
 
       {accessDenied ? (
         <div className="card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '24px' }}>🔒</div>
+          <div style={{ fontSize: '3rem', marginBottom: '24px', color: 'var(--color-text-muted)' }}><HiOutlineLockClosed /></div>
           <h2 style={{ color: 'var(--color-text-bright)', marginBottom: '16px' }}>Membership Required</h2>
           <p style={{ maxWidth: '500px', margin: '0 auto 32px', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
             Federated training metrics and logs are restricted to approved partner nodes.
@@ -137,7 +144,9 @@ export default function Training() {
           {/* Training Control */}
           <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
             <div className="section-header">
-              <h3>🎛️ Training Configuration</h3>
+              <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <HiOutlineAdjustments /> Training Configuration
+              </h3>
               {training && (
                 <span className={`badge badge-${training.status.toLowerCase()}`}>{training.status}</span>
               )}
@@ -171,26 +180,29 @@ export default function Training() {
                     {isTraining ? (
                       <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }}></span> Training...</>
                     ) : (
-                      <>⚡ Start Federated Training</>
+                      <><HiOutlineLightningBolt /> Start Federated Training</>
                     )}
                   </button>
 
                   {training?.global_accuracy > 0 && (
                     <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                       Current Accuracy: <strong style={{ color: 'var(--color-accent-cyan)' }}>
-                        {(training.global_accuracy * 100).toFixed(2)}%
+                        {((training?.global_accuracy || 0) * 100).toFixed(2)}%
                       </strong>
-                      {' • '}Rounds: {training.current_round}/{training.total_rounds}
-                      {' • '}Hospitals: {training.participating_hospitals}
+                      {' • '}Rounds: {training?.current_round || 0}/{training?.total_rounds || 0}
+                      {' • '}Hospitals: {training?.participating_hospitals || 0}
                     </div>
                   )}
                 </div>
               </>
             ) : (
               <div className="empty-state" style={{ padding: '20px 0', textAlign: 'left' }}>
-                <p style={{ color: 'var(--color-text-secondary)' }}>
-                  🛡️ <strong>View-Only Mode</strong>: Federated training can only be initiated by a system administrator.
-                  You can monitor the real-time progress and logs below as the training rounds proceed.
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineShieldCheck style={{ color: 'var(--color-accent-green)' }} /> 
+                  <span>
+                    <strong>View-Only Mode</strong>: Federated training can only be initiated by a system administrator.
+                    You can monitor the real-time progress and logs below as the training rounds proceed.
+                  </span>
                 </p>
                 {training?.global_accuracy > 0 && (
                   <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: '12px' }}>
@@ -209,8 +221,8 @@ export default function Training() {
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: '100%', animation: 'shimmer 1.5s infinite' }}></div>
                 </div>
-                <p style={{ marginTop: '8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-accent-blue)' }}>
-                  🔄 Training in progress... Models are being trained locally at each hospital and aggregated centrally.
+                <p style={{ marginTop: '8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineRefresh className="spin" /> Training in progress... Models are being trained locally at each hospital and aggregated centrally.
                 </p>
               </div>
             )}
@@ -220,9 +232,9 @@ export default function Training() {
           {result && (
             <div className="card" style={{ marginBottom: 'var(--space-xl)', background: 'rgba(0, 230, 118, 0.06)', borderColor: 'rgba(0, 230, 118, 0.2)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '2.5rem' }}>🎉</span>
+                <span style={{ fontSize: '2rem', color: 'var(--color-accent-green)' }}><HiOutlineCheckCircle /></span>
                 <div>
-                  <h3 style={{ color: 'var(--color-accent-green)', marginBottom: '4px' }}>Training Complete!</h3>
+                  <h3 style={{ color: 'var(--color-accent-green)', marginBottom: '4px', fontSize: 'var(--font-size-lg)' }}>Training Complete!</h3>
                   <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                     Final Accuracy: <strong>{(result.final_accuracy * 100).toFixed(2)}%</strong>
                     {' • '}Loss: <strong>{result.final_loss?.toFixed(4)}</strong>
@@ -237,13 +249,21 @@ export default function Training() {
           {globalLogs.length > 0 && (
             <div className="content-grid">
               <div className="card">
-                <div className="section-header"><h3>📈 Global Model Performance</h3></div>
+                <div className="section-header">
+                  <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineTrendingUp style={{ color: 'var(--color-accent-blue)' }} /> Global Model Performance
+                  </h3>
+                </div>
                 <div className="chart-container">
                   <Line data={accuracyChart} options={chartOpts} />
                 </div>
               </div>
               <div className="card">
-                <div className="section-header"><h3>🏥 Per-Hospital Accuracy</h3></div>
+                <div className="section-header">
+                  <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineOfficeBuilding style={{ color: 'var(--color-accent-pink)' }} /> Per-Hospital Accuracy
+                  </h3>
+                </div>
                 <div className="chart-container">
                   <Line data={hospitalChart} options={chartOpts} />
                 </div>
@@ -255,7 +275,9 @@ export default function Training() {
           {localLogs.length > 0 && (
             <div className="card">
               <div className="section-header">
-                <h3>📋 Training Logs</h3>
+                <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HiOutlineClipboardList /> Training Logs
+                </h3>
                 <span className="badge badge-training">{localLogs.length} entries</span>
               </div>
               <div style={{ overflowX: 'auto' }}>

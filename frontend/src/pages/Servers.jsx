@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { getServers, getServerMembers, joinServer, updateMemberStatus, createServer, deleteServer } from '../api'
 import { useApp } from '../contexts/AppContext'
 import JoinModal from '../components/shared/JoinModal'
+import { 
+  HiOutlineDesktopComputer, HiOutlinePlus, HiOutlineShieldCheck, 
+  HiOutlineServer, HiOutlineTrash, HiOutlineChartBar, 
+  HiOutlineRefresh, HiOutlineCheckCircle, HiOutlineUserGroup,
+  HiOutlineAdjustments, HiOutlineCollection, HiOutlineLockClosed,
+  HiOutlineDatabase, HiOutlineOfficeBuilding
+} from 'react-icons/hi'
 
 export default function Servers() {
   const [servers, setServers] = useState([])
@@ -123,8 +130,10 @@ export default function Servers() {
     <div>
       <div className="page-header">
         <div>
-          <h1>🖥️ Disease Servers</h1>
-          <p>Manage AI pipelines for different disease predictions</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineDesktopComputer style={{ color: 'var(--color-accent-violet)' }} /> Disease Servers
+          </h1>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>Manage AI pipelines for different disease predictions</p>
         </div>
       </div>
 
@@ -142,13 +151,13 @@ export default function Servers() {
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => setShowCreate(!showCreate)}
-                style={{ padding: '8px 16px', boxShadow: '0 0 15px rgba(102, 126, 234, 0.4)' }}
+                style={{ padding: '8px 16px', boxShadow: '0 0 15px rgba(102, 126, 234, 0.4)', fontSize: '0.75rem' }}
               >
-                {showCreate ? '✕ Cancel' : '➕ Create New Server'}
+                {showCreate ? '✕ Cancel' : <><HiOutlinePlus /> Create New Server</>}
               </button>
             ) : (
-              <div className="privacy-badge" style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.2)' }}>
-                <span style={{ marginRight: '4px' }}>🛡️</span> Admin Managed
+              <div className="privacy-badge" style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.2)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <HiOutlineShieldCheck /> Admin Managed
               </div>
             )}
           </div>
@@ -178,15 +187,15 @@ export default function Servers() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontWeight: 600, color: 'var(--color-text-bright)' }}>{srv.name}</span>
-                <span className={`badge badge-${srv.status.toLowerCase()}`}>{srv.status}</span>
+                <span className={`badge badge-${(srv.status || 'PENDING').toLowerCase()}`}>{srv.status || 'PENDING'}</span>
               </div>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                 {srv.description?.slice(0, 100) || `${srv.disease_type} prediction pipeline`}
               </p>
               <div style={{ display: 'flex', gap: '16px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                <span>📊 {srv.model_type}</span>
-                <span>🔄 {srv.fl_algorithm}</span>
-                <span>🏖️ {srv.member_count} hospitals</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><HiOutlineAdjustments /> {srv.model_type}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><HiOutlineRefresh /> {srv.fl_algorithm}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><HiOutlineUserGroup /> {srv.member_count} hospitals</span>
               </div>
             </div>
           ))}
@@ -199,18 +208,18 @@ export default function Servers() {
               <h3>Server Details</h3>
               <div style={{ display: 'flex', gap: '12px' }}>
                 {(!isMember) && (
-                  <button className="btn btn-primary btn-sm" onClick={handleJoinClick} disabled={actionLoading}>
-                    {actionLoading ? 'Joining...' : '➕ Join Server'}
+                  <button className="btn btn-primary btn-sm" onClick={handleJoinClick} disabled={actionLoading} style={{ fontSize: '0.75rem' }}>
+                    {actionLoading ? 'Joining...' : <><HiOutlinePlus /> Join Server</>}
                   </button>
                 )}
                 {isMember && !isAdmin && (
-                  <span className={`badge badge-${memberRecord?.status.toLowerCase()}`}>
-                    Your Status: {memberRecord?.status}
+                  <span className={`badge badge-${(memberRecord?.status || 'PENDING').toLowerCase()}`}>
+                    Your Status: {memberRecord?.status || 'PENDING'}
                   </span>
                 )}
                 {isAdmin && (
-                  <button className="btn btn-secondary btn-sm" onClick={handleDeleteServer} disabled={actionLoading} style={{ color: 'var(--color-accent-red)', borderColor: 'rgba(255, 82, 82, 0.3)', background: 'rgba(255, 82, 82, 0.1)' }}>
-                    🗑️ Delete Server
+                  <button className="btn btn-secondary btn-sm" onClick={handleDeleteServer} disabled={actionLoading} style={{ color: 'var(--color-accent-red)', borderColor: 'rgba(255, 82, 82, 0.3)', background: 'rgba(255, 82, 82, 0.1)', fontSize: '0.75rem' }}>
+                    <HiOutlineTrash /> Delete Server
                   </button>
                 )}
               </div>
@@ -220,17 +229,17 @@ export default function Servers() {
               <>
                 <div className="details-grid">
                   {[
-                    { label: 'Disease Type', value: selectedServer.disease_type, icon: '🦠' },
-                    { label: 'Input Type', value: selectedServer.input_type, icon: '📋' },
-                    { label: 'Model', value: selectedServer.model_type, icon: '🤖' },
-                    { label: 'FL Algorithm', value: selectedServer.fl_algorithm, icon: '🔄' },
-                    { label: 'Training Rounds', value: `${selectedServer.current_round} / ${selectedServer.num_rounds}`, icon: '🔁' },
-                    { label: 'Global Accuracy', value: `${(selectedServer.global_accuracy * 100).toFixed(2)}%`, icon: '🎯' },
-                    { label: 'Target Column', value: selectedServer.target_column, icon: '🎯' },
-                    { label: 'Datasets', value: selectedServer.dataset_count || 0, icon: '📊' },
+                    { label: 'Disease Type', value: selectedServer.disease_type, icon: <HiOutlineCollection /> },
+                    { label: 'Input Type', value: selectedServer.input_type, icon: <HiOutlineDatabase /> },
+                    { label: 'Model', value: selectedServer.model_type, icon: <HiOutlineAdjustments /> },
+                    { label: 'FL Algorithm', value: selectedServer.fl_algorithm, icon: <HiOutlineRefresh /> },
+                    { label: 'Training Rounds', value: `${selectedServer.current_round || 0} / ${selectedServer.num_rounds || 0}`, icon: <HiOutlineRefresh /> },
+                    { label: 'Global Accuracy', value: `${((selectedServer.global_accuracy || 0) * 100).toFixed(2)}%`, icon: <HiOutlineCheckCircle /> },
+                    { label: 'Target Column', value: selectedServer.target_column, icon: <HiOutlineAdjustments /> },
+                    { label: 'Datasets', value: selectedServer.dataset_count || 0, icon: <HiOutlineChartBar /> },
                   ].map((item, i) => (
                     <div key={i} className="detail-item">
-                      <div className="detail-label">{item.icon} {item.label}</div>
+                      <div className="detail-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>{item.icon} {item.label}</div>
                       <div className="detail-value">{item.value}</div>
                     </div>
                   ))}
@@ -238,7 +247,9 @@ export default function Servers() {
 
                 {/* Members */}
                 <div className="section-header" style={{ marginTop: '32px' }}>
-                  <h4 style={{ color: 'var(--color-text-bright)' }}>🏥 Participating Hospitals</h4>
+                  <h4 style={{ color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: 'var(--font-size-md)' }}>
+                    <HiOutlineOfficeBuilding style={{ opacity: 0.7 }} /> Participating Hospitals
+                  </h4>
                 </div>
                 <table className="data-table">
                   <thead>
@@ -298,8 +309,8 @@ export default function Servers() {
               </>
             ) : (
               <div className="empty-state" style={{ padding: '40px 20px', marginTop: '20px', border: '1px dashed var(--color-border)' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
-                <h4>Secure Access Restricted</h4>
+                <div style={{ fontSize: '2rem', marginBottom: '16px', color: 'var(--color-text-muted)' }}><HiOutlineLockClosed /></div>
+                <h4 style={{ fontSize: 'var(--font-size-md)' }}>Secure Access Restricted</h4>
                 <p style={{ maxWidth: '400px', margin: '0 auto' }}>
                   {isMember
                     ? "Your join request is currently pending approval by the server administrator. You will gain access once approved."

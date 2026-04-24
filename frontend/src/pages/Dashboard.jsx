@@ -7,6 +7,11 @@ import {
 } from 'chart.js'
 import { getServers, getDatasetStats, getTrainingStatus } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { 
+  HiOutlineDesktopComputer, HiOutlineOfficeBuilding, HiOutlineChartBar, 
+  HiOutlineCheckCircle, HiOutlineTrendingUp, HiOutlineDatabase,
+  HiOutlineShieldCheck, HiOutlineExclamationCircle
+} from 'react-icons/hi'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, Filler)
 
@@ -124,31 +129,33 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <div>
-          <h1>🏥 FedCare AI Dashboard</h1>
-          <p>Multi-Tenant Federated Learning Platform for Privacy-Preserving Healthcare AI</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineChartBar style={{ color: 'var(--color-accent-blue)' }} /> Platform Overview
+          </h1>
+          <p style={{ fontSize: 'var(--font-size-sm)' }}>Multi-Tenant Federated Learning Platform for Privacy-Preserving Healthcare AI</p>
         </div>
       </div>
 
       {/* Metrics */}
       <div className="metrics-grid">
         <div className="metric-card">
-          <div className="metric-icon blue">🖥️</div>
+          <div className="metric-icon blue"><HiOutlineDesktopComputer /></div>
           <div className="metric-value">{servers.length}</div>
           <div className="metric-label">Disease Servers</div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon green">🏥</div>
+          <div className="metric-icon green"><HiOutlineOfficeBuilding /></div>
           <div className="metric-value">{totalHospitals}</div>
           <div className="metric-label">Participating Hospitals</div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon cyan">📊</div>
+          <div className="metric-icon cyan"><HiOutlineDatabase /></div>
           <div className="metric-value">{totalRows.toLocaleString()}</div>
           <div className="metric-label">Total Patient Records</div>
         </div>
         <div className="metric-card">
-          <div className="metric-icon violet">🎯</div>
-          <div className="metric-value">{(globalAccuracy * 100).toFixed(1)}%</div>
+          <div className="metric-icon violet"><HiOutlineCheckCircle /></div>
+          <div className="metric-value">{((globalAccuracy || 0) * 100).toFixed(1)}%</div>
           <div className="metric-label">Global Model Accuracy</div>
         </div>
       </div>
@@ -157,7 +164,9 @@ export default function Dashboard() {
       <div className="content-grid">
         <div className="card">
           <div className="section-header">
-            <h3>📈 Training Progress</h3>
+            <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HiOutlineTrendingUp style={{ color: 'var(--color-accent-blue)' }} /> Training Progress
+            </h3>
             <span className={`badge badge-${trainingStatus.toLowerCase()}`}>{trainingStatus}</span>
           </div>
           <div className="chart-container">
@@ -165,9 +174,9 @@ export default function Dashboard() {
               <Line data={accuracyChartData} options={chartOptions} />
             ) : (
               <div className="empty-state">
-                <div className="empty-icon">📉</div>
+                <div className="empty-icon"><HiOutlineExclamationCircle /></div>
                 <h4>No Training Data Yet</h4>
-                <p>Wait for the administrator to start federated training</p>
+                <p style={{ fontSize: 'var(--font-size-sm)' }}>Wait for the administrator to start federated training</p>
                 {isAdmin && (
                   <Link to="/training" className="btn btn-primary" style={{ marginTop: '16px' }}>
                     Start Training
@@ -180,7 +189,9 @@ export default function Dashboard() {
 
         <div className="card">
           <div className="section-header">
-            <h3>🏥 Data Distribution</h3>
+            <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HiOutlineOfficeBuilding style={{ color: 'var(--color-accent-pink)' }} /> Data Distribution
+            </h3>
           </div>
           <div className="chart-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {hospitalData.length > 0 ? (
@@ -199,7 +210,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="empty-state">
-                <div className="empty-icon">📊</div>
+                <div className="empty-icon"><HiOutlineDatabase /></div>
                 <h4>No Datasets</h4>
               </div>
             )}
@@ -210,7 +221,9 @@ export default function Dashboard() {
       {/* Servers Table */}
       <div className="card">
         <div className="section-header">
-          <h3>🖥️ Disease Servers</h3>
+          <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HiOutlineDesktopComputer style={{ color: 'var(--color-accent-violet)' }} /> Disease Servers
+          </h3>
           <Link to="/servers" className="btn btn-secondary btn-sm">View All</Link>
         </div>
         <table className="data-table">
@@ -244,10 +257,10 @@ export default function Dashboard() {
       {/* Privacy Notice */}
       <div className="card" style={{ marginTop: 'var(--space-lg)', background: 'rgba(0, 230, 118, 0.04)', borderColor: 'rgba(0, 230, 118, 0.15)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '2rem' }}>🔒</span>
+          <span style={{ fontSize: '1.5rem', color: 'var(--color-accent-green)', display: 'flex' }}><HiOutlineShieldCheck /></span>
           <div>
-            <h4 style={{ color: 'var(--color-accent-green)', marginBottom: '4px' }}>Privacy-Preserving Architecture</h4>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+            <h4 style={{ color: 'var(--color-accent-green)', marginBottom: '4px', fontSize: 'var(--font-size-md)' }}>Privacy-Preserving Architecture</h4>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
               All patient data stays within hospital boundaries. Only model weights are shared during federated training.
               No raw data ever leaves the hospital infrastructure. Fully compliant with HIPAA/GDPR guidelines.
             </p>

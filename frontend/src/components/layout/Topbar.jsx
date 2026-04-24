@@ -1,5 +1,6 @@
 import { useLocation, Link } from 'react-router-dom'
 import { useApp } from '../../contexts/AppContext'
+import { HiOutlineShieldCheck, HiOutlineOfficeBuilding } from 'react-icons/hi'
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -41,8 +42,10 @@ export default function Topbar() {
           transition: 'all 0.2s',
         }} onMouseOver={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'}
           onMouseOut={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}>
-          <span>{userRole === 'ADMIN' ? '🛡️' : '🏥'}</span>
-          <span>{displayName || displayRole}</span>
+          <span style={{ display: 'flex', alignItems: 'center', fontSize: '1rem', color: 'var(--color-accent-blue)' }}>
+            {userRole === 'ADMIN' ? <HiOutlineShieldCheck /> : <HiOutlineOfficeBuilding />}
+          </span>
+          <span style={{ fontWeight: 600 }}>{displayName || displayRole}</span>
         </Link>
       </div>
     </header>
