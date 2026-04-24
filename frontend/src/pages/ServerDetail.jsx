@@ -15,7 +15,8 @@ import {
   HiOutlineChevronLeft, HiOutlineCloud, HiOutlineOfficeBuilding, 
   HiOutlineDesktopComputer, HiOutlineTrash, HiOutlineRefresh,
   HiOutlineDatabase, HiOutlineUserGroup, HiOutlineAdjustments,
-  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineLightningBolt
+  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineLightningBolt,
+  HiOutlineTrendingUp
 } from 'react-icons/hi'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler)

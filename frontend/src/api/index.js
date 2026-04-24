@@ -43,10 +43,11 @@ export const getDatasetPreview = (id, rows = 10) => api.get(`/datasets/${id}/pre
 export const clearDatasets = (serverId) => api.delete(`/datasets/clear/${serverId}`)
 
 export const uploadDataset = (serverId, file) => {
+  const hospId = localStorage.getItem('fedcare_hospital_id')
   const formData = new FormData()
   formData.append('file', file)
   formData.append('server_id', serverId)
-  formData.append('hospital_id', 1) // Default for demo
+  formData.append('hospital_id', hospId || 1)
 
   return api.post('/datasets/upload', formData, {
     headers: {
@@ -79,5 +80,3 @@ export default {
   makePrediction, getPredictionHistory, getExplanation, getFeatureImportance,
   getHealth
 }
-
-
