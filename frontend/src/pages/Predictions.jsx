@@ -138,7 +138,7 @@ export default function Predictions() {
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineSparkles style={{ color: 'var(--color-accent-violet)' }} /> AI Predictions
           </h1>
-          <p style={{ fontSize: 'var(--font-size-sm)' }}>Run inference on your federated global models</p>
+          <p style={{ fontSize: 'var(--font-size-xs)' }}>Run inference on your federated global models</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-secondary btn-sm" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0}><HiOutlineTemplate /> Fill Sample</button>
@@ -225,12 +225,12 @@ export default function Predictions() {
               </div>
 
               {/* Probability bar */}
-              <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(15, 23, 52, 0.5)', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: 'var(--font-size-sm)' }}>
+              <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(15, 23, 52, 0.5)', borderRadius: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: 'var(--font-size-xs)' }}>
                   <span style={{ color: 'var(--color-accent-green)' }}>Negative: {((result?.probability_negative || 0) * 100).toFixed(1)}%</span>
                   <span style={{ color: 'var(--color-accent-red)' }}>Positive: {((result?.probability_positive || 0) * 100).toFixed(1)}%</span>
                 </div>
-                <div className="progress-bar" style={{ height: '12px' }}>
+                <div className="progress-bar" style={{ height: '8px' }}>
                   <div className="progress-fill" style={{
                     width: `${result.probability_positive * 100}%`,
                     background: result.prediction === 1 ? 'var(--gradient-danger)' : 'var(--gradient-success)'

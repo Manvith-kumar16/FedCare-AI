@@ -49,19 +49,19 @@ function Sparkline({ data, color, label }) {
 function ResultCard({ icon, label, value, color, subtitle }) {
   return (
     <div style={{
-      padding: '20px',
-      borderRadius: '16px',
+      padding: '12px 16px',
+      borderRadius: '12px',
       background: `linear-gradient(135deg, ${color}18 0%, ${color}08 100%)`,
       border: `1px solid ${color}33`,
-      display: 'flex', flexDirection: 'column', gap: '6px',
+      display: 'flex', flexDirection: 'column', gap: '4px',
       position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ fontSize: '1.5rem' }}>{icon}</div>
-      <div style={{ fontSize: '2rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+      <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{icon}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-bright)', opacity: 0.9 }}>{label}</div>
-      {subtitle && <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{subtitle}</div>}
+      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--color-text-bright)', opacity: 0.9 }}>{label}</div>
+      {subtitle && <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>{subtitle}</div>}
       {/* Glow orb */}
       <div style={{ position: 'absolute', bottom: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: color + '18', filter: 'blur(20px)', pointerEvents: 'none' }} />
     </div>
@@ -474,26 +474,6 @@ export default function ServerDetail() {
       {/* ── Topology Visualization ── */}
       <FederatedTopology server={server} members={members} trainingPhase={trainingPhase} />
 
-      {/* ── Stats ── */}
-      <div className="metrics-grid" style={{ marginBottom: 'var(--space-xl)' }}>
-        {[
-          { icon: <HiOutlineLightningBolt />, label: 'Disease', value: server.disease_type },
-          { icon: <HiOutlineAdjustments />, label: 'Model', value: server.model_type },
-          { icon: <HiOutlineRefresh />, label: 'Algorithm', value: server.fl_algorithm },
-          { icon: <HiOutlineCheckCircle />, label: 'Global Accuracy', value: `${((server?.global_accuracy || 0) * 100).toFixed(2)}%`, cyan: true },
-          { icon: <HiOutlineRefresh />, label: 'Rounds', value: `${server?.current_round || 0} / ${server?.num_rounds || 0}` },
-          { icon: <HiOutlineUserGroup />, label: 'Hospitals', value: members.length },
-          { icon: <HiOutlineDatabase />, label: 'Datasets', value: datasets.length },
-          { icon: <HiOutlineAdjustments />, label: 'Features', value: featureCols.length || '—' },
-        ].map((m, i) => (
-          <div className="metric-card" key={i}>
-            <div className="metric-icon blue">{m.icon}</div>
-            <div className="metric-value" style={m.cyan ? { color: 'var(--color-accent-cyan)' } : {}}>{m.value}</div>
-            <div className="metric-label">{m.label}</div>
-          </div>
-        ))}
-      </div>
-
       {/* ── Hospitals ── */}
       <div className="card" style={{ marginBottom: 'var(--space-xl)' }}>
         <div className="section-header">
@@ -784,10 +764,10 @@ export default function ServerDetail() {
 
       {/* ── Training Results ── */}
       {trainingPhase === 'done' && finalResults && (
-        <div className="card" style={{ marginBottom: 'var(--space-xl)', border: '1px solid rgba(0,230,118,0.25)', background: 'rgba(0,230,118,0.03)' }}>
+        <div className="card" style={{ marginBottom: 'var(--space-lg)', border: '1px solid rgba(0,230,118,0.25)', background: 'rgba(0,230,118,0.03)', padding: '16px' }}>
           <div className="section-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h3 style={{ margin: 0 }}>🏆 Training Results</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-md)' }}>Training Results</h3>
               <span className="badge badge-active">COMPLETED</span>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -810,13 +790,13 @@ export default function ServerDetail() {
           </div>
 
           {/* Result metrics grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '14px', marginBottom: '28px' }}>
-            <ResultCard icon="🎯" label="Global Accuracy" value={`${(finalResults.globalAccuracy * 100).toFixed(1)}%`} color="#00d2ff" subtitle="FedAvg aggregated" />
-            <ResultCard icon="📉" label="Final Loss" value={finalResults.globalLoss.toFixed(4)} color="#ff6b6b" subtitle="Cross-entropy" />
-            <ResultCard icon="⚖️" label="F1 Score" value={finalResults.localF1 > 0 ? finalResults.localF1.toFixed(3) : '—'} color="#f6ad55" subtitle="Macro average" />
-            <ResultCard icon="🔍" label="Precision" value={finalResults.localPrecision > 0 ? (finalResults.localPrecision * 100).toFixed(1) + '%' : '—'} color="#c084fc" subtitle="Positive predictive" />
-            <ResultCard icon="📡" label="Recall" value={finalResults.localRecall > 0 ? (finalResults.localRecall * 100).toFixed(1) + '%' : '—'} color="#4ade80" subtitle="Sensitivity" />
-            <ResultCard icon="🔁" label="Rounds" value={finalResults.rounds} color="#818cf8" subtitle="FL aggregations" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            <ResultCard icon={<HiOutlineCheckCircle />} label="Global Accuracy" value={`${(finalResults.globalAccuracy * 100).toFixed(1)}%`} color="#00d2ff" subtitle="FedAvg aggregated" />
+            <ResultCard icon={<HiOutlineTrendingUp />} label="Final Loss" value={finalResults.globalLoss.toFixed(4)} color="#ff6b6b" subtitle="Cross-entropy" />
+            <ResultCard icon={<HiOutlineAdjustments />} label="F1 Score" value={finalResults.localF1 > 0 ? finalResults.localF1.toFixed(3) : '—'} color="#f6ad55" subtitle="Macro average" />
+            <ResultCard icon={<HiOutlineRefresh />} label="Precision" value={finalResults.localPrecision > 0 ? (finalResults.localPrecision * 100).toFixed(1) + '%' : '—'} color="#c084fc" subtitle="Positive predictive" />
+            <ResultCard icon={<HiOutlineRefresh />} label="Recall" value={finalResults.localRecall > 0 ? (finalResults.localRecall * 100).toFixed(1) + '%' : '—'} color="#4ade80" subtitle="Sensitivity" />
+            <ResultCard icon={<HiOutlineRefresh />} label="Rounds" value={finalResults.rounds} color="#818cf8" subtitle="FL aggregations" />
           </div>
 
           {/* Accuracy + Loss chart */}

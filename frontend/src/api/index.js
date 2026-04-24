@@ -7,12 +7,13 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 })
 
-// Add role header for backend RBAC (demo mode)
+// Add Authorization header and hospital context
 api.interceptors.request.use(config => {
-  const role = localStorage.getItem('fedcare_user_role')
+  const token = localStorage.getItem('fedcare_token')
   const hospId = localStorage.getItem('fedcare_hospital_id')
-  if (role) {
-    config.headers['X-User-Role'] = role
+  
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
   }
   if (hospId) {
     config.headers['X-Hospital-Id'] = hospId
@@ -22,6 +23,8 @@ api.interceptors.request.use(config => {
 
 // Auth
 export const login = (data) => api.post('/auth/login', data)
+export const register = (data) => api.post('/auth/register', data)
+export const getMe = () => api.get('/auth/me')
 
 // Servers
 export const getServers = () => api.get('/servers/')
@@ -68,7 +71,7 @@ export const getFeatureImportance = (serverId) => api.get(`/predictions/feature-
 export const getHealth = () => api.get('/health/')
 
 export default {
-  login,
+  login, register, getMe,
   getServers, getServer, createServer, updateServer, deleteServer, getServerMembers,
   joinServer, updateMemberStatus,
   getDatasets, getDatasetStats, getDatasetPreview, uploadDataset, clearDatasets,

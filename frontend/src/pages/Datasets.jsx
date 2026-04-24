@@ -236,12 +236,12 @@ export default function Datasets() {
             <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <HiOutlineDatabase style={{ color: 'var(--color-accent-orange)' }} /> Hospital Datasets
             </h1>
-            <p style={{ fontSize: 'var(--font-size-sm)' }}>Manage local datasets for federated learning nodes</p>
+            <p style={{ fontSize: 'var(--font-size-xs)' }}>Manage local datasets for federated learning nodes</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             {simulationActive && (
               <button className="btn btn-secondary" onClick={() => { setSimulationActive(false); setSimRound(0); }}>
-                <HiOutlineDatabase /> Reset Simulation
+                Reset Simulation
               </button>
             )}
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
@@ -262,14 +262,15 @@ export default function Datasets() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 'var(--space-xl)', padding: '16px' }}>
-        <div className="form-group">
-          <label className="form-label">Select Disease Model Pipeline</label>
+      <div className="card" style={{ marginBottom: 'var(--space-lg)', padding: '12px' }}>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '0.65rem' }}>Select Disease Model Pipeline</label>
           <select
             className="form-input"
             value={selectedServer?.id || ''}
             onChange={handleServerChange}
             disabled={servers.length === 0}
+            style={{ padding: '8px' }}
           >
             {servers.length === 0 && <option value="">No Active Models Available</option>}
             {servers.map(s => (
@@ -282,23 +283,22 @@ export default function Datasets() {
       {selectedServer && (
         <>
           {simulationActive && (
-            <div className="card" style={{ marginBottom: 'var(--space-xl)', border: '1px solid var(--color-accent-blue)', background: 'rgba(102, 126, 234, 0.03)' }}>
+            <div className="card" style={{ marginBottom: 'var(--space-lg)', border: '1px solid var(--color-accent-blue)', background: 'rgba(102, 126, 234, 0.03)', padding: '12px' }}>
               <div className="section-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div className="metric-icon blue" style={{ marginBottom: 0, width: 32, height: 32, fontSize: '1rem' }}>
+                  <div className="metric-icon blue" style={{ marginBottom: 0, width: 28, height: 28, fontSize: '0.9rem' }}>
                     <HiOutlineLightningBolt />
                   </div>
-                  <h3>⚡ Training Simulation Active</h3>
-                  <span className={`badge ${simStatus === 'Completed' ? 'badge-active' : 'badge-training'}`}>
+                  <h3 style={{ fontSize: 'var(--font-size-md)' }}>Training Simulation Active</h3>
+                  <span className={`badge ${simStatus === 'Completed' ? 'badge-active' : 'badge-training'}`} style={{ fontSize: '0.6rem' }}>
                     {simStatus}
                   </span>
                 </div>
-                {simStatus === 'Completed' && <span style={{ color: 'var(--color-accent-green)', fontWeight: 600 }}>🎉 Success! New data integrated.</span>}
               </div>
 
-              <div className="content-grid">
+              <div className="content-grid" style={{ gap: '12px' }}>
                 <div>
-                  <div className="progress-bar" style={{ height: '12px', marginBottom: '20px' }}>
+                  <div className="progress-bar" style={{ height: '8px', marginBottom: '12px' }}>
                     <div
                       className="progress-fill"
                       style={{
@@ -309,14 +309,14 @@ export default function Datasets() {
                     ></div>
                   </div>
 
-                  <div className="metrics-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                    <div className="metric-card" style={{ padding: '12px' }}>
-                      <div className="metric-label" style={{ fontSize: '0.7rem' }}>Current Round</div>
-                      <div className="metric-value" style={{ fontSize: '1.2rem' }}>{simRound} / 5</div>
+                  <div className="metrics-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                    <div className="metric-card" style={{ padding: '8px' }}>
+                      <div className="metric-label" style={{ fontSize: '0.6rem' }}>Current Round</div>
+                      <div className="metric-value" style={{ fontSize: '1rem' }}>{simRound} / 5</div>
                     </div>
-                    <div className="metric-card" style={{ padding: '12px' }}>
-                      <div className="metric-label" style={{ fontSize: '0.7rem' }}>Global Accuracy</div>
-                      <div className="metric-value" style={{ fontSize: '1.2rem', color: 'var(--color-accent-cyan)' }}>
+                    <div className="metric-card" style={{ padding: '8px' }}>
+                      <div className="metric-label" style={{ fontSize: '0.6rem' }}>Global Accuracy</div>
+                      <div className="metric-value" style={{ fontSize: '1rem', color: 'var(--color-accent-cyan)' }}>
                         {simLogs.length > 0 ? ((simLogs[simLogs.length - 1].accuracy || 0) * 100).toFixed(1) : '0.0'}%
                       </div>
                     </div>

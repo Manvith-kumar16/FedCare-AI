@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { HiOutlineOfficeBuilding, HiOutlineShieldCheck, HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi'
+import { HiOutlineOfficeBuilding, HiOutlineShieldCheck, HiOutlineMail, HiOutlineLockClosed, HiOutlineUser, HiOutlineLocationMarker } from 'react-icons/hi'
 import { useApp } from '../contexts/AppContext'
 import api from '../api'
 import './Login.css'
 
 export default function Login() {
-  const [role, setRole] = useState('hospital') // 'hospital' or 'admin'
+  const [mode, setMode] = useState('login') // 'login' or 'signup'
+  const [role, setRole] = useState('HOSPITAL') // 'HOSPITAL' or 'ADMIN'
   const [formData, setFormData] = useState({
-    hospitalName: '',
+    name: '',
     email: '',
-    password: ''
+    password: '',
+    hospital_name: '',
+    location: ''
   })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -20,19 +23,33 @@ export default function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const response = await api.login({
-        email: formData.email,
-        password: formData.password
-      })
-      
-      handleLoginSuccess(response.data)
-      addToast(`Welcome back, ${response.data.user.name}!`, 'success')
-      navigate('/')
+      if (mode === 'login') {
+        const response = await api.login({
+          email: formData.email,
+          password: formData.password
+        })
+        handleLoginSuccess(response.data)
+        addToast(`Welcome back, ${response.data.user.name}!`, 'success')
+      } else {
+        // Sign Up
+        const regData = {
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          role: role,
+          hospital_name: role === 'HOSPITAL' ? formData.hospital_name : undefined,
+          location: role === 'HOSPITAL' ? formData.location : undefined
+        }
+        await api.register(regData)
+        addToast('Registration successful! Please sign in.', 'success')
+        setMode('login')
+      }
+      if (mode === 'login') navigate('/')
     } catch (err) {
       const msg = err.response?.data?.detail || 'Authentication failed'
       addToast(msg, 'error')
@@ -50,44 +67,59 @@ export default function Login() {
 
       <div className="login-card">
         <div className="login-header">
-          <div className="logo-icon">
-            F
+          <div className="logo-icon">F</div>
+          <h2>{mode === 'login' ? 'Welcome to FedCare AI' : 'Create Your Account'}</h2>
+          <p>{mode === 'login' ? 'Privacy-Preserving Healthcare Intelligence' : 'Join the federated healthcare network'}</p>
+        </div>
+
+        {/* Role Toggle for Sign Up */}
+        {mode === 'signup' && (
+          <div className="role-toggle">
+            <button
+              className={`toggle-btn ${role === 'HOSPITAL' ? 'active' : ''}`}
+              onClick={() => setRole('HOSPITAL')}
+              type="button"
+            >
+              <HiOutlineOfficeBuilding className="toggle-icon" />
+              Hospital
+            </button>
+            <button
+              className={`toggle-btn ${role === 'ADMIN' ? 'active' : ''}`}
+              onClick={() => setRole('ADMIN')}
+              type="button"
+            >
+              <HiOutlineShieldCheck className="toggle-icon" />
+              Admin
+            </button>
           </div>
-          <h2>Welcome to FedCare AI</h2>
-          <p>Privacy-Preserving Healthcare Intelligence</p>
-        </div>
+        )}
 
-        {/* Role Toggle */}
-        <div className="role-toggle">
-          <button
-            className={`toggle-btn ${role === 'hospital' ? 'active' : ''}`}
-            onClick={() => setRole('hospital')}
-            type="button"
-          >
-            <HiOutlineOfficeBuilding className="toggle-icon" />
-            Hospital
-          </button>
-          <button
-            className={`toggle-btn ${role === 'admin' ? 'active' : ''}`}
-            onClick={() => setRole('admin')}
-            type="button"
-          >
-            <HiOutlineShieldCheck className="toggle-icon" />
-            Admin
-          </button>
-        </div>
+        <form onSubmit={handleSubmit} className="login-form">
+          {mode === 'signup' && (
+            <div className="input-group slide-down">
+              <label>Full Name</label>
+              <div className="input-field">
+                <HiOutlineUser className="input-icon" />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Dr. Sarah Johnson"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          )}
 
-        <form onSubmit={handleLogin} className="login-form">
-          {/* Hospital Name field is no longer needed during login since we look it up by email */}
-
-          <div className="input-group slide-down" style={{ animationDelay: '0.1s' }}>
+          <div className="input-group slide-down">
             <label>Email Address</label>
             <div className="input-field">
               <HiOutlineMail className="input-icon" />
               <input
                 type="email"
                 name="email"
-                placeholder="admin@hospital.org"
+                placeholder="email@organization.org"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -95,7 +127,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="input-group slide-down" style={{ animationDelay: '0.2s' }}>
+          <div className="input-group slide-down">
             <label>Password</label>
             <div className="input-field">
               <HiOutlineLockClosed className="input-icon" />
@@ -110,13 +142,57 @@ export default function Login() {
             </div>
           </div>
 
-          <button type="submit" className="login-btn slide-down" style={{ animationDelay: '0.3s' }} disabled={loading}>
-            {loading ? <span className="spinner-small"></span> : 'Secure Sign In'}
+          {mode === 'signup' && role === 'HOSPITAL' && (
+            <>
+              <div className="input-group slide-down">
+                <label>Hospital Name</label>
+                <div className="input-field">
+                  <HiOutlineOfficeBuilding className="input-icon" />
+                  <input
+                    type="text"
+                    name="hospital_name"
+                    placeholder="General Medical Center"
+                    value={formData.hospital_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="input-group slide-down">
+                <label>Location</label>
+                <div className="input-field">
+                  <HiOutlineLocationMarker className="input-icon" />
+                  <input
+                    type="text"
+                    name="location"
+                    placeholder="New York, NY"
+                    value={formData.location}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          <button type="submit" className="login-btn slide-down" disabled={loading}>
+            {loading ? <span className="spinner-small"></span> : (mode === 'login' ? 'Secure Sign In' : 'Create Account')}
           </button>
         </form>
 
         <div className="login-footer">
-          <p>Protected by end-to-end homomorphic encryption</p>
+          <p>
+            {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+            <span 
+              className="mode-toggle-link" 
+              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+            >
+              {mode === 'login' ? 'Sign Up' : 'Sign In'}
+            </span>
+          </p>
+          <p style={{ marginTop: '12px', fontSize: '0.7rem', opacity: 0.7 }}>
+            Protected by end-to-end homomorphic encryption
+          </p>
         </div>
       </div>
     </div>

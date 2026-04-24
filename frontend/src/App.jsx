@@ -20,6 +20,12 @@ function ProtectedRoute({ children }) {
 }
 
 function AppContent() {
+  const { loading } = useApp()
+
+  if (loading) {
+    return <div className="loader"><div className="spinner"></div></div>
+  }
+
   return (
     <BrowserRouter>
       <Routes>

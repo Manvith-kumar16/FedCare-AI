@@ -133,7 +133,7 @@ export default function Servers() {
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineDesktopComputer style={{ color: 'var(--color-accent-violet)' }} /> Disease Servers
           </h1>
-          <p style={{ fontSize: 'var(--font-size-sm)' }}>Manage AI pipelines for different disease predictions</p>
+          <p style={{ fontSize: 'var(--font-size-xs)' }}>Manage AI pipelines for different disease predictions</p>
         </div>
       </div>
 

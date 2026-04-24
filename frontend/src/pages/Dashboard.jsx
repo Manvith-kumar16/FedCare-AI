@@ -132,31 +132,31 @@ export default function Dashboard() {
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineChartBar style={{ color: 'var(--color-accent-blue)' }} /> Platform Overview
           </h1>
-          <p style={{ fontSize: 'var(--font-size-sm)' }}>Multi-Tenant Federated Learning Platform for Privacy-Preserving Healthcare AI</p>
+          <p style={{ fontSize: 'var(--font-size-xs)' }}>Multi-Tenant Federated Learning Platform for Privacy-Preserving Healthcare AI</p>
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-icon blue"><HiOutlineDesktopComputer /></div>
-          <div className="metric-value">{servers.length}</div>
-          <div className="metric-label">Disease Servers</div>
+      <div className="metrics-grid" style={{ gap: '12px', marginBottom: '20px' }}>
+        <div className="metric-card" style={{ padding: '12px' }}>
+          <div className="metric-icon blue" style={{ width: '32px', height: '32px', fontSize: '1.2rem', marginBottom: '8px' }}><HiOutlineDesktopComputer /></div>
+          <div className="metric-value" style={{ fontSize: '1.5rem' }}>{servers.length}</div>
+          <div className="metric-label" style={{ fontSize: '0.65rem' }}>Disease Servers</div>
         </div>
-        <div className="metric-card">
-          <div className="metric-icon green"><HiOutlineOfficeBuilding /></div>
-          <div className="metric-value">{totalHospitals}</div>
-          <div className="metric-label">Participating Hospitals</div>
+        <div className="metric-card" style={{ padding: '12px' }}>
+          <div className="metric-icon green" style={{ width: '32px', height: '32px', fontSize: '1.2rem', marginBottom: '8px' }}><HiOutlineOfficeBuilding /></div>
+          <div className="metric-value" style={{ fontSize: '1.5rem' }}>{totalHospitals}</div>
+          <div className="metric-label" style={{ fontSize: '0.65rem' }}>Participating Hospitals</div>
         </div>
-        <div className="metric-card">
-          <div className="metric-icon cyan"><HiOutlineDatabase /></div>
-          <div className="metric-value">{totalRows.toLocaleString()}</div>
-          <div className="metric-label">Total Patient Records</div>
+        <div className="metric-card" style={{ padding: '12px' }}>
+          <div className="metric-icon cyan" style={{ width: '32px', height: '32px', fontSize: '1.2rem', marginBottom: '8px' }}><HiOutlineDatabase /></div>
+          <div className="metric-value" style={{ fontSize: '1.5rem' }}>{totalRows.toLocaleString()}</div>
+          <div className="metric-label" style={{ fontSize: '0.65rem' }}>Total Patient Records</div>
         </div>
-        <div className="metric-card">
-          <div className="metric-icon violet"><HiOutlineCheckCircle /></div>
-          <div className="metric-value">{((globalAccuracy || 0) * 100).toFixed(1)}%</div>
-          <div className="metric-label">Global Model Accuracy</div>
+        <div className="metric-card" style={{ padding: '12px' }}>
+          <div className="metric-icon violet" style={{ width: '32px', height: '32px', fontSize: '1.2rem', marginBottom: '8px' }}><HiOutlineShieldCheck /></div>
+          <div className="metric-value" style={{ fontSize: '1.5rem' }}>{((globalAccuracy || 0) * 100).toFixed(1)}%</div>
+          <div className="metric-label" style={{ fontSize: '0.65rem' }}>Global Model Accuracy</div>
         </div>
       </div>
 

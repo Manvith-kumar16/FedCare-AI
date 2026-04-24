@@ -121,7 +121,7 @@ export default function Training() {
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineLightningBolt style={{ color: 'var(--color-accent-blue)' }} /> Federated Training
           </h1>
-          <p style={{ fontSize: 'var(--font-size-sm)' }}>Train XGBoost models across hospital nodes with FedAvg aggregation</p>
+          <p style={{ fontSize: 'var(--font-size-xs)' }}>Train XGBoost models across hospital nodes with FedAvg aggregation</p>
         </div>
       </div>
 
@@ -230,12 +230,12 @@ export default function Training() {
 
           {/* Result banner */}
           {result && (
-            <div className="card" style={{ marginBottom: 'var(--space-xl)', background: 'rgba(0, 230, 118, 0.06)', borderColor: 'rgba(0, 230, 118, 0.2)' }}>
+            <div className="card" style={{ marginBottom: 'var(--space-lg)', background: 'rgba(0, 230, 118, 0.06)', borderColor: 'rgba(0, 230, 118, 0.2)', padding: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '2rem', color: 'var(--color-accent-green)' }}><HiOutlineCheckCircle /></span>
+                <span style={{ fontSize: '1.5rem', color: 'var(--color-accent-green)' }}><HiOutlineCheckCircle /></span>
                 <div>
-                  <h3 style={{ color: 'var(--color-accent-green)', marginBottom: '4px', fontSize: 'var(--font-size-lg)' }}>Training Complete!</h3>
-                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  <h3 style={{ color: 'var(--color-accent-green)', marginBottom: '4px', fontSize: 'var(--font-size-md)' }}>Training Complete</h3>
+                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                     Final Accuracy: <strong>{(result.final_accuracy * 100).toFixed(2)}%</strong>
                     {' • '}Loss: <strong>{result.final_loss?.toFixed(4)}</strong>
                     {' • '}Rounds: <strong>{result.total_rounds}</strong>

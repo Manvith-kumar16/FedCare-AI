@@ -1,15 +1,13 @@
 import { useNavigate } from 'react-router-dom'
-import { HiOutlineUser, HiOutlineShieldCheck, HiOutlineKey, HiOutlineDesktopComputer, HiOutlineLogout } from 'react-icons/hi'
+import { HiOutlineUser, HiOutlineShieldCheck, HiOutlineKey, HiOutlineDesktopComputer, HiOutlineLogout, HiOutlineOfficeBuilding, HiOutlineMail } from 'react-icons/hi'
 import { useApp } from '../contexts/AppContext'
 
 export default function Profile() {
     const navigate = useNavigate()
-    const { addToast, setIsAuthenticated, userName, userEmail, userRole } = useApp()
+    const { addToast, logout, userName, userEmail, userRole, hospitalName } = useApp()
 
     const handleLogout = () => {
-        setIsAuthenticated(false)
-        localStorage.removeItem('fedcare_user_role')
-        localStorage.removeItem('fedcare_user_email')
+        logout()
         addToast('Successfully safely logged out of FedCare. Encrypted session closed.', 'success')
         navigate('/login')
     }
@@ -20,7 +18,9 @@ export default function Profile() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1>👤 User Profile</h1>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <HiOutlineUser style={{ opacity: 0.7 }} /> User Profile
+                    </h1>
                     <p>Manage your identity and authentication</p>
                 </div>
             </div>
@@ -42,7 +42,9 @@ export default function Profile() {
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '4px', color: 'var(--color-text-bright)' }}>
                         {userName || 'FedCare User'}
                     </h2>
-                    <p style={{ color: 'var(--color-text-secondary)', marginBottom: '16px' }}>{userEmail}</p>
+                    <p style={{ color: 'var(--color-text-secondary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                        <HiOutlineMail size={14} /> {userEmail}
+                    </p>
 
                     <div className="badge badge-active" style={{ marginBottom: '32px', fontSize: '0.85rem', padding: '6px 16px' }}>
                         <HiOutlineShieldCheck /> Active Session
@@ -56,19 +58,29 @@ export default function Profile() {
                 <div>
                     <div className="card" style={{ marginBottom: 'var(--space-lg)' }}>
                         <div className="section-header">
-                            <h3>Network Identity</h3>
+                            <h3 style={{ fontSize: 'var(--font-size-md)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <HiOutlineDesktopComputer style={{ opacity: 0.7 }} /> Network Identity
+                            </h3>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Role</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                                    <HiOutlineUser className="input-icon" style={{ position: 'relative', left: 0 }} /> {userRole}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--color-text-bright)' }}>
+                                    <HiOutlineShieldCheck className="text-accent-blue" /> {userRole}
                                 </div>
                             </div>
-                            <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                            {hospitalName && (
+                                <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Affiliation</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, color: 'var(--color-text-bright)' }}>
+                                        <HiOutlineOfficeBuilding className="text-accent-blue" /> {hospitalName}
+                                    </div>
+                                </div>
+                            )}
+                            <div style={{ paddingBottom: '4px' }}>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Node ID</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'monospace', color: 'var(--color-accent-blue)' }}>
-                                    <HiOutlineDesktopComputer style={{ position: 'relative', left: 0 }} /> 0x9A3B...421F
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'monospace', color: 'var(--color-accent-blue)', fontSize: '0.9rem' }}>
+                                    0x9A3B...{userEmail ? userEmail.slice(0, 4).toUpperCase() : '421F'}
                                 </div>
                             </div>
                         </div>

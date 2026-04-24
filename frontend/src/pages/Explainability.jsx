@@ -102,12 +102,12 @@ export default function Explainability() {
 
   return (
     <div>
-      <div className="page-header" style={{ marginBottom: '16px' }}>
+      <div className="page-header" style={{ marginBottom: '12px' }}>
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineSearch style={{ color: 'var(--color-accent-blue)' }} /> Explainable AI
           </h1>
-          <p style={{ fontSize: 'var(--font-size-sm)' }}>Understand AI decisions with SHAP explanations and feature importance</p>
+          <p style={{ fontSize: 'var(--font-size-xs)' }}>Understand AI decisions with SHAP explanations and feature importance</p>
         </div>
       </div>
 
