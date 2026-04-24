@@ -8,7 +8,7 @@ import {
 import {
   getServer, getServerMembers, joinServer, updateMemberStatus,
   deleteServer, getDatasets, getDatasetStats, getDatasetPreview,
-  uploadDataset, trainFullModel, getTrainingStatus, clearDatasets
+  uploadDataset, trainFullModel, startTraining, getTrainingStatus, clearDatasets
 } from '../api'
 import { useApp } from '../contexts/AppContext'
 
@@ -62,6 +62,86 @@ function ResultCard({ icon, label, value, color, subtitle }) {
   )
 }
 
+// ─── Federated Topology Visualization ─────────────────────────────────────────
+function FederatedTopology({ server, members, trainingPhase }) {
+  const containerRef = useRef(null)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        })
+      }
+    }
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
+
+  const globalPos = { x: dimensions.width / 2, y: 100 }
+  const nodeCount = members.length
+  const hospitalNodesPos = members.map((_, i) => {
+    const spacing = dimensions.width / (nodeCount + 1)
+    return { x: spacing * (i + 1), y: dimensions.height - 100 }
+  })
+
+  return (
+    <div className="topology-container" ref={containerRef}>
+      <div className="topology-grid">
+        <div className="global-model-node">
+          <div className="cloud-icon">
+            <div className="node-icon" style={{ color: '#fff', fontSize: '2rem' }}>☁️</div>
+          </div>
+          <div style={{ marginTop: '12px', textAlign: 'center' }}>
+            <div style={{ fontWeight: 800, color: '#fff', fontSize: '1.1rem' }}>Global Model</div>
+            <div className="node-acc">Accuracy: {(server.global_accuracy * 100).toFixed(2)}%</div>
+          </div>
+        </div>
+
+        <div className="hospital-nodes">
+          {members.map((m, i) => (
+            <div key={m.id} className="hospital-node">
+              <div className="node-frame">
+                <div className="node-glow" style={{ animationDelay: `${i * 0.5}s` }} />
+                <div className="node-icon">🏥</div>
+              </div>
+              <div className="node-name">{m.hospital_name}</div>
+              {m.last_accuracy > 0 ? (
+                <div className="node-acc">Acc: {(m.last_accuracy * 100).toFixed(1)}%</div>
+              ) : (
+                <div className="node-acc" style={{ color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.05)', borderColor: 'transparent' }}>Idle</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <svg className="topology-svg">
+        {hospitalNodesPos.map((pos, i) => {
+          // Draw curved lines from global to each hospital
+          const d = `M ${globalPos.x} ${globalPos.y + 40} 
+                     C ${globalPos.x} ${(globalPos.y + pos.y) / 2}, 
+                       ${pos.x} ${(globalPos.y + pos.y) / 2}, 
+                       ${pos.x} ${pos.y - 50}`
+          return (
+            <g key={i}>
+              <path d={d} className="connection-line" />
+              {trainingPhase === 'running' && (
+                <circle r="4" className="data-pulse pulse-animation">
+                  <animateMotion dur="3s" repeatCount="indefinite" path={d} />
+                </circle>
+              )}
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
 export default function ServerDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -88,6 +168,17 @@ export default function ServerDetail() {
 
   const fileInputRef = useRef(null)
   const pollRef = useRef(null)
+
+  const enrichMembers = (mList, logs) => {
+    return mList.map(m => {
+      const hospitalLogs = logs.filter(l => l.hospital_id === m.hospital_id && l.log_type === 'local')
+      const latestLog = hospitalLogs.length > 0 ? hospitalLogs[hospitalLogs.length - 1] : null
+      return {
+        ...m,
+        last_accuracy: latestLog ? latestLog.local_accuracy : 0
+      }
+    })
+  }
 
   useEffect(() => { loadAll() }, [id])
 
@@ -116,6 +207,7 @@ export default function ServerDetail() {
         const localLogsData = (status.logs || []).filter(l => l.log_type === 'local')
         setTrainLogs(globalLogs)
         setLocalLogs(localLogsData)
+        setMembers(enrichMembers(membersRes.data, localLogsData))
 
         if (srvRes.data.status === 'TRAINING') {
           setTrainingPhase('running')
@@ -160,6 +252,7 @@ export default function ServerDetail() {
         setTrainLogs(globalLogs)
         setLocalLogs(localLogsData)
         setTrainRound(data.current_round || 0)
+        setMembers(prev => enrichMembers(prev, localLogsData))
 
         if (data.status === 'TRAINING') {
           setTrainStatus('Running XGBoost on combined dataset...')
@@ -200,6 +293,20 @@ export default function ServerDetail() {
     } catch (err) {
       setTrainingPhase('idle')
       addToast(err.response?.data?.detail || 'Failed to start training', 'error')
+    }
+  }
+
+  async function handleFederatedUpdate() {
+    setTrainingPhase('running')
+    setTrainLogs([]); setLocalLogs([]); setTrainRound(0); setFinalResults(null)
+    setTrainStatus('Initiating Federated weight aggregation...')
+    try {
+      // Trigger 1 round of actual Federated Learning (FedAvg)
+      await startTraining({ server_id: parseInt(id), num_rounds: 1, local_epochs: 5 })
+      startPolling()
+    } catch (err) {
+      setTrainingPhase('idle')
+      addToast(err.response?.data?.detail || 'Failed to update weights', 'error')
     }
   }
 
@@ -351,6 +458,9 @@ export default function ServerDetail() {
           )}
         </div>
       </div>
+
+      {/* ── Topology Visualization ── */}
+      <FederatedTopology server={server} members={members} trainingPhase={trainingPhase} />
 
       {/* ── Stats ── */}
       <div className="metrics-grid" style={{ marginBottom: 'var(--space-xl)' }}>
@@ -663,11 +773,23 @@ export default function ServerDetail() {
               <h3 style={{ margin: 0 }}>🏆 Training Results</h3>
               <span className="badge badge-active">COMPLETED</span>
             </div>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={handleStartTraining}
-              style={{ fontSize: '0.8rem' }}
-            >🔁 Retrain</button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleFederatedUpdate}
+                style={{
+                  fontSize: '0.8rem',
+                  background: 'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(0,210,255,0.25)'
+                }}
+              >⚡ Update Weights to Global Model</button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleStartTraining}
+                style={{ fontSize: '0.8rem' }}
+              >🔁 Retrain</button>
+            </div>
           </div>
 
           {/* Result metrics grid */}

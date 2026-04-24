@@ -21,7 +21,7 @@ class FederatedLearningEngine:
         self.target_column = target_column
         self.num_rounds = num_rounds
         self.local_epochs = local_epochs
-        self.global_model: Optional[xgb.Booster] = None
+        self.global_model = load_model(server_id)
         self.training_history: List[Dict] = []
 
     def _get_hospital_data(self, hospital_ids: List[int]) -> Dict[int, pd.DataFrame]:
