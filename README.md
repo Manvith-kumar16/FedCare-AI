@@ -85,11 +85,15 @@ FedCare-AI/
 Download and install from:
 👉 https://www.postgresql.org/download/
 
+---
+
 ### Step 2: Create Database
 
 Open PostgreSQL terminal or pgAdmin:
 
 CREATE DATABASE fedcare_ai;
+
+---
 
 ### Step 3: Configure Connection
 
@@ -109,6 +113,7 @@ DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/fedcare_a
 Example:
 
 postgresql+asyncpg://postgres:Manvith%401132@localhost:5432/fedcare_ai
+
 
 ### Step 4: Run Migrations / Initialize DB
 python reset_db.py
