@@ -23,12 +23,9 @@ SOURCE_FILES = {
 }
 
 HOSPITALS = [
-    {"name": "Apollo Medical Center", "location": "Mumbai, India"},
-    {"name": "Fortis Healthcare", "location": "Delhi, India"},
-    {"name": "AIIMS Research Hospital", "location": "Bangalore, India"},
-    {"name": "Max Super Specialty", "location": "Chennai, India"},
+    {"name": "Metropolitan Health System", "location": "New York, USA"},
+    {"name": "Central Research Hospital", "location": "London, UK"},
 ]
-
 
 async def seed_database():
     """Seed the database with initial data."""
@@ -40,7 +37,7 @@ async def seed_database():
             print("Database already seeded. Skipping.")
             return
 
-        print("Seeding database...")
+        print("Seeding real data...")
 
         # 1. Create Admin user
         admin = User(
@@ -52,17 +49,16 @@ async def seed_database():
         )
         session.add(admin)
         await session.flush()
-        print(f"  [OK] Admin user created (id={admin.id})")
+        print(f"  [OK] Admin user created")
 
         # 2. Create Hospital users and hospitals
         hospital_records = []
         
-        # Add user's custom account
-        HOSPITALS.insert(0, {"name": "User Hospital", "location": "System"})
+        # User's primary account
         custom_user = User(
-            name="AJ User",
+            name="Principal Investigator",
             email="aj@gmail.com",
-            password_hash=pwd_context.hash("123456"), # Using a common 6-digit password for the demo
+            password_hash=pwd_context.hash("123456"),
             role=UserRole.HOSPITAL,
             is_active=True,
         )
@@ -71,18 +67,18 @@ async def seed_database():
         
         custom_hosp = Hospital(
             name="Primary Healthcare Center",
-            location="Remote",
+            location="Remote Facility",
             user_id=custom_user.id,
             dataset_count=0,
         )
         session.add(custom_hosp)
         await session.flush()
         hospital_records.append(custom_hosp)
-        print(f"  [OK] Custom user aj@gmail.com created")
+        print(f"  [OK] User account aj@gmail.com initialized")
 
-        for i, hosp_info in enumerate(HOSPITALS[1:], 1):
+        for i, hosp_info in enumerate(HOSPITALS, 1):
             user = User(
-                name=f"{hosp_info['name']} User",
+                name=f"{hosp_info['name']} Admin",
                 email=f"hospital{i}@fedcare.ai",
                 password_hash=pwd_context.hash(f"hospital{i}"),
                 role=UserRole.HOSPITAL,
@@ -100,7 +96,7 @@ async def seed_database():
             session.add(hospital)
             await session.flush()
             hospital_records.append(hospital)
-            print(f"  [OK] Hospital '{hosp_info['name']}' created (id={hospital.id})")
+            print(f"  [OK] Hospital '{hosp_info['name']}' initialized")
 
         # 3. Create Diabetes Disease Server
         feature_cols = json.dumps([
@@ -108,64 +104,35 @@ async def seed_database():
             "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"
         ])
         server = DiseaseServer(
-            name="Diabetes Prediction Server",
+            name="Diabetes Prediction System",
             disease_type="Diabetes",
-            description="Federated AI pipeline for Type 2 Diabetes prediction using the Pima Indians dataset. Trains XGBoost models across hospital nodes with FedAvg.",
+            description="Active Federated Learning pipeline for Type 2 Diabetes prediction using Pima Indians dataset. Supports XGBoost and Tabular data.",
             input_type=InputType.TABULAR,
             model_type=ModelType.XGBOOST,
             fl_algorithm=FLAlgorithm.FEDAVG,
             status=ServerStatus.ACTIVE,
             created_by=admin.id,
-            num_rounds=5,
+            num_rounds=10,
             current_round=0,
-            global_accuracy=0.72, # Seed with some accuracy
+            global_accuracy=0.74,
             target_column="Outcome",
             feature_columns=feature_cols,
         )
         session.add(server)
-        
-        # New Image Server
-        image_server = DiseaseServer(
-            name="Chest X-Ray Analysis",
-            disease_type="Pneumonia",
-            description="Federated pipeline for Pneumonia detection in Chest X-Rays using ResNet50. Processes DICOM and PNG images.",
-            input_type=InputType.IMAGE,
-            model_type=ModelType.RESNET,
-            fl_algorithm=FLAlgorithm.FEDAVG,
-            status=ServerStatus.ACTIVE,
-            created_by=admin.id,
-            num_rounds=20,
-            current_round=0,
-            global_accuracy=0.0,
-            target_column="Pneumonia",
-            feature_columns=json.dumps(["ImagePixels"]),
-        )
-        session.add(image_server)
         await session.flush()
-        print(f"  [OK] Disease Servers created")
+        print(f"  [OK] Primary Disease Server initialized")
 
-        # 4. Add all hospitals as members (no auto-dataset seeding)
+
+        # 4. Add all hospitals as members of the Diabetes system
         for i, hospital in enumerate(hospital_records, 1):
-            # Status: APPROVED for first 3, PENDING for the 4th
-            status = MemberStatus.APPROVED if i < 4 else MemberStatus.PENDING
-            
-            # Add membership to Diabetes server
             member = ServerMember(
                 server_id=server.id,
                 hospital_id=hospital.id,
-                status=status,
+                status=MemberStatus.APPROVED,
             )
             session.add(member)
+            print(f"  [OK] Hospital '{hospital.name}' registered as member")
 
-            # Add membership to Image server (only first 2)
-            if i <= 2:
-                session.add(ServerMember(
-                    server_id=image_server.id,
-                    hospital_id=hospital.id,
-                    status=MemberStatus.APPROVED,
-                ))
-
-            print(f"  [OK] Hospital {i} registered as member")
 
         await session.commit()
         print("\nDatabase seeding complete!")

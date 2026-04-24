@@ -31,7 +31,10 @@ export default function Explainability() {
     setLoading(true)
     try {
       const res = await getServers()
-      const validServers = res.data.filter(s => s.status !== 'PENDING')
+      // Only show servers where user is Admin OR is an Approved Member
+      const validServers = res.data.filter(s =>
+        isAdmin || (s.is_member && s.member_status === 'APPROVED')
+      )
       setServers(validServers)
       if (validServers.length > 0) {
         setSelectedServer(validServers[0])

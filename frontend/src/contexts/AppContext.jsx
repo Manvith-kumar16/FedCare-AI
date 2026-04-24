@@ -6,9 +6,10 @@ export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([])
   const [currentServer, setCurrentServer] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userRole, setUserRole] = useState(null)
+  const [userRole, setUserRole] = useState(localStorage.getItem('fedcare_user_role'))
   const [userName, setUserName] = useState('')
-  const [hospitalId, setHospitalId] = useState(null)
+  const [userEmail, setUserEmail] = useState(localStorage.getItem('fedcare_user_email'))
+  const [hospitalId, setHospitalId] = useState(localStorage.getItem('fedcare_hospital_id'))
   const [hospitalName, setHospitalName] = useState('')
 
   const addToast = useCallback((message, type = 'info') => {
@@ -26,9 +27,13 @@ export function AppProvider({ children }) {
   const handleLoginSuccess = useCallback((data) => {
     setIsAuthenticated(true)
     setUserRole(data.user.role)
+    localStorage.setItem('fedcare_user_role', data.user.role)
     setUserName(data.user.name)
+    setUserEmail(data.user.email)
+    localStorage.setItem('fedcare_user_email', data.user.email)
     if (data.hospital) {
       setHospitalId(data.hospital.id)
+      localStorage.setItem('fedcare_hospital_id', data.hospital.id)
       setHospitalName(data.hospital.name)
     }
   }, [])
@@ -40,6 +45,7 @@ export function AppProvider({ children }) {
       isAuthenticated, setIsAuthenticated,
       userRole, setUserRole,
       userName, setUserName,
+      userEmail, setUserEmail,
       hospitalId, setHospitalId,
       hospitalName, setHospitalName,
       handleLoginSuccess

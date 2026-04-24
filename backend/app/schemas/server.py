@@ -42,6 +42,8 @@ class ServerResponse(BaseModel):
     created_at: Optional[datetime] = None
     member_count: Optional[int] = 0
     dataset_count: Optional[int] = 0
+    is_member: Optional[bool] = False
+    member_status: Optional[str] = None
 
     model_config = {
         "from_attributes": True,
@@ -55,6 +57,7 @@ class ServerMemberResponse(BaseModel):
     hospital_id: int
     hospital_name: Optional[str] = None
     status: str
+    last_accuracy: Optional[float] = 0.0
     created_at: Optional[datetime] = None
 
     class Config:
@@ -64,6 +67,7 @@ class ServerMemberResponse(BaseModel):
 class MemberJoin(BaseModel):
     server_id: int
     hospital_id: int
+    hospital_name: str
 
 
 class MemberUpdate(BaseModel):

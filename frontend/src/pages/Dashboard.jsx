@@ -15,29 +15,44 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [training, setTraining] = useState(null)
   const [loading, setLoading] = useState(true)
-  const { addToast } = useApp()
+  const { addToast, userRole } = useApp()
+  const isAdmin = userRole?.toUpperCase() === 'ADMIN'
 
   useEffect(() => {
     loadData()
   }, [])
 
   async function loadData() {
+    console.log('📊 Dashboard: Loading data...')
     try {
-      const [srvRes, statsRes] = await Promise.all([
-        getServers(),
-        getDatasetStats(1).catch(() => ({ data: null })),
-      ])
-      setServers(srvRes.data)
+      const serversTask = getServers().catch(err => {
+        console.error('❌ Dashboard: Failed to load servers:', err)
+        return { data: [] }
+      })
+
+      const statsTask = getDatasetStats(1).catch(err => {
+        console.error('❌ Dashboard: Failed to load dataset stats:', err)
+        return { data: null }
+      })
+
+      const [srvRes, statsRes] = await Promise.all([serversTask, statsTask])
+
+      console.log('✅ Dashboard: Core data loaded:', { servers: srvRes.data?.length, stats: !!statsRes.data })
+      setServers(srvRes.data || [])
       setStats(statsRes.data)
 
-      // Try loading training status
+      // Try loading training status separately
       try {
         const trainRes = await getTrainingStatus(1)
         setTraining(trainRes.data)
-      } catch (e) { /* no training yet */ }
+      } catch (e) {
+        console.warn('ℹ️ Dashboard: No training data found for server 1')
+      }
     } catch (e) {
+      console.error('💥 Dashboard: Critical load error:', e)
       addToast('Failed to load dashboard data', 'error')
     } finally {
+      console.log('🏁 Dashboard: Loading finished')
       setLoading(false)
     }
   }
@@ -152,10 +167,12 @@ export default function Dashboard() {
               <div className="empty-state">
                 <div className="empty-icon">📉</div>
                 <h4>No Training Data Yet</h4>
-                <p>Start federated training to see progress</p>
-                <Link to="/training" className="btn btn-primary" style={{ marginTop: '16px' }}>
-                  Start Training
-                </Link>
+                <p>Wait for the administrator to start federated training</p>
+                {isAdmin && (
+                  <Link to="/training" className="btn btn-primary" style={{ marginTop: '16px' }}>
+                    Start Training
+                  </Link>
+                )}
               </div>
             )}
           </div>

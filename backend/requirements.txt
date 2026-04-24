@@ -22,3 +22,4 @@ aiofiles==24.1.0
 opencv-python==4.10.0.84
 pydicom==2.4.4
 email-validator>=2.0.0
+aiosqlite==0.20.0

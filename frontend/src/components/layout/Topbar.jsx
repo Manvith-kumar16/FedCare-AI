@@ -16,7 +16,7 @@ export default function Topbar() {
   const title = pageTitles[location.pathname] || 'FedCare AI'
   const { userName, userRole, hospitalName } = useApp()
 
-  const displayName = userRole === 'HOSPITAL' ? (hospitalName || userName) : userName
+  const displayName = userRole === 'HOSPITAL' ? hospitalName : userName
   const displayRole = userRole === 'ADMIN' ? 'FedCare Admin' : 'Hospital Partner'
 
   return (
@@ -39,8 +39,8 @@ export default function Topbar() {
           textDecoration: 'none',
           cursor: 'pointer',
           transition: 'all 0.2s',
-        }} onMouseOver={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'} 
-           onMouseOut={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}>
+        }} onMouseOver={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'}
+          onMouseOut={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}>
           <span>{userRole === 'ADMIN' ? '🛡️' : '🏥'}</span>
           <span>{displayName || displayRole}</span>
         </Link>

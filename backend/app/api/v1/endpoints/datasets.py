@@ -87,7 +87,7 @@ async def upload_dataset(
     
     try:
         # Enhanced robust delimiter detection - Run in executor to avoid blocking loop
-        async def parse_data():
+        def parse_data():
             try:
                 df = pd.read_csv(file_path, sep=None, engine='python')
                 if df.shape[1] <= 1:
@@ -100,6 +100,7 @@ async def upload_dataset(
             return df
 
         df = await loop.run_in_executor(None, parse_data)
+
 
         if df.shape[1] <= 1:
             raise ValueError("CSV/TXT parsing failed: Only one column detected. Please check delimiters (comma, tab, or space).")

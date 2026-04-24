@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getServers, getServerMembers, joinServer, updateMemberStatus, createServer, deleteServer } from '../api'
 import { useApp } from '../contexts/AppContext'
+import JoinModal from '../components/shared/JoinModal'
 
 export default function Servers() {
   const [servers, setServers] = useState([])
@@ -10,9 +11,10 @@ export default function Servers() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
   const [newServerForm, setNewServerForm] = useState({ name: '', disease_type: '', description: '', num_rounds: 5, target_column: 'target' })
-  const { addToast, userRole } = useApp()
-  const isAdmin = userRole === 'admin'
+  const { addToast, userRole, hospitalId, hospitalName, setHospitalName } = useApp()
+  const isAdmin = userRole?.toUpperCase() === 'ADMIN'
   const navigate = useNavigate()
 
   useEffect(() => { loadServers() }, [])
@@ -41,11 +43,21 @@ export default function Servers() {
     }
   }
 
-  async function handleJoin() {
+  function handleJoinClick() {
+    setShowJoinModal(true)
+  }
+
+  async function handleJoinConfirm(customName) {
     setActionLoading(true)
     try {
-      await joinServer({ server_id: selectedServer.id, hospital_id: 1 })
-      addToast('Successfully joined server', 'success')
+      await joinServer({
+        server_id: selectedServer.id,
+        hospital_id: hospitalId,
+        hospital_name: customName
+      })
+      setHospitalName(customName)
+      addToast('Successfully joined as ' + customName, 'success')
+      setShowJoinModal(false)
       selectServer(selectedServer)
     } catch (e) {
       addToast(e.response?.data?.detail || 'Failed to join', 'error')
@@ -102,8 +114,8 @@ export default function Servers() {
     }
   }
 
-  const isMember = members.some(m => m.hospital_id === 1)
-  const memberRecord = members.find(m => m.hospital_id === 1)
+  const isMember = members.some(m => m.hospital_id === hospitalId)
+  const memberRecord = members.find(m => m.hospital_id === hospitalId)
 
   if (loading) return <div className="loader"><div className="spinner"></div></div>
 
@@ -122,15 +134,22 @@ export default function Servers() {
           <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3>Active Servers</h3>
-              <span className="badge badge-active" style={{ marginLeft: '8px' }}>{servers.length} servers</span>
+              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                {servers.length} disease prediction nodes available
+              </p>
             </div>
-            {isAdmin && (
+            {isAdmin ? (
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => setShowCreate(!showCreate)}
+                style={{ padding: '8px 16px', boxShadow: '0 0 15px rgba(102, 126, 234, 0.4)' }}
               >
-                {showCreate ? 'Cancel' : '➕ Create Server'}
+                {showCreate ? '✕ Cancel' : '➕ Create New Server'}
               </button>
+            ) : (
+              <div className="privacy-badge" style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.2)' }}>
+                <span style={{ marginRight: '4px' }}>🛡️</span> Admin Managed
+              </div>
             )}
           </div>
 
@@ -179,12 +198,12 @@ export default function Servers() {
             <div className="section-header">
               <h3>Server Details</h3>
               <div style={{ display: 'flex', gap: '12px' }}>
-                {!isAdmin && !isMember && (
-                  <button className="btn btn-primary btn-sm" onClick={handleJoin} disabled={actionLoading}>
+                {(!isMember) && (
+                  <button className="btn btn-primary btn-sm" onClick={handleJoinClick} disabled={actionLoading}>
                     {actionLoading ? 'Joining...' : '➕ Join Server'}
                   </button>
                 )}
-                {!isAdmin && isMember && (
+                {isMember && !isAdmin && (
                   <span className={`badge badge-${memberRecord?.status.toLowerCase()}`}>
                     Your Status: {memberRecord?.status}
                   </span>
@@ -197,84 +216,114 @@ export default function Servers() {
               </div>
             </div>
 
-            <div className="details-grid">
-              {[
-                { label: 'Disease Type', value: selectedServer.disease_type, icon: '🦠' },
-                { label: 'Input Type', value: selectedServer.input_type, icon: '📋' },
-                { label: 'Model', value: selectedServer.model_type, icon: '🤖' },
-                { label: 'FL Algorithm', value: selectedServer.fl_algorithm, icon: '🔄' },
-                { label: 'Training Rounds', value: `${selectedServer.current_round} / ${selectedServer.num_rounds}`, icon: '🔁' },
-                { label: 'Global Accuracy', value: `${(selectedServer.global_accuracy * 100).toFixed(2)}%`, icon: '🎯' },
-                { label: 'Target Column', value: selectedServer.target_column, icon: '🎯' },
-                { label: 'Datasets', value: selectedServer.dataset_count || 0, icon: '📊' },
-              ].map((item, i) => (
-                <div key={i} className="detail-item">
-                  <div className="detail-label">{item.icon} {item.label}</div>
-                  <div className="detail-value">{item.value}</div>
+            {(isAdmin || (isMember && memberRecord?.status === 'APPROVED')) ? (
+              <>
+                <div className="details-grid">
+                  {[
+                    { label: 'Disease Type', value: selectedServer.disease_type, icon: '🦠' },
+                    { label: 'Input Type', value: selectedServer.input_type, icon: '📋' },
+                    { label: 'Model', value: selectedServer.model_type, icon: '🤖' },
+                    { label: 'FL Algorithm', value: selectedServer.fl_algorithm, icon: '🔄' },
+                    { label: 'Training Rounds', value: `${selectedServer.current_round} / ${selectedServer.num_rounds}`, icon: '🔁' },
+                    { label: 'Global Accuracy', value: `${(selectedServer.global_accuracy * 100).toFixed(2)}%`, icon: '🎯' },
+                    { label: 'Target Column', value: selectedServer.target_column, icon: '🎯' },
+                    { label: 'Datasets', value: selectedServer.dataset_count || 0, icon: '📊' },
+                  ].map((item, i) => (
+                    <div key={i} className="detail-item">
+                      <div className="detail-label">{item.icon} {item.label}</div>
+                      <div className="detail-value">{item.value}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Members */}
-            <div className="section-header" style={{ marginTop: '32px' }}>
-              <h4 style={{ color: 'var(--color-text-bright)' }}>🏥 Participating Hospitals</h4>
-            </div>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Hospital</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map(m => (
-                  <tr key={m.id}>
-                    <td style={{ fontWeight: 600 }}>{m.hospital_name}</td>
-                    <td>
-                      <span className={`badge badge-${m.status.toLowerCase()}`}>
-                        {m.status}
-                      </span>
-                    </td>
-                    <td>
-                      {isAdmin && m.status === 'PENDING' && (
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button
-                            className="btn btn-primary btn-xs"
-                            style={{ padding: '2px 8px', fontSize: '10px' }}
-                            onClick={() => handleStatusUpdate(m.id, 'APPROVED')}
-                            disabled={actionLoading}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="btn btn-secondary btn-xs"
-                            style={{ padding: '2px 8px', fontSize: '10px', background: 'rgba(255, 82, 82, 0.2)', border: '1px solid rgba(255, 82, 82, 0.3)' }}
-                            onClick={() => handleStatusUpdate(m.id, 'REJECTED')}
-                            disabled={actionLoading}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                      {isAdmin && m.status !== 'PENDING' && (
-                        <button
-                          className="btn btn-secondary btn-xs"
-                          style={{ padding: '2px 8px', fontSize: '10px', background: 'rgba(255, 82, 82, 0.1)', border: '1px solid rgba(255, 82, 82, 0.2)', color: 'var(--color-accent-red)' }}
-                          onClick={() => handleStatusUpdate(m.id, 'REJECTED')}
-                          disabled={actionLoading}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                {/* Members */}
+                <div className="section-header" style={{ marginTop: '32px' }}>
+                  <h4 style={{ color: 'var(--color-text-bright)' }}>🏥 Participating Hospitals</h4>
+                </div>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Hospital</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.map(m => (
+                      <tr key={m.id} style={m.hospital_id === parseInt(hospitalId) ? { background: 'rgba(102, 126, 234, 0.1)' } : {}}>
+                        <td style={{ fontWeight: 600 }}>
+                          {m.hospital_id === parseInt(hospitalId) ? `${m.hospital_name} (You)` : m.hospital_name}
+                        </td>
+                        <td>
+                          <span className={`badge badge-${m.status.toLowerCase()}`}>
+                            {m.status}
+                          </span>
+                        </td>
+                        <td>
+                          {isAdmin && m.status === 'PENDING' && (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                className="btn btn-primary btn-xs"
+                                style={{ padding: '2px 8px', fontSize: '10px' }}
+                                onClick={() => handleStatusUpdate(m.id, 'APPROVED')}
+                                disabled={actionLoading}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-xs"
+                                style={{ padding: '2px 8px', fontSize: '10px', background: 'rgba(255, 82, 82, 0.2)', border: '1px solid rgba(255, 82, 82, 0.3)' }}
+                                onClick={() => handleStatusUpdate(m.id, 'REJECTED')}
+                                disabled={actionLoading}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                          {isAdmin && m.status !== 'PENDING' && (
+                            <button
+                              className="btn btn-secondary btn-xs"
+                              style={{ padding: '2px 8px', fontSize: '10px', background: 'rgba(255, 82, 82, 0.1)', border: '1px solid rgba(255, 82, 82, 0.2)', color: 'var(--color-accent-red)' }}
+                              onClick={() => handleStatusUpdate(m.id, 'REJECTED')}
+                              disabled={actionLoading}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            ) : (
+              <div className="empty-state" style={{ padding: '40px 20px', marginTop: '20px', border: '1px dashed var(--color-border)' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔒</div>
+                <h4>Secure Access Restricted</h4>
+                <p style={{ maxWidth: '400px', margin: '0 auto' }}>
+                  {isMember
+                    ? "Your join request is currently pending approval by the server administrator. You will gain access once approved."
+                    : "Detailed metrics and participant identity are restricted to approved partners only. Join the server to request access."
+                  }
+                </p>
+                {!isMember && (
+                  <button className="btn btn-primary" style={{ marginTop: '20px' }} onClick={handleJoinClick}>
+                    Request Access to Node
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      <JoinModal
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onConfirm={handleJoinConfirm}
+        initialName={hospitalName}
+        loading={actionLoading}
+      />
     </div>
   )
 }

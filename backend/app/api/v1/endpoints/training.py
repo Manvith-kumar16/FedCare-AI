@@ -1,11 +1,11 @@
 """Training endpoints"""
 import json
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from typing import List
+from sqlalchemy import select, func, delete
+from typing import List, Optional
 from app.db import get_db
-from app.models import DiseaseServer, ServerMember, Hospital, TrainingLog, Dataset
+from app.models import DiseaseServer, ServerMember, Hospital, TrainingLog, Dataset, MemberStatus
 from app.models.disease_server import ServerStatus
 from app.schemas.training import TrainingRequest, TrainingLogResponse, TrainingStatus
 from app.services.fl_service import FederatedLearningEngine
@@ -152,8 +152,30 @@ async def run_training_simulation(server_id, hospital_ids, hospital_names, num_r
 
 
 @router.get("/status/{server_id}", response_model=TrainingStatus)
-async def get_training_status(server_id: int, db: AsyncSession = Depends(get_db)):
-    """Get training status and logs for a server."""
+async def get_training_status(
+    server_id: int, 
+    db: AsyncSession = Depends(get_db),
+    x_user_role: Optional[str] = Header(None),
+    x_hospital_id: Optional[str] = Header(None)
+):
+    """Get training status and logs for a server with privacy checks."""
+    # 1. Basic access check
+    is_admin = x_user_role and x_user_role.upper() == "ADMIN"
+    
+    if not is_admin:
+        if not x_hospital_id:
+             raise HTTPException(status_code=403, detail="Hospital identification required")
+        
+        member_res = await db.execute(
+            select(ServerMember).where(
+                ServerMember.server_id == server_id,
+                ServerMember.hospital_id == int(x_hospital_id)
+            )
+        )
+        member = member_res.scalar_one_or_none()
+        if not member or member.status != MemberStatus.APPROVED:
+             raise HTTPException(status_code=403, detail="Access denied. You must be an approved member of this server.")
+
     result = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
     server = result.scalar_one_or_none()
     if not server:
@@ -173,13 +195,21 @@ async def get_training_status(server_id: int, db: AsyncSession = Depends(get_db)
     )
     member_count = member_result.scalar() or 0
 
-    log_responses = [
-        TrainingLogResponse(
+    log_responses = []
+    for log in logs:
+        if log.log_type == "global":
+            display_name = "Global Aggregate"
+        elif is_admin or (x_hospital_id and str(log.hospital_id) == str(x_hospital_id)):
+            display_name = log.hospital_name
+        else:
+            display_name = f"Secure Node {log.hospital_id}"
+            
+        log_responses.append(TrainingLogResponse(
             id=log.id,
             server_id=log.server_id,
             round_number=log.round_number,
             hospital_id=log.hospital_id,
-            hospital_name=log.hospital_name,
+            hospital_name=display_name,
             local_accuracy=log.local_accuracy,
             local_loss=log.local_loss,
             local_f1=log.local_f1,
@@ -190,9 +220,7 @@ async def get_training_status(server_id: int, db: AsyncSession = Depends(get_db)
             samples_trained=log.samples_trained,
             log_type=log.log_type,
             created_at=log.created_at,
-        )
-        for log in logs
-    ]
+        ))
 
     return TrainingStatus(
         server_id=server.id,
@@ -202,7 +230,7 @@ async def get_training_status(server_id: int, db: AsyncSession = Depends(get_db)
         total_rounds=server.num_rounds,
         global_accuracy=server.global_accuracy,
         participating_hospitals=member_count,
-        logs=log_responses,
+        logs=log_responses
     )
 
 

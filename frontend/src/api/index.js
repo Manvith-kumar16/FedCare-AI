@@ -7,6 +7,19 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 })
 
+// Add role header for backend RBAC (demo mode)
+api.interceptors.request.use(config => {
+  const role = localStorage.getItem('fedcare_user_role')
+  const hospId = localStorage.getItem('fedcare_hospital_id')
+  if (role) {
+    config.headers['X-User-Role'] = role
+  }
+  if (hospId) {
+    config.headers['X-Hospital-Id'] = hospId
+  }
+  return config
+})
+
 // Auth
 export const login = (data) => api.post('/auth/login', data)
 

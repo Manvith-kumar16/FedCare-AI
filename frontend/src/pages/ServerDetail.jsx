@@ -65,7 +65,7 @@ function ResultCard({ icon, label, value, color, subtitle }) {
 export default function ServerDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addToast, userRole, hospitalId, hospitalName } = useApp()
+  const { addToast, userRole, hospitalId, hospitalName, setHospitalName } = useApp()
   const isAdmin = userRole === 'admin'
 
   const [server, setServer] = useState(null)
@@ -204,10 +204,18 @@ export default function ServerDetail() {
   }
 
   async function handleJoin() {
+    const customName = window.prompt('Welcome! Enter your professional Hospital Name (e.g., Metropolitan Health Center):', hospitalName || '')
+    if (customName === null) return // Cancelled
+
     setActionLoading(true)
     try {
-      await joinServer({ server_id: parseInt(id), hospital_id: hospitalId })
-      addToast('Successfully joined server!', 'success')
+      await joinServer({
+        server_id: parseInt(id),
+        hospital_id: hospitalId,
+        hospital_name: customName || hospitalName
+      })
+      if (customName) setHospitalName(customName)
+      addToast('Successfully joined as ' + (customName || hospitalName), 'success')
       loadAll()
     } catch (e) {
       addToast(e.response?.data?.detail || 'Failed to join', 'error')
@@ -403,9 +411,22 @@ export default function ServerDetail() {
                         <div style={{ fontWeight: 600, color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {m.hospital_name}
                           {isMe && <span className="badge badge-training" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>You</span>}
+                          {m.last_accuracy > 0 && (
+                            <span style={{
+                              fontSize: '0.7rem',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              background: 'rgba(0,210,255,0.15)',
+                              color: 'var(--color-accent-cyan)',
+                              border: '1px solid rgba(0,210,255,0.3)',
+                              fontWeight: 700
+                            }}>
+                              Acc: {(m.last_accuracy * 100).toFixed(1)}%
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                          {hDatasets.length} dataset{hDatasets.length !== 1 ? 's' : ''}
+                          {hDatasets.length} dataset{hDatasets.length !== 1 ? 's' : ''} {m.last_accuracy > 0 && ` • Local Training Active`}
                         </div>
                       </div>
                     </div>
