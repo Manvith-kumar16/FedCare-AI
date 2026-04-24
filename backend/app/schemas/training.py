@@ -25,6 +25,7 @@ class TrainingLogResponse(BaseModel):
     global_loss: float
     samples_trained: int
     log_type: str
+    details: Optional[str] = None
     created_at: Optional[datetime] = None
 
     class Config:

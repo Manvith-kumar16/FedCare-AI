@@ -71,6 +71,7 @@ function ResultCard({ icon, label, value, color, subtitle }) {
 
 // ─── Federated Topology Visualization ─────────────────────────────────────────
 function FederatedTopology({ server, members, trainingPhase }) {
+  const navigate = useNavigate()
   const containerRef = useRef(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -98,8 +99,11 @@ function FederatedTopology({ server, members, trainingPhase }) {
   return (
     <div className="topology-container" ref={containerRef}>
       <div className="topology-grid">
-        <div className="global-model-node">
-          <div className="cloud-icon">
+        <div className="global-model-node" 
+          onClick={() => navigate(`/predictions?server_id=${server.id}`)}
+          style={{ cursor: 'pointer', transition: 'all 0.3s' }}
+        >
+          <div className="cloud-icon" style={{ transition: 'transform 0.3s' }}>
             <div className="node-icon" style={{ color: '#fff', fontSize: '1.5rem', display: 'flex', alignItems: 'center' }}>
               <HiOutlineCloud />
             </div>
@@ -107,6 +111,7 @@ function FederatedTopology({ server, members, trainingPhase }) {
           <div style={{ marginTop: '12px', textAlign: 'center' }}>
             <div style={{ fontWeight: 800, color: '#fff', fontSize: '0.9rem' }}>Global Model</div>
             <div className="node-acc">Accuracy: {((server?.global_accuracy || 0) * 100).toFixed(2)}%</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--color-accent-cyan)', marginTop: '4px', opacity: 0.8 }}>Click to run predictions →</div>
           </div>
         </div>
 

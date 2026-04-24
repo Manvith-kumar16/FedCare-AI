@@ -78,6 +78,41 @@ FedCare-AI/
    ```bash
    cd frontend
    npm run dev
+
+# 🐘 PostgreSQL Setup (IMPORTANT)
+### Step 1: Install PostgreSQL
+
+Download and install from:
+👉 https://www.postgresql.org/download/
+
+### Step 2: Create Database
+
+Open PostgreSQL terminal or pgAdmin:
+
+CREATE DATABASE fedcare_ai;
+
+### Step 3: Configure Connection
+
+Create .env file inside backend:
+
+backend/.env
+
+Add:
+
+DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/fedcare_ai
+
+⚠️ If password has special characters:
+
+@ → %40
+: → %3A
+
+Example:
+
+postgresql+asyncpg://postgres:Manvith%401132@localhost:5432/fedcare_ai
+
+### Step 4: Run Migrations / Initialize DB
+python reset_db.py
+
    ```
 
 ## 📜 License

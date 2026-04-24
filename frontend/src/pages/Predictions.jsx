@@ -15,12 +15,14 @@ export default function Predictions() {
   const [form, setForm] = useState({})
 
   const [result, setResult] = useState(null)
+  const [predictionError, setPredictionError] = useState(null)
   const [history, setHistory] = useState([])
   const [predicting, setPredicting] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { addToast } = useApp()
+  const { addToast, userRole } = useApp()
+  const isAdmin = userRole?.toUpperCase() === 'ADMIN'
 
   useEffect(() => {
     loadServers()
@@ -54,7 +56,19 @@ export default function Predictions() {
         isAdmin || (s.is_member && s.member_status === 'APPROVED')
       )
       setServers(validServers)
-      if (validServers.length > 0) {
+      
+      // Check for server_id in query param
+      const params = new URLSearchParams(window.location.search)
+      const paramId = params.get('server_id')
+      
+      if (paramId) {
+        const preselected = validServers.find(s => s.id === parseInt(paramId))
+        if (preselected) {
+          setSelectedServer(preselected)
+        } else if (validServers.length > 0) {
+          setSelectedServer(validServers[0])
+        }
+      } else if (validServers.length > 0) {
         setSelectedServer(validServers[0])
       }
     } catch (err) {
@@ -87,6 +101,8 @@ export default function Predictions() {
     }
 
     setPredicting(true)
+    setResult(null)
+    setPredictionError(null)
     try {
       const payload = {
         server_id: selectedServer.id,
@@ -99,7 +115,9 @@ export default function Predictions() {
       setResult(res.data)
       addToast('Prediction generated successfully!', 'success')
     } catch (err) {
-      addToast(err.response?.data?.detail || 'Prediction failed. Global model may not be trained yet.', 'error')
+      const msg = err.response?.data?.detail || 'Prediction failed. Global model may not be trained yet.'
+      setPredictionError(msg)
+      addToast(msg, 'error')
     } finally {
       setPredicting(false)
     }
@@ -266,6 +284,26 @@ export default function Predictions() {
                     })}
                 </div>
               )}
+            </div>
+          ) : predictionError ? (
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>⚠️</div>
+              <h4 style={{ color: 'var(--color-accent-red)', marginBottom: '12px', fontSize: 'var(--font-size-md)' }}>Prediction Failed</h4>
+              <p style={{ 
+                fontSize: 'var(--font-size-sm)', 
+                color: 'var(--color-text-secondary)', 
+                lineHeight: 1.7,
+                background: 'rgba(255,82,82,0.08)',
+                border: '1px solid rgba(255,82,82,0.2)',
+                borderRadius: '10px',
+                padding: '14px',
+                textAlign: 'left'
+              }}>
+                {predictionError}
+              </p>
+              <div style={{ marginTop: '16px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
+                💡 Tip: Upload at least <strong style={{ color: 'var(--color-accent-cyan)' }}>30+ rows</strong> of patient data and retrain the model.
+              </div>
             </div>
           ) : (
             <div className="empty-state">
