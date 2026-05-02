@@ -49,6 +49,7 @@ export default function Datasets() {
   const [simRound, setSimRound] = useState(0)
   const [simLogs, setSimLogs] = useState([])
   const [simStatus, setSimStatus] = useState('Idle')
+  const [finalResult, setFinalResult] = useState(null)
 
   useEffect(() => { loadServers() }, [])
 
@@ -78,6 +79,15 @@ export default function Datasets() {
           } else if (data.status === 'COMPLETED') {
             setSimStatus('Completed')
             setSimRound(data.num_rounds || 5)
+            // derive final metrics from logs
+            const globalLogs = (data.logs || []).filter(l => l.log_type === 'global')
+            const last = globalLogs[globalLogs.length - 1] || null
+            const final = {
+              final_accuracy: last?.global_accuracy || data.global_accuracy || 0,
+              final_loss: last?.global_loss || 0,
+              rounds: data.num_rounds || data.current_round || 0,
+            }
+            setFinalResult(final)
             addToast('Federated training complete using your data!', 'success')
             clearInterval(interval)
             loadData(selectedServer.id)
@@ -356,6 +366,21 @@ export default function Datasets() {
               </div>
             </div>
           )}
+
+                {finalResult && (
+                  <div className="card" style={{ marginBottom: 'var(--space-lg)', background: 'rgba(0, 230, 118, 0.06)', borderColor: 'rgba(0, 230, 118, 0.2)', padding: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div>
+                        <h3 style={{ color: 'var(--color-accent-green)', marginBottom: '4px', fontSize: 'var(--font-size-md)' }}>Training Complete</h3>
+                        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                          Final Accuracy: <strong>{(finalResult.final_accuracy * 100).toFixed(2)}%</strong>
+                          {' • '}Loss: <strong>{finalResult.final_loss?.toFixed(4)}</strong>
+                          {' • '}Rounds: <strong>{finalResult.rounds}</strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
           {/* Stats */}
           <div className="metrics-grid">

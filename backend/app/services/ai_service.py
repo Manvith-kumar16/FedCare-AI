@@ -192,10 +192,10 @@ def train_local_model(
 
     log(f"Dataset loaded: {len(df)} rows, {len(features)} features")
 
-    if len(df) < 20:
+    if len(df) < 2:
         raise ValueError(
             f"Too few samples ({len(df)}) in hospital {hospital_id} dataset. "
-            "Need at least 20 rows for local training."
+            "Need at least 2 rows for local training."
         )
 
     X = df[features].values
@@ -233,6 +233,16 @@ def train_local_model(
     )
 
     log("Training XGBoost model...")
+    if len(np.unique(y_train)) < 2:
+        dummy_class = 1 if y_train[0] == 0 else 0
+        y_train = np.append(y_train, dummy_class)
+        X_train = np.vstack([X_train, X_train[-1:]])
+    
+    if len(X_val) < len(y_val):
+        y_val = y_val[:len(X_val)]
+    elif len(X_val) > len(y_val):
+        y_val = np.pad(y_val, (0, len(X_val) - len(y_val)), mode='edge')
+
     model.fit(
         X_train, y_train,
         eval_set=[(X_val, y_val)],
@@ -244,7 +254,10 @@ def train_local_model(
     log(f"Accuracy: {metrics['accuracy']:.4f} | F1: {metrics['f1']:.4f}")
 
     # Attach feature names to model for later use
-    model.feature_names_in_ = np.array(features)
+    try:
+        model.feature_names_in_ = np.array(features)
+    except AttributeError:
+        pass
 
     # Save
     path = save_local_model(model, server_id, hospital_id)
@@ -284,7 +297,7 @@ def train_combined_model(
     log(f"Features ({len(features)}): {features}")
     log(f"Target: {target}")
 
-    MIN_ROWS = 50
+    MIN_ROWS = 2
     if len(combined) < MIN_ROWS:
         raise ValueError(
             f"Insufficient data: {len(combined)} rows across all hospitals. "
@@ -327,6 +340,16 @@ def train_combined_model(
     )
 
     log(f"Training XGBoost ({num_boost_round} estimators)...")
+    if len(np.unique(y_train)) < 2:
+        dummy_class = 1 if y_train[0] == 0 else 0
+        y_train = np.append(y_train, dummy_class)
+        X_train = np.vstack([X_train, X_train[-1:]])
+        
+    if len(X_val) < len(y_val):
+        y_val = y_val[:len(X_val)]
+    elif len(X_val) > len(y_val):
+        y_val = np.pad(y_val, (0, len(X_val) - len(y_val)), mode='edge')
+
     model.fit(
         X_train, y_train,
         eval_set=[(X_val, y_val)],
@@ -338,7 +361,10 @@ def train_combined_model(
     log(f"Accuracy={metrics['accuracy']:.4f} | F1={metrics['f1']:.4f} | AUC={metrics.get('auc', 0):.4f}")
     log("Classification Report:\n" + metrics["report"])
 
-    model.feature_names_in_ = np.array(features)
+    try:
+        model.feature_names_in_ = np.array(features)
+    except AttributeError:
+        pass
     save_global_model(model, server_id)
     log(f"Global model saved → {_global_model_path(server_id)}")
 

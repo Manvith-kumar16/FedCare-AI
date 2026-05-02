@@ -236,14 +236,14 @@ export default function ServerDetail() {
           const last = globalLogs[globalLogs.length - 1]
           const lastLocal = localLogsData.filter(l => l.round_number === srvRes.data.num_rounds)
           setFinalResults({
-            globalAccuracy: last.global_accuracy,
-            globalLoss: last.global_loss,
-            localF1: lastLocal[0]?.local_f1 || 0,
-            localPrecision: lastLocal[0]?.local_precision || 0,
-            localRecall: lastLocal[0]?.local_recall || 0,
-            localAccuracy: lastLocal[0]?.local_accuracy || 0,
-            samplesTotal: localLogsData.reduce((s, l) => s + (l.samples_trained || 0), 0),
-            rounds: srvRes.data.num_rounds,
+            globalAccuracy: last.global_accuracy || 0,
+            globalLoss: last.global_loss || 0,
+            localF1: lastLocal[0]?.local_f1 || last.local_f1 || 0,
+            localPrecision: lastLocal[0]?.local_precision || last.local_precision || 0,
+            localRecall: lastLocal[0]?.local_recall || last.local_recall || 0,
+            localAccuracy: lastLocal[0]?.local_accuracy || last.local_accuracy || 0,
+            samplesTotal: localLogsData.reduce((s, l) => s + (l.samples_trained || 0), 0) || last.samples_trained || 0,
+            rounds: srvRes.data.num_rounds || 1,
             hospitals: srvRes.data.member_count || members.length,
           })
         }
@@ -293,6 +293,10 @@ export default function ServerDetail() {
           loadAll()
         } else if (data.status === 'ACTIVE') {
           clearInterval(pollRef.current)
+          if (trainingPhase === 'running') {
+            const errLog = globalLogs.find(l => l.details && l.details.includes('error')) || localLogsData.find(l => l.details && l.details.includes('error'));
+            addToast('Training failed or aborted: ' + (errLog ? errLog.details : 'Unknown error'), 'error')
+          }
           setTrainingPhase('idle')
         }
       } catch (e) { console.error('Poll error', e) }

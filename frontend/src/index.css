@@ -175,37 +175,31 @@ a:hover { color: var(--color-accent-cyan); }
   min-height: var(--topbar-height);
 }
 
-.sidebar-logo .logo-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--gradient-primary);
-  border-radius: var(--border-radius-md);
+.glass-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: white;
-  flex-shrink: 0;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.02);
+  width: 100%;
 }
 
 .sidebar-logo h1 {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  background: var(--gradient-primary);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #00d2ff 50%, #667eea 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
-}
-
-.sidebar-logo .logo-badge {
-  font-size: var(--font-size-xs);
-  background: var(--gradient-accent);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 210, 255, 0.15);
 }
 
 .sidebar-nav {

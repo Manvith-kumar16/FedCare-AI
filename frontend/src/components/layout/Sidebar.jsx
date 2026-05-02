@@ -27,10 +27,8 @@ export default function Sidebar() {
   return (
     <aside className="sidebar" id="main-sidebar">
       <div className="sidebar-logo">
-        <div className="logo-icon">F</div>
-        <div>
+        <div className="glass-brand">
           <h1>FedCare AI</h1>
-          <span className="logo-badge">v1.0</span>
         </div>
       </div>
 

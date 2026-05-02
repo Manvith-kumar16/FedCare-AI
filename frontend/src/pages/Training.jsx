@@ -40,14 +40,49 @@ export default function Training() {
     setResult(null)
     addToast('Starting federated training...', 'info')
     try {
-      const res = await startTraining({
+      await startTraining({
         server_id: 1,
         num_rounds: numRounds,
         local_epochs: localEpochs,
       })
-      setResult(res.data)
-      addToast(`Training complete! Accuracy: ${(res.data.final_accuracy * 100).toFixed(2)}%`, 'success')
-      // Reload status
+
+      // Poll training status until it's no longer TRAINING, then show results
+      const pollInterval = 2000
+      const timeoutMs = 1000 * 60 * 10 // 10 minutes max
+      const start = Date.now()
+      let finalData = null
+      while (Date.now() - start < timeoutMs) {
+        await new Promise(r => setTimeout(r, pollInterval))
+        try {
+          const st = await getTrainingStatus(1)
+          const data = st.data
+          if (!data) continue
+          if (data.status === 'COMPLETED') {
+            // derive final metrics from logs
+            const globalLogs = (data.logs || []).filter(l => l.log_type === 'global')
+            const last = globalLogs[globalLogs.length - 1] || null
+            finalData = {
+              final_accuracy: last?.global_accuracy || data.global_accuracy || 0,
+              final_loss: last?.global_loss || 0,
+              total_rounds: data.total_rounds || data.current_round || 0,
+            }
+            break
+          }
+          if (data.status === 'ACTIVE') {
+            // training aborted/returned to idle
+            break
+          }
+        } catch (e) {
+          // ignore transient errors and continue polling
+        }
+      }
+
+      if (finalData) {
+        setResult(finalData)
+        addToast(`Training complete! Accuracy: ${(finalData.final_accuracy * 100).toFixed(2)}%`, 'success')
+      } else {
+        addToast('Training did not complete within the expected time', 'error')
+      }
       await loadStatus()
     } catch (e) {
       addToast(`Training failed: ${e.response?.data?.detail || e.message}`, 'error')

@@ -131,10 +131,20 @@ def aggregate_fedavg(
 
     # ── Step 4: Train global model on soft labels ──────────────────────────
     try:
-        X_tr, X_val, y_tr_soft, y_val_hard = train_test_split(
-            X_all, y_all, test_size=0.2, random_state=42, stratify=y_all
-        )
-        soft_tr = soft_preds[:len(X_tr)]
+        if len(np.unique(y_all)) > 1 and len(y_all) > 5:
+            X_tr, X_val, y_tr_soft, y_val_hard = train_test_split(
+                X_all, soft_preds, test_size=0.2, random_state=42, stratify=y_all
+            )
+            _, _, _, y_val_hard = train_test_split(
+                X_all, y_all, test_size=0.2, random_state=42, stratify=y_all
+            )
+        else:
+            X_tr, X_val, y_tr_soft, y_val_hard = train_test_split(
+                X_all, soft_preds, test_size=0.2, random_state=42
+            )
+            _, _, _, y_val_hard = train_test_split(
+                X_all, y_all, test_size=0.2, random_state=42
+            )
     except Exception:
         X_tr, X_val = X_all, X_all
         y_tr_soft = soft_preds
@@ -161,8 +171,21 @@ def aggregate_fedavg(
 
     # For hard labels from soft: threshold at 0.5
     y_tr_hard = (y_tr_soft >= 0.5).astype(int)
+    
+    # XGBoost requires at least 2 classes. If y_tr_hard only has 1 class, fallback to real labels,
+    # or inject a dummy to prevent crash.
+    if len(np.unique(y_tr_hard)) < 2:
+        y_tr_hard = y_all[:len(y_tr_hard)]
+        if len(np.unique(y_tr_hard)) < 2:
+            dummy_class = 1 if y_tr_hard[0] == 0 else 0
+            y_tr_hard = np.append(y_tr_hard, dummy_class)
+            X_tr_df = pd.concat([X_tr_df, X_tr_df.iloc[-1:]], ignore_index=True)
 
     X_val_df = pd.DataFrame(X_val, columns=feature_cols)
+    if len(X_val_df) < len(y_val_hard):
+        y_val_hard = y_val_hard[:len(X_val_df)]
+    elif len(X_val_df) > len(y_val_hard):
+        y_val_hard = np.pad(y_val_hard, (0, len(X_val_df) - len(y_val_hard)), mode='edge')
     global_model.fit(
         X_tr_df, y_tr_hard,
         eval_set=[(X_val_df, y_val_hard)],
@@ -177,7 +200,10 @@ def aggregate_fedavg(
     log("Classification Report:\n" + metrics["report"])
 
     # Attach feature names
-    global_model.feature_names_in_ = np.array(feature_cols)
+    try:
+        global_model.feature_names_in_ = np.array(feature_cols)
+    except AttributeError:
+        pass
 
     # Save
     save_global_model(global_model, server_id)

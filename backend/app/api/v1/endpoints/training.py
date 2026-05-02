@@ -351,18 +351,46 @@ async def _run_federated_training_task(
                 log(f"ROUND {round_num}/{num_rounds}")
                 log(f"{'='*50}")
 
-                # Run local + aggregate in thread pool
-                round_result = await loop.run_in_executor(
-                    None,
-                    partial(
-                        run_federated_round,
-                        server_id=server_id,
-                        round_num=round_num,
-                        hospital_data=hospital_data,
-                        run_local=True,
-                        log_callback=log,
-                    ),
-                )
+                # Run local + aggregate in thread pool. Catch per-round failures
+                # so a single hospital/model error doesn't abort the whole training.
+                try:
+                    round_result = await loop.run_in_executor(
+                        None,
+                        partial(
+                            run_federated_round,
+                            server_id=server_id,
+                            round_num=round_num,
+                            hospital_data=hospital_data,
+                            run_local=True,
+                            log_callback=log,
+                        ),
+                    )
+                except Exception as e:
+                    err = f"❌ Round {round_num} failed: {e}\n{traceback.format_exc()}"
+                    log(err)
+                    # Persist a training log entry for visibility
+                    try:
+                        await db.rollback()
+                        tlog = TrainingLog(
+                            server_id=server_id,
+                            round_number=round_num,
+                            hospital_id=None,
+                            hospital_name="Round Failure",
+                            local_accuracy=0,
+                            local_loss=0,
+                            local_f1=0,
+                            global_accuracy=0,
+                            global_loss=0,
+                            samples_trained=0,
+                            log_type="global",
+                            details=str(err),
+                        )
+                        db.add(tlog)
+                        await db.commit()
+                    except Exception:
+                        await db.rollback()
+                    # continue to next round instead of aborting
+                    continue
 
                 all_round_metrics.append(round_result)
 
@@ -397,30 +425,34 @@ async def _run_federated_training_task(
                 log(f"Round {round_num} Global F1: {round_result['global_f1']:.4f}")
 
             # Mark completed
-            final = all_round_metrics[-1]
-            srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
-            server = srv_res.scalar_one()
-            server.status = ServerStatus.COMPLETED
-            server.global_accuracy = final["global_accuracy"]
-            await db.commit()
+            if all_round_metrics:
+                final = all_round_metrics[-1]
+                srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+                server = srv_res.scalar_one()
+                server.status = ServerStatus.COMPLETED
+                server.global_accuracy = final["global_accuracy"]
+                await db.commit()
 
-            log(f"\n=== FEDERATED TRAINING COMPLETE ===")
-            log(f"Final Global Accuracy: {final['global_accuracy']:.4f}")
-            log(f"Final Global F1: {final['global_f1']:.4f}")
-            log(f"Final AUC-ROC: {final.get('auc', 0):.4f}")
-            log("__DONE__")
+                log(f"\n=== FEDERATED TRAINING COMPLETE ===")
+                log(f"Final Global Accuracy: {final['global_accuracy']:.4f}")
+                log(f"Final Global F1: {final['global_f1']:.4f}")
+                log(f"Final AUC-ROC: {final.get('auc', 0):.4f}")
+                log("__DONE__")
+            else:
+                raise ValueError("All federated rounds failed. No metrics generated.")
 
         except Exception as e:
             err = f"❌ Federated training error: {e}\n{traceback.format_exc()}"
             log(err)
             print(err)
             try:
+                await db.rollback()
                 srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
                 server = srv_res.scalar_one()
                 server.status = ServerStatus.ACTIVE
                 await db.commit()
             except Exception:
-                pass
+                await db.rollback()
 
 
 # ── Combined Full Training (no federation) ────────────────────────────────────
