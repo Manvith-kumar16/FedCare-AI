@@ -569,26 +569,4 @@ MIT License — Free to use, modify, and distribute with attribution.
 
 ---
 
-## 👨‍💻 Author
-
-<div align="center">
-
-**Manvith Kumar**
-
-[![GitHub](https://img.shields.io/badge/GitHub-Manvith--kumar16-181717?style=for-the-badge&logo=github)](https://github.com/Manvith-kumar16)
-
-*Building the future of privacy-preserving healthcare AI, one federated round at a time.*
-
-<br/>
-
----
-
-<sub>⭐ If FedCare AI helped you, please consider starring the repo — it means a lot!</sub>
-
-<br/>
-
-```
-Made with ❤️ for Healthcare Privacy
-```
-
 </div>
