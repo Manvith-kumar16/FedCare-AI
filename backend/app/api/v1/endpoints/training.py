@@ -550,8 +550,9 @@ async def _run_combined_training_task(
             log(f"   AUC-ROC  : {metrics.get('auc', 0):.4f}")
             log(f"   Loss     : {metrics['loss']:.4f}")
             if metrics.get("history"):
-                h = metrics["history"]
-                log(f"   Loss History: {h[0]:.4f} → {h[-1]:.4f} over {len(h)} rounds")
+                h = metrics["history"]['loss'] if isinstance(metrics["history"], dict) else metrics["history"]
+                if h and len(h) > 0:
+                    log(f"   Loss History: {h[0]:.4f} -> {h[-1]:.4f} over {len(h)} rounds")
             log("Classification Report:")
             for line in metrics["report"].split("\n"):
                 log(f"   {line}")
@@ -575,7 +576,8 @@ async def _run_combined_training_task(
                     f"Combined XGBoost Training Complete\n"
                     f"Features: {features}\n"
                     f"Target: {target_column}\n"
-                    f"Classification Report:\n{metrics['report']}"
+                    f"Classification Report:\n{metrics['report']}\n"
+                    f"__HISTORY_JSON__:{json.dumps(metrics.get('history', {}))}"
                 ),
             )
             db.add(tlog)

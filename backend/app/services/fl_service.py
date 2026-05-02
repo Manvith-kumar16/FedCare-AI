@@ -207,7 +207,7 @@ def aggregate_fedavg(
 
     # Save
     save_global_model(global_model, server_id)
-    log(f"Global model saved → server_{server_id}/global_model.pkl")
+    log(f"Global model saved -> server_{server_id}/global_model.pkl")
 
     return global_model, metrics
 

@@ -412,9 +412,23 @@ export default function ServerDetail() {
   const pct = trainRound > 0 ? Math.round((trainRound / numRounds) * 100) : 0
 
   // Chart data
-  const globalAccData = trainLogs.map(l => parseFloat((l.global_accuracy * 100).toFixed(2)))
-  const globalLossData = trainLogs.map(l => parseFloat(l.global_loss.toFixed(4)))
-  const roundLabels = trainLogs.map(l => `Round ${l.round_number}`)
+  let globalAccData = trainLogs.map(l => parseFloat((l.global_accuracy * 100).toFixed(2)))
+  let globalLossData = trainLogs.map(l => parseFloat(l.global_loss.toFixed(4)))
+  let roundLabels = trainLogs.map(l => `Round ${l.round_number}`)
+
+  if (trainLogs.length > 0 && trainLogs[trainLogs.length - 1].details?.includes('__HISTORY_JSON__:')) {
+    const splitStr = trainLogs[trainLogs.length - 1].details.split('__HISTORY_JSON__:')
+    if (splitStr.length > 1) {
+      try {
+        const historyObj = JSON.parse(splitStr[1])
+        if (historyObj.loss && historyObj.loss.length > 0) {
+          globalLossData = historyObj.loss.map(v => parseFloat(v.toFixed(4)))
+          globalAccData = historyObj.accuracy ? historyObj.accuracy.map(v => parseFloat((v * 100).toFixed(2))) : []
+          roundLabels = historyObj.loss.map((_, i) => `Boost ${i+1}`)
+        }
+      } catch(e) {}
+    }
+  }
 
   const dualChartData = {
     labels: roundLabels,
@@ -776,7 +790,7 @@ export default function ServerDetail() {
                         whiteSpace: 'pre-wrap',
                         fontFamily: 'monospace'
                       }}>
-                        {l.details}
+                        {l.details.split('__HISTORY_JSON__:')[0]}
                       </pre>
                     )}
                   </div>

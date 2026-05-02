@@ -228,7 +228,7 @@ def train_local_model(
         min_child_weight=3,
         random_state=42,
         use_label_encoder=False,
-        eval_metric="logloss",
+        eval_metric=["logloss", "error"],
         verbosity=0,
     )
 
@@ -261,7 +261,7 @@ def train_local_model(
 
     # Save
     path = save_local_model(model, server_id, hospital_id)
-    log(f"Model saved → {path}")
+    log(f"Model saved -> {path}")
 
     return model, metrics
 
@@ -335,7 +335,7 @@ def train_combined_model(
         min_child_weight=3,
         random_state=42,
         use_label_encoder=False,
-        eval_metric="logloss",
+        eval_metric=["logloss", "error"],
         verbosity=0,
     )
 
@@ -366,7 +366,7 @@ def train_combined_model(
     except AttributeError:
         pass
     save_global_model(model, server_id)
-    log(f"Global model saved → {_global_model_path(server_id)}")
+    log(f"Global model saved -> {_global_model_path(server_id)}")
 
     return model, metrics, features
 
@@ -398,10 +398,15 @@ def evaluate(
         pass
 
     # Per-evals loss history from internal model
-    history = []
+    history = {}
     try:
         evals = model.evals_result()
-        history = evals.get("validation_0", {}).get("logloss", [])
+        h_loss = evals.get("validation_0", {}).get("logloss", [])
+        h_error = evals.get("validation_0", {}).get("error", [])
+        history = {
+            "loss": h_loss,
+            "accuracy": [(1.0 - e) for e in h_error] if h_error else []
+        }
     except Exception:
         pass
 
