@@ -15,3 +15,5 @@ __pycache__/
 *.pkl
 *.csv
 *.xlsx
+# Local development databases
+*.db
