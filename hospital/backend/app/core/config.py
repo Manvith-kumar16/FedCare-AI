@@ -30,9 +30,14 @@ class Settings(BaseSettings):
     ]
 
     # Local directories
-    # Note: data and models are stored inside hospital backend directory
-    DATA_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
-    MODELS_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "saved_models")
+    DATA_DIR: str = os.getenv(
+        "DATA_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+    )
+    MODELS_DIR: str = os.getenv(
+        "MODELS_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "saved_models")
+    )
 
     class Config:
         env_file = ".env"

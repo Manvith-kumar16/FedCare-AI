@@ -1,0 +1,50 @@
+[
+    {
+        "Model": "Centralized XGBoost",
+        "Training Type": "Centralized Baseline (Combined Data)",
+        "Accuracy": 0.6666666666666666,
+        "Precision": 0.6792452830188679,
+        "Recall": 0.5217391304347826,
+        "F1": 0.5901639344262295,
+        "AUC": 0.7305421363392378,
+        "Training Time (ms)": 56.356500019319355,
+        "Communication Size (KB)": 0.0,
+        "Privacy Level": "Raw patient data is transferred to the central server."
+    },
+    {
+        "Model": "Federated XGBoost Ensemble",
+        "Training Type": "Federated Ensemble (Constituent Trees)",
+        "Accuracy": 0.66,
+        "Precision": 0.6875,
+        "Recall": 0.4782608695652174,
+        "F1": 0.5641025641025641,
+        "AUC": 0.7471819645732689,
+        "Training Time (ms)": 62.06780002685264,
+        "Communication Size (KB)": 132.14453125,
+        "Privacy Level": "Raw patient data remains local; model information is exchanged."
+    },
+    {
+        "Model": "Centralized Logistic Regression",
+        "Training Type": "Centralized Baseline (Combined Data)",
+        "Accuracy": 0.68,
+        "Precision": 0.6981132075471698,
+        "Recall": 0.5362318840579711,
+        "F1": 0.6065573770491803,
+        "AUC": 0.7393093576668456,
+        "Training Time (ms)": 42.964199965354055,
+        "Communication Size (KB)": 0.0,
+        "Privacy Level": "Raw patient data is transferred to the central server."
+    },
+    {
+        "Model": "Federated Logistic Regression with weighted FedAvg",
+        "Training Type": "Federated Parameter Aggregation",
+        "Accuracy": 0.68,
+        "Precision": 0.7058823529411765,
+        "Recall": 0.5217391304347826,
+        "F1": 0.6,
+        "AUC": 0.7364465915190552,
+        "Training Time (ms)": 81.40550000825897,
+        "Communication Size (KB)": 0.46875,
+        "Privacy Level": "Raw patient data remains local; model information is exchanged."
+    }
+]

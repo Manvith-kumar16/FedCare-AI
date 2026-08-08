@@ -1,0 +1,13 @@
+1. Performance Convergence Trade-off:
+   - Centralized XGBoost represents the centralized baseline, achieving access to pooled datasets.
+   - Federated XGBoost Ensemble provides highly competitive performance (with extremely close F1 & Accuracy metrics) without violating hospital data custody boundaries.
+   - Similarly, Federated Logistic Regression using weighted FedAvg aligns closely with its Centralized counterpart due to the mathematical exactness of coefficient aggregation under consistent feature spaces.
+
+2. Privacy Property:
+   - Centralized training requires pooling raw records, meaning raw patient data is transferred to the central server.
+   - Federated paradigms ensure that raw patient data remains within the hospital node and is not transferred to the central server in this tested workflow. Only model information is exchanged.
+
+3. Communication & Scalability Costs:
+   - Communication measurements represent estimated serialized model-update sizes for the experiment, not production network measurements.
+   - Logistic Regression FedAvg transmits tiny parameter coefficient weight matrices (<1 KB), yielding optimal bandwidth scalability.
+   - XGBoost Ensemble transfers booster tree binary file representations (several KB per round), scaling linearly with the ensemble size, presenting a minor network cost to maintain raw-data locality.
