@@ -9,14 +9,14 @@ import { Player } from '@lottiefiles/react-lottie-player'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: <Player autoplay loop src="/lottie/Dynamic Dashboard Icon.json" style={{ height: '24px', width: '24px', transform: 'scale(2.5)' }} />, section: 'overview' },
-  { path: '/hospitals', label: 'Hospitals', icon: <HiOutlineOfficeBuilding />, section: 'network' },
-  { path: '/servers', label: 'Federated Servers', icon: <HiOutlineServer />, section: 'network' },
-  { path: '/rounds', label: 'Training Rounds', icon: <HiOutlineLightningBolt />, section: 'network' },
-  { path: '/models', label: 'Global Models', icon: <HiOutlineGlobe />, section: 'analytics' },
-  { path: '/metrics', label: 'Evaluation Metrics', icon: <HiOutlineTrendingUp />, section: 'analytics' },
-  { path: '/explainability', label: 'Explainable AI', icon: <HiOutlineEye />, section: 'analytics' },
-  { path: '/history', label: 'Training History', icon: <HiOutlineClock />, section: 'analytics' },
-  { path: '/profile', label: 'Administrator Profile', icon: <HiOutlineUser />, section: 'account' },
+  { path: '/hospitals', label: 'Hospitals', icon: <Player autoplay loop src="/lottie/Hospital.json" style={{ height: '24px', width: '24px', transform: 'scale(1.4)' }} />, section: 'network' },
+  { path: '/servers', label: 'Federated Servers', icon: <Player autoplay loop src="/lottie/Running Server.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'network' },
+  { path: '/rounds', label: 'Training Rounds', icon: <Player autoplay loop src="/lottie/ai.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'network' },
+  { path: '/models', label: 'Global Models', icon: <Player autoplay loop src="/lottie/Globe on mobile.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'analytics' },
+  { path: '/metrics', label: 'Evaluation Metrics', icon: <Player autoplay loop src="/lottie/VS- Data and Measure.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'analytics' },
+  { path: '/explainability', label: 'Explainable AI', icon: <Player autoplay loop src="/lottie/E V E.json" style={{ height: '24px', width: '24px', transform: 'scale(1.9)' }} />, section: 'analytics' },
+  { path: '/history', label: 'Training History', icon: <Player autoplay loop src="/lottie/History.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'analytics' },
+  { path: '/profile', label: 'Administrator Profile', icon: <Player autoplay loop src="/lottie/Profile Avatar of Young Boy.json" style={{ height: '24px', width: '24px', transform: 'scale(2.5)' }} />, section: 'account' },
 ]
 
 export default function Sidebar() {
