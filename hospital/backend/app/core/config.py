@@ -11,10 +11,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        "sqlite+aiosqlite:///./hospital.db"
-    )
+    # DATABASE_URL is dynamically defined below using FEDCARE_HOME
 
     SECRET_KEY: str = os.getenv("SECRET_KEY", "fedcare-ai-hospital-node-super-secret-key-2026")
     ALGORITHM: str = "HS256"
@@ -30,13 +27,20 @@ class Settings(BaseSettings):
     ]
 
     # Local directories
+    FEDCARE_HOME: str = os.getenv("FEDCARE_HOME", os.path.expanduser("~/.fedcare-hospital"))
+    
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        f"sqlite+aiosqlite:///{os.path.join(FEDCARE_HOME, 'hospital.db')}"
+    )
+
     DATA_DIR: str = os.getenv(
         "DATA_DIR",
-        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
+        os.path.join(FEDCARE_HOME, "data")
     )
     MODELS_DIR: str = os.getenv(
         "MODELS_DIR",
-        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "saved_models")
+        os.path.join(FEDCARE_HOME, "saved_models")
     )
 
     class Config:

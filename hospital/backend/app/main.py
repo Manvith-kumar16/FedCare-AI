@@ -22,6 +22,11 @@ logger = logging.getLogger("fedcare-hospital")
 
 async def init_local_db():
     """Create local database tables on startup."""
+    # Ensure directories exist
+    os.makedirs(settings.FEDCARE_HOME, exist_ok=True)
+    os.makedirs(settings.DATA_DIR, exist_ok=True)
+    os.makedirs(settings.MODELS_DIR, exist_ok=True)
+
     from app.db.session import engine
     from app.models.base import Base
     async with engine.begin() as conn:
