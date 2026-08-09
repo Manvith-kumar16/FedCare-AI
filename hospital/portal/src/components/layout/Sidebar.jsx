@@ -5,7 +5,7 @@ import {
   HiOutlineShieldCheck, HiOutlineDatabase, HiOutlineCheckCircle,
   HiOutlinePlay, HiOutlineGlobe, HiOutlineUser
 } from 'react-icons/hi'
-import { FaHospital } from 'react-icons/fa'
+
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: <HiOutlineViewGrid />, section: 'overview' },
@@ -36,9 +36,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar" id="main-sidebar">
       <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-          <FaHospital size={20} />
-        </div>
+        <img src="/Logo/FedCare AI_Logo.png" alt="FedCare AI Logo" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
         <div>
           <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>FedCare</h1>
           <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.5px' }}>Hospital Node</p>
