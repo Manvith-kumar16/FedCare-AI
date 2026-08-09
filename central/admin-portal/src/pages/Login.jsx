@@ -39,25 +39,25 @@ export default function Login() {
   return (
     <div className="login-container" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      minHeight: '100vh', background: 'radial-gradient(circle at center, #0a1128 0%, #060b18 100%)'
+      minHeight: '100vh', background: 'var(--color-bg-primary)'
     }}>
-      <div className="login-card glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '40px', borderRadius: '16px' }}>
+      <div className="login-card glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '40px', borderRadius: '16px', background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(91, 101, 220, 0.2)' }}>
         <div className="text-center" style={{ marginBottom: '32px' }}>
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, #00d2ff 0%, #00d2ff22 100%)',
+            background: 'var(--gradient-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px auto', boxShadow: '0 8px 24px rgba(0,210,255,0.2)'
+            margin: '0 auto 16px auto', boxShadow: '0 8px 24px rgba(91, 101, 220, 0.2)'
           }}>
-            <HiLockClosed size={30} style={{ color: '#00d2ff' }} />
+            <HiLockClosed size={30} style={{ color: '#fff' }} />
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff' }}>Central Admin</h2>
-          <p style={{ fontSize: '0.875rem', opacity: 0.6, marginTop: '6px' }}>Collaborative Federated Health Network</p>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Central Admin</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '6px' }}>Collaborative Federated Health Network</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="input-group" style={{ margin: 0 }}>
-            <label style={{ color: '#9ea7c0', fontSize: '0.8rem', fontWeight: 600 }}>Administrator Email</label>
+            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Administrator Email</label>
             <input
               type="email"
               placeholder="admin@fedcare.ai"
@@ -65,15 +65,15 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               style={{
                 width: '100%', padding: '12px', borderRadius: '8px',
-                background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)',
-                color: '#fff', outline: 'none'
+                background: 'rgba(250, 250, 253, 0.8)', border: '1px solid rgba(91, 101, 220, 0.15)',
+                color: 'var(--color-text-primary)', outline: 'none'
               }}
               required
             />
           </div>
 
           <div className="input-group" style={{ margin: 0 }}>
-            <label style={{ color: '#9ea7c0', fontSize: '0.8rem', fontWeight: 600 }}>Security Password</label>
+            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Security Password</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -81,8 +81,8 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               style={{
                 width: '100%', padding: '12px', borderRadius: '8px',
-                background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)',
-                color: '#fff', outline: 'none'
+                background: 'rgba(250, 250, 253, 0.8)', border: '1px solid rgba(91, 101, 220, 0.15)',
+                color: 'var(--color-text-primary)', outline: 'none'
               }}
               required
             />
@@ -94,12 +94,12 @@ export default function Login() {
             disabled={loading}
             style={{
               width: '100%', padding: '14px', borderRadius: '8px',
-              fontWeight: 700, fontSize: '0.95rem', background: '#00d2ff',
-              color: '#060b18', border: 'none', cursor: 'pointer',
+              fontWeight: 700, fontSize: '0.95rem', background: 'var(--color-accent-blue)',
+              color: '#fff', border: 'none', cursor: 'pointer',
               display: 'flex', justifyContent: 'center', alignItems: 'center'
             }}
           >
-            {loading ? <span className="spinner-small" style={{ borderColor: '#060b18' }}></span> : 'Authenticate Admin Session'}
+            {loading ? <span className="spinner-small" style={{ borderColor: '#fff' }}></span> : 'Authenticate Admin Session'}
           </button>
         </form>
       </div>

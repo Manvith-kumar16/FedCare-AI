@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { getDatasets, validateDataset } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineCheckCircle, HiOutlineExclamationCircle, 
@@ -69,7 +70,7 @@ export default function DatasetValidation() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Analyzing dataset structure..." />
   }
 
   return (
@@ -121,10 +122,7 @@ export default function DatasetValidation() {
 
       {/* Validation Report View */}
       {validating && (
-        <div className="glass-panel text-center" style={{ padding: '48px' }}>
-          <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-          <p>Analyzing dataset structure, data types, and checking class proportions...</p>
-        </div>
+        <Loader message="Running validation checks..." />
       )}
 
       {!validating && report && (

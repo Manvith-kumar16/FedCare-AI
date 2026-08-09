@@ -1,56 +1,64 @@
 import { useLocation, Link } from 'react-router-dom'
 import { useApp } from '../../contexts/AppContext'
-import { HiOutlineShieldCheck, HiOutlineOfficeBuilding } from 'react-icons/hi'
+import { HiOutlineBell } from 'react-icons/hi'
 
-const pageTitles = {
-  '/': 'Dashboard',
-  '/servers': 'Disease Servers',
-  '/datasets': 'Datasets',
-  '/datasets/validation': 'Dataset Deep Validation',
-  '/training/local': 'Local Training',
-  '/training/federated': 'Federated Training',
-  '/predictions': 'Local Predictions',
-  '/explainability': 'Explainable AI',
-  '/profile': 'User Profile',
+const pageMap = {
+  '/': { section: 'Overview', title: 'Dashboard' },
+  '/servers': { section: 'Collaboration', title: 'Disease Servers' },
+  '/datasets': { section: 'Data Management', title: 'Datasets' },
+  '/datasets/validation': { section: 'Data Management', title: 'Dataset Deep Validation' },
+  '/training/local': { section: 'Model Development', title: 'Local Training' },
+  '/training/federated': { section: 'Collaboration', title: 'Federated Training' },
+  '/predictions': { section: 'Model Development', title: 'Local Predictions' },
+  '/explainability': { section: 'Explainability', title: 'Explainable AI' },
+  '/profile': { section: 'Account', title: 'Investigator Profile' },
 }
 
 export default function Topbar() {
   const location = useLocation()
-  const title = pageTitles[location.pathname] || 'FedCare AI'
+  const pageInfo = pageMap[location.pathname] || { section: 'System', title: 'Hospital Node' }
   const { userName, userRole, hospitalName } = useApp()
 
-  const displayName = userRole === 'HOSPITAL' ? hospitalName : userName
-  const displayRole = userRole === 'ADMIN' ? 'FedCare Admin' : 'Hospital Partner'
+  const displayName = userName || 'Clinical Investigator'
+  const displayRole = hospitalName || 'Indian Hospital'
 
   return (
     <header className="topbar" id="main-topbar">
-      <div className="topbar-left">
-        <h2>{title}</h2>
+      <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
+        <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>FedCare</span>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{pageInfo.section}</span>
+        <span style={{ color: 'var(--color-text-muted)' }}>/</span>
+        <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>{pageInfo.title}</span>
       </div>
-      <div className="topbar-right">
+      <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
         <div className="status-indicator">
           <span className="status-dot"></span>
-          <span>System Online</span>
+          <span style={{ fontWeight: 500 }}>System Online</span>
         </div>
+        
+        <div style={{ color: 'var(--color-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HiOutlineBell size={22} />
+        </div>
+
         <Link to="/profile" style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '6px 14px',
-          background: 'rgba(102, 126, 234, 0.1)',
-          borderRadius: '8px',
-          fontSize: '0.8125rem',
-          color: 'var(--color-text-secondary)',
-          textDecoration: 'none',
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-        }} onMouseOver={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)'}
-          onMouseOut={e => e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)'}>
-          <span style={{ display: 'flex', alignItems: 'center', fontSize: '1rem', color: 'var(--color-accent-blue)' }}>
-            {userRole === 'ADMIN' ? <HiOutlineShieldCheck /> : <HiOutlineOfficeBuilding />}
-          </span>
-          <span style={{ fontWeight: 600 }}>{displayName || displayRole}</span>
+          display: 'flex', alignItems: 'center', gap: '12px',
+          textDecoration: 'none', cursor: 'pointer',
+        }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', lineHeight: 1.2 }}>{displayName}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{displayRole}</div>
+          </div>
+          <div style={{ 
+            width: '36px', height: '36px', borderRadius: '50%', 
+            background: 'var(--color-bg-secondary)', display: 'flex', 
+            alignItems: 'center', justifyContent: 'center', 
+            color: 'var(--color-accent-blue)', fontWeight: 700, fontSize: '0.9rem' 
+          }}>
+            {displayName.charAt(0)}
+          </div>
         </Link>
       </div>
     </header>
   )
 }
-

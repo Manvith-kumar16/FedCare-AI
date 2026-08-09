@@ -5,6 +5,7 @@ import {
   LineElement, Title, Tooltip, Legend, Filler
 } from 'chart.js'
 import { getServers, getGlobalModels } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { HiOutlineTrendingUp, HiOutlineRefresh, HiOutlineServer } from 'react-icons/hi'
 
@@ -84,7 +85,7 @@ export default function Metrics() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Fetching telemetry..." />
   }
 
   return (

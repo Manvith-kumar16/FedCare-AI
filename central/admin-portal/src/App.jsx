@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './contexts/AppContext'
+import Loader from './components/Loader'
 import Layout from './components/layout/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -17,7 +18,7 @@ function ProtectedRoute({ children }) {
   const { isAuthenticated, userRole, loading } = useApp()
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader fullScreen />
   }
 
   if (!isAuthenticated) {

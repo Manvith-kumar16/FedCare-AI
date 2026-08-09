@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getGlobalModels } from '../api'
+import { getGlobalModels, getServers } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineGlobe, HiOutlineRefresh, HiOutlineShieldCheck, 
@@ -28,7 +29,7 @@ export default function Models() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Loading global models..." />
   }
 
   return (

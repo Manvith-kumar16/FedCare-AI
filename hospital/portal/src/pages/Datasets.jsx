@@ -5,7 +5,7 @@ import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineDatabase, HiOutlineTrash, HiOutlineUpload, 
   HiOutlineEye, HiOutlineRefresh, HiOutlineCheckCircle,
-  HiOutlineExclamationCircle
+  HiOutlineExclamationCircle, HiOutlineDocumentText
 } from 'react-icons/hi'
 
 export default function Datasets() {
@@ -116,45 +116,54 @@ export default function Datasets() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return (
+      <div style={{ display: 'flex', gap: '24px', flexDirection: 'column' }}>
+        <div style={{ height: '100px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '200px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+      </div>
+    )
   }
 
   return (
     <div className="datasets-page fade-in">
-      <div className="page-header">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h2>Dataset Management</h2>
-          <p>Custody control of patient datasets. Data resides strictly inside this node's isolated storage.</p>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+            Dataset Management
+          </h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+            Custody control of patient datasets. Data resides strictly inside this node's isolated storage.
+          </p>
         </div>
         <button 
           className="btn btn-secondary" 
           onClick={loadData}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          <HiOutlineRefresh /> Refresh
+          <HiOutlineRefresh size={18} /> Refresh
         </button>
       </div>
 
       {/* Upload Zone */}
-      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-        <h3>Upload Patient Dataset</h3>
-        <p style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '20px' }}>
+      <div className="card" style={{ marginBottom: '32px' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>Import Patient Dataset</h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '24px' }}>
           Select a Disease Server network below to import patient metrics for training. Only CSV and TXT formats are supported.
         </p>
 
         {servers.length === 0 ? (
-          <div className="alert alert-warning" style={{ margin: 0 }}>
-            <HiOutlineExclamationCircle size={20} />
-            <span>You have not joined any Disease Servers yet. Please <Link to="/servers" style={{ color: '#38bdf8', textDecoration: 'underline' }}>join a server</Link> to associate dataset records.</span>
+          <div style={{ padding: '16px', background: '#FFF7ED', border: '1px solid #FFEDD5', borderRadius: '8px', color: '#C2410C', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <HiOutlineExclamationCircle size={24} />
+            <span>You have not joined any Disease Servers yet. Please <Link to="/servers" style={{ color: '#EA580C', fontWeight: 600, textDecoration: 'underline' }}>join a server</Link> to associate dataset records.</span>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="input-group" style={{ margin: 0, minWidth: '280px' }}>
-              <label>Target Disease Network</label>
+            <div className="form-group" style={{ margin: 0, minWidth: '320px' }}>
+              <label className="form-label">Target Disease Network</label>
               <select 
+                className="form-select"
                 value={selectedServerId} 
                 onChange={(e) => setSelectedServerId(e.target.value)}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+                style={{ marginBottom: 0 }}
               >
                 {servers.map(s => (
                   <option key={s.id} value={s.id}>{s.name} ({s.disease_type})</option>
@@ -174,10 +183,10 @@ export default function Datasets() {
               className="btn btn-primary" 
               onClick={handleUploadClick} 
               disabled={uploading}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 24px' }}
             >
               {uploading ? (
-                <span className="spinner-small"></span>
+                'Processing...'
               ) : (
                 <>
                   <HiOutlineUpload size={18} />
@@ -189,98 +198,105 @@ export default function Datasets() {
         )}
       </div>
 
-      {/* Custody Datasets List */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h3>Custody Datasets List</h3>
-        <div className="table-responsive" style={{ marginTop: '16px' }}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Dataset Name</th>
-                <th>Disease Server</th>
-                <th>Records Count</th>
-                <th>Features Count</th>
-                <th>File Size</th>
-                <th>Target Class</th>
-                <th>Local Path</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {datasets.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-center">No local datasets under custody.</td>
-                </tr>
-              ) : (
-                datasets.map(ds => {
-                  const srv = servers.find(s => s.id === ds.server_id)
-                  
-                  return (
-                    <tr key={ds.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                          <HiOutlineDatabase style={{ color: '#38bdf8' }} />
-                          {ds.filename}
+      {/* Custody Datasets Grid */}
+      <div>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '24px' }}>Local Datasets Under Custody</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px' }}>
+          {datasets.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', background: '#FAFAFD', borderRadius: '12px', border: '1px dashed var(--color-border)' }}>
+              <div style={{ color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+                <HiOutlineDatabase size={48} />
+              </div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '8px' }}>No local datasets under custody.</h3>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Import a dataset using the controls above.</p>
+            </div>
+          ) : (
+            datasets.map(ds => {
+              const srv = servers.find(s => s.id === ds.server_id)
+              
+              return (
+                <div key={ds.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--color-bg-secondary)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <HiOutlineDocumentText size={20} />
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '2px' }}>{ds.filename}</h4>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                          {srv ? srv.name : `Server #${ds.server_id}`}
                         </div>
-                      </td>
-                      <td>{srv ? srv.name : `Server #${ds.server_id}`}</td>
-                      <td>{ds.row_count} patients</td>
-                      <td>{ds.feature_count} features</td>
-                      <td>{ds.file_size_kb} KB</td>
-                      <td>
-                        <span className="badge badge-info">{ds.target_column}</span>
-                      </td>
-                      <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', opacity: 0.6 }}>
-                        {ds.file_path}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
-                            className="btn-small btn-secondary" 
-                            onClick={() => handlePreviewDataset(ds.id)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                          >
-                            <HiOutlineEye /> Preview
-                          </button>
-                          <Link 
-                            to="/datasets/validation" 
-                            state={{ datasetId: ds.id }}
-                            className="btn-small btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                          >
-                            <HiOutlineCheckCircle /> Validate
-                          </Link>
-                          <button 
-                            className="btn-small btn-danger" 
-                            onClick={() => handleClearDatasets(ds.server_id)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                          >
-                            <HiOutlineTrash /> Clear
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', padding: '16px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Records Count</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{ds.row_count} patients</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Features</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{ds.feature_count} features</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>File Size</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{ds.file_size_kb} KB</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Target Class</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-accent-blue)' }}>{ds.target_column}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontFamily: 'monospace', marginBottom: '24px', padding: '8px', background: 'rgba(0,0,0,0.02)', borderRadius: '4px' }}>
+                    {ds.file_path}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                    <button 
+                      className="btn btn-secondary btn-sm" 
+                      onClick={() => handlePreviewDataset(ds.id)}
+                      style={{ flex: 1 }}
+                    >
+                      <HiOutlineEye size={16} /> Preview
+                    </button>
+                    <Link 
+                      to="/datasets/validation" 
+                      state={{ datasetId: ds.id }}
+                      className="btn btn-primary btn-sm"
+                      style={{ flex: 1, display: 'flex', justifyContent: 'center' }}
+                    >
+                      <HiOutlineCheckCircle size={16} /> Validate
+                    </Link>
+                    <button 
+                      className="btn btn-danger btn-sm" 
+                      onClick={() => handleClearDatasets(ds.server_id)}
+                      title="Clear Dataset"
+                    >
+                      <HiOutlineTrash size={16} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
       {/* Dataset Preview Section */}
       {preview && (
-        <div className="glass-panel fade-in" style={{ padding: '24px', marginTop: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3>Local Dataset Preview (First 10 Rows)</h3>
-            <button className="btn-small btn-secondary" onClick={() => { setPreview(null); setPreviewDatasetId(null); }}>Close Preview</button>
+        <div className="card fade-in" style={{ marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Local Dataset Preview (First 10 Rows)</h3>
+            <button className="btn btn-secondary btn-sm" onClick={() => { setPreview(null); setPreviewDatasetId(null); }}>Close Preview</button>
           </div>
-          <div className="table-responsive">
-            <table className="data-table text-xs">
-              <thead>
+          <div style={{ overflowX: 'auto', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+            <table className="data-table" style={{ margin: 0 }}>
+              <thead style={{ background: 'var(--color-bg-secondary)' }}>
                 <tr>
                   {preview.columns.map((col, idx) => (
-                    <th key={idx}>{col}</th>
+                    <th key={idx} style={{ fontSize: '0.75rem', padding: '12px 16px' }}>{col}</th>
                   ))}
                 </tr>
               </thead>
@@ -288,7 +304,9 @@ export default function Datasets() {
                 {preview.rows.map((row, rIdx) => (
                   <tr key={rIdx}>
                     {preview.columns.map((col, cIdx) => (
-                      <td key={cIdx}>{row[col] !== undefined ? String(row[col]) : ''}</td>
+                      <td key={cIdx} style={{ fontSize: '0.8rem', padding: '12px 16px', color: 'var(--color-text-secondary)' }}>
+                        {row[col] !== undefined ? String(row[col]) : ''}
+                      </td>
                     ))}
                   </tr>
                 ))}

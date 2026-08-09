@@ -4,8 +4,10 @@ import { getServers, createServer, deleteServer } from '../api'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineServer, HiOutlinePlus, HiOutlineTrash, 
-  HiOutlineRefresh, HiOutlineChevronRight, HiOutlineShieldCheck
+  HiOutlineRefresh, HiOutlineChevronRight, HiOutlineShieldCheck,
+  HiOutlineCog
 } from 'react-icons/hi'
+import { FaServer } from 'react-icons/fa'
 
 export default function Servers() {
   const [servers, setServers] = useState([])
@@ -44,7 +46,6 @@ export default function Servers() {
     e.preventDefault()
     setCreating(true)
     try {
-      // Form payload mapping
       await createServer({
         name: form.name,
         disease_type: form.disease_type,
@@ -90,125 +91,135 @@ export default function Servers() {
   }
 
   if (loading && !showForm) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return (
+      <div style={{ display: 'flex', gap: '24px', flexDirection: 'column' }}>
+        <div style={{ height: '100px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          <div style={{ height: '300px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+          <div style={{ height: '300px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="servers-admin-page fade-in">
-      <div className="page-header">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h2>Federated Prediction Networks</h2>
-          <p>Configure model targets, mathematical aggregation algorithms, and manage active training networks.</p>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+            Federated Prediction Networks
+          </h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+            Configure model targets, mathematical aggregation algorithms, and manage active training networks.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
             className="btn btn-secondary" 
             onClick={loadServers}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <HiOutlineRefresh /> Refresh
+            <HiOutlineRefresh size={18} /> Refresh
           </button>
           <button 
             className="btn btn-primary" 
             onClick={() => setShowForm(!showForm)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <HiOutlinePlus /> {showForm ? 'Cancel Pipeline' : 'Create Server Pipeline'}
+            <HiOutlinePlus size={18} /> {showForm ? 'Cancel Pipeline' : 'Create Server Pipeline'}
           </button>
         </div>
       </div>
 
       {showForm && (
-        <div className="glass-panel fade-in" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h3>Configure New Federated Prediction Pipeline</h3>
-          <form onSubmit={handleCreate} style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="input-group">
-              <label>Pipeline Display Name</label>
+        <div className="card fade-in" style={{ marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '24px' }}>Configure New Federated Prediction Pipeline</h3>
+          <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Pipeline Display Name</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="e.g. Global Diabetes Predictor"
                 value={form.name}
                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group">
-              <label>Target Disease / System</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Target Disease / System</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="e.g. Diabetes Risk"
                 value={form.disease_type}
                 onChange={(e) => setForm(prev => ({ ...prev, disease_type: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group" style={{ gridColumn: 'span 2' }}>
-              <label>Description</label>
+            <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: 0 }}>
+              <label className="form-label">Description</label>
               <textarea 
+                className="form-input"
                 placeholder="Brief summary of targets and requirements..."
                 value={form.description}
                 onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px', minHeight: '80px', resize: 'vertical' }}
+                style={{ minHeight: '80px', resize: 'vertical' }}
                 required 
               />
             </div>
 
-            <div className="input-group">
-              <label>Model Architecture</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Model Architecture</label>
               <select 
+                className="form-select"
                 value={form.model_type}
                 onChange={(e) => {
                   const val = e.target.value
                   setForm(prev => ({ 
                     ...prev, 
                     model_type: val,
-                    // Auto select best algorithm matching model type
                     fl_algorithm: val === 'logistic_regression' ? 'FedAvg' : 'FedAvg'
                   }))
                 }}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
               >
                 <option value="xgboost">XGBoost Ensemble (Voting Ensemble)</option>
                 <option value="logistic_regression">Logistic Regression (True Parameter FedAvg)</option>
               </select>
             </div>
 
-            <div className="input-group">
-              <label>Aggregation Algorithm</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Aggregation Algorithm</label>
               <select 
+                className="form-select"
                 value={form.fl_algorithm}
                 onChange={(e) => setForm(prev => ({ ...prev, fl_algorithm: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
               >
                 <option value="FedAvg">FedAvg (Weighted Parameter Averaging)</option>
               </select>
             </div>
 
-            <div className="input-group">
-              <label>Coordinate Rounds Limit</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Coordinate Rounds Limit</label>
               <input 
                 type="number" 
+                className="form-input"
                 min="1" 
                 max="50"
                 value={form.num_rounds}
                 onChange={(e) => setForm(prev => ({ ...prev, num_rounds: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group">
-              <label>Dataset Target Class Label Column</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Dataset Target Class Label Column</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="Outcome"
                 value={form.target_column}
                 onChange={(e) => setForm(prev => ({ ...prev, target_column: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
@@ -220,80 +231,87 @@ export default function Servers() {
                 disabled={creating}
                 style={{ padding: '12px 24px' }}
               >
-                {creating ? <span className="spinner-small"></span> : 'Provision Pipeline Server'}
+                {creating ? 'Processing...' : 'Provision Pipeline Server'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Servers List */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h3>Federated Servers List</h3>
-        <div className="table-responsive" style={{ marginTop: '16px' }}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Server Pipeline Name</th>
-                <th>Model Architecture</th>
-                <th>Target Column</th>
-                <th>Registered Nodes</th>
-                <th>Current Round</th>
-                <th>Accuracy</th>
-                <th>Pipeline Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {servers.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-center">No Coordinating servers provisioned.</td>
-                </tr>
-              ) : (
-                servers.map(srv => (
-                  <tr key={srv.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                        <HiOutlineServer style={{ color: '#667eea' }} />
-                        {srv.name}
-                      </div>
-                      <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{srv.description}</span>
-                    </td>
-                    <td>
-                      <span className="badge badge-info">{srv.model_type?.toUpperCase()}</span>
-                      <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '2px' }}>Alg: {srv.fl_algorithm}</div>
-                    </td>
-                    <td><span className="badge badge-secondary">{srv.target_column}</span></td>
-                    <td>{srv.member_count} active hospitals</td>
-                    <td>Round {srv.current_round} / {srv.num_rounds}</td>
-                    <td style={{ fontWeight: 700, color: '#34d399' }}>
-                      {srv.global_accuracy > 0 ? (srv.global_accuracy * 100).toFixed(1) + '%' : 'N/A'}
-                    </td>
-                    <td>
-                      <span className={`badge ${srv.status === 'TRAINING' ? 'badge-error' : 'badge-active'}`}>
-                        {srv.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <Link to={`/servers/${srv.id}`} className="btn-small btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          Manage <HiOutlineChevronRight />
-                        </Link>
-                        <button 
-                          className="btn-small btn-danger" 
-                          onClick={() => handleDelete(srv.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '2px' }}
-                        >
-                          <HiOutlineTrash /> Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Servers Card Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
+        {servers.length === 0 ? (
+          <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', background: '#FAFAFD', borderRadius: '12px', border: '1px dashed var(--color-border)' }}>
+            <div style={{ color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+              <HiOutlineServer size={48} />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>No Servers Configured</h3>
+            <p style={{ color: 'var(--color-text-muted)' }}>Create a new pipeline to start federated aggregation.</p>
+          </div>
+        ) : (
+          servers.map(srv => (
+            <div key={srv.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-bg-secondary)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <FaServer size={22} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '4px' }}>{srv.name}</h3>
+                    <span className="badge badge-inactive">{srv.disease_type}</span>
+                  </div>
+                </div>
+                <span className={`badge ${srv.status === 'TRAINING' ? 'badge-error' : 'badge-active'}`}>
+                  {srv.status === 'TRAINING' ? 'TRAINING' : 'IDLE'}
+                </span>
+              </div>
+              
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.5, flex: 1, minHeight: '40px' }}>
+                {srv.description}
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '24px', padding: '16px', background: '#FAFAFD', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Architecture</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{srv.model_type?.toUpperCase()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Algorithm</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{srv.fl_algorithm}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Participants</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{srv.member_count} Nodes</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Global Accuracy</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-accent-green)' }}>
+                    {srv.global_accuracy > 0 ? (srv.global_accuracy * 100).toFixed(1) + '%' : 'N/A'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                  Round {srv.current_round} of {srv.num_rounds}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    className="btn btn-danger btn-sm" 
+                    onClick={() => handleDelete(srv.id)}
+                    title="Delete Server"
+                    style={{ padding: '8px 12px' }}
+                  >
+                    <HiOutlineTrash size={16} />
+                  </button>
+                  <Link to={`/servers/${srv.id}`} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                    Manage Pipeline <HiOutlineChevronRight />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

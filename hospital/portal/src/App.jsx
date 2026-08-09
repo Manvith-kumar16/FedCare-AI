@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import Loader from './components/Loader'
 import { AppProvider, useApp } from './contexts/AppContext'
 import Layout from './components/layout/Layout'
 import Dashboard from './pages/Dashboard'
@@ -25,7 +26,7 @@ function AppContent() {
   const { loading } = useApp()
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader fullScreen />
   }
 
   return (

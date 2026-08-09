@@ -5,17 +5,17 @@
 
 /* === CSS Variables / Design Tokens === */
 :root {
-  /* Primary palette */
-  --color-bg-primary: #060b18;
-  --color-bg-secondary: #0c1229;
-  --color-bg-card: rgba(15, 23, 52, 0.7);
-  --color-bg-card-hover: rgba(20, 30, 65, 0.85);
-  --color-bg-sidebar: rgba(8, 14, 35, 0.95);
-  --color-bg-input: rgba(15, 23, 52, 0.5);
+  /* Primary palette (Light Medical Theme) */
+  --color-bg-primary: #FAFAFD;
+  --color-bg-secondary: #EEEFFD;
+  --color-bg-card: #FFFFFF;
+  --color-bg-card-hover: rgba(255, 255, 255, 0.95);
+  --color-bg-sidebar: #FFFFFF;
+  --color-bg-input: #FFFFFF;
 
   /* Accent colors */
-  --color-accent-blue: #667eea;
-  --color-accent-violet: #764ba2;
+  --color-accent-blue: #5B65DC;
+  --color-accent-violet: #5B65DC; /* Unified accent for medical theme */
   --color-accent-cyan: #00d2ff;
   --color-accent-green: #00e676;
   --color-accent-orange: #ff9100;
@@ -23,32 +23,33 @@
   --color-accent-pink: #f06292;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-accent: linear-gradient(135deg, #00d2ff 0%, #667eea 100%);
+  --gradient-primary: linear-gradient(135deg, #5B65DC 0%, #122056 100%);
+  --gradient-accent: linear-gradient(135deg, #00d2ff 0%, #5B65DC 100%);
   --gradient-success: linear-gradient(135deg, #00e676 0%, #00bfa5 100%);
   --gradient-danger: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
   --gradient-warning: linear-gradient(135deg, #ff9100 0%, #ff6d00 100%);
-  --gradient-card: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+  --gradient-card: linear-gradient(135deg, rgba(238, 239, 253, 0.5) 0%, rgba(255, 255, 255, 0.1) 100%);
 
   /* Text */
-  --color-text-primary: #e8eaf6;
-  --color-text-secondary: #9ea7c0;
-  --color-text-muted: #5c6484;
-  --color-text-bright: #ffffff;
+  --color-text-primary: #122056;
+  --color-text-secondary: #5B65DC;
+  --color-text-muted: #8a94b5;
+  --color-text-bright: #122056; /* Navy is the 'bright' readable color in light theme */
+  --color-text-on-accent: #FFFFFF; /* New: Text for buttons that are accent colored */
 
   /* Borders */
-  --color-border: rgba(102, 126, 234, 0.15);
-  --color-border-hover: rgba(102, 126, 234, 0.35);
+  --color-border: rgba(91, 101, 220, 0.15); /* #5B65DC with opacity */
+  --color-border-hover: rgba(91, 101, 220, 0.35);
   --border-radius-sm: 8px;
   --border-radius-md: 12px;
   --border-radius-lg: 16px;
   --border-radius-xl: 24px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.15);
+  --shadow-sm: 0 2px 8px rgba(18, 32, 86, 0.04);
+  --shadow-md: 0 4px 16px rgba(18, 32, 86, 0.08);
+  --shadow-lg: 0 8px 32px rgba(18, 32, 86, 0.12);
+  --shadow-glow: 0 0 20px rgba(91, 101, 220, 0.2);
 
   /* Spacing */
   --space-xs: 3px;
@@ -60,13 +61,13 @@
 
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-size-xs: 0.65rem;
-  --font-size-sm: 0.7rem;
-  --font-size-md: 0.8rem;
-  --font-size-lg: 0.9rem;
-  --font-size-xl: 1.15rem;
-  --font-size-2xl: 1.35rem;
-  --font-size-3xl: 1.75rem;
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.8125rem; /* 13px */
+  --font-size-md: 0.875rem; /* 14px */
+  --font-size-lg: 1rem; /* 16px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.75rem; /* 28px */
+  --font-size-3xl: 2.25rem; /* 36px */
 
   /* Sidebar */
   --sidebar-width: 220px;
@@ -102,18 +103,7 @@ body {
 }
 
 body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(ellipse at 20% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(118, 75, 162, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 210, 255, 0.03) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 #root {
@@ -158,11 +148,10 @@ a:hover { color: var(--color-accent-cyan); }
   height: 100vh;
   background: var(--color-bg-sidebar);
   border-right: 1px solid var(--color-border);
-  backdrop-filter: blur(20px);
-  z-index: 100;
   display: flex;
   flex-direction: column;
   transition: width var(--transition-normal);
+  z-index: 100;
   overflow: hidden;
 }
 
@@ -246,20 +235,23 @@ a:hover { color: var(--color-accent-cyan); }
 }
 
 .nav-item.active {
-  background: rgba(102, 126, 234, 0.15);
-  color: var(--color-accent-blue);
+  background: var(--color-bg-secondary); /* #EEEFFD */
+  color: var(--color-text-primary);
 }
 
 .nav-item.active::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
   width: 3px;
-  height: 60%;
-  background: var(--gradient-primary);
-  border-radius: 0 4px 4px 0;
+  height: 100%;
+  background: var(--color-accent-blue);
+  border-radius: 0;
+}
+
+.nav-item.active .nav-icon {
+  color: var(--color-accent-blue);
 }
 
 .nav-item .nav-icon {
@@ -295,8 +287,8 @@ a:hover { color: var(--color-accent-cyan); }
   left: var(--sidebar-width);
   right: 0;
   height: var(--topbar-height);
-  background: rgba(6, 11, 24, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
@@ -459,7 +451,7 @@ a:hover { color: var(--color-accent-cyan); }
   color: var(--color-text-muted);
   font-weight: 600;
   border-bottom: 1px solid var(--color-border);
-  background: rgba(15, 23, 52, 0.5);
+  background: var(--color-bg-secondary); /* #EEEFFD */
 }
 
 .data-table th:first-child { border-radius: var(--border-radius-sm) 0 0 0; }
@@ -468,12 +460,12 @@ a:hover { color: var(--color-accent-cyan); }
 .data-table td {
   padding: var(--space-md);
   font-size: var(--font-size-sm);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.06);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text-primary);
 }
 
 .data-table tr:hover td {
-  background: rgba(102, 126, 234, 0.04);
+  background: var(--color-bg-primary); /* #FAFAFD */
 }
 
 /* === Buttons === */
@@ -493,14 +485,14 @@ a:hover { color: var(--color-accent-cyan); }
 }
 
 .btn-primary {
-  background: var(--gradient-primary);
+  background: var(--color-accent-blue);
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 12px rgba(91, 101, 220, 0.2);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+  box-shadow: 0 6px 20px rgba(91, 101, 220, 0.35);
 }
 
 .btn-primary:active {
@@ -508,14 +500,14 @@ a:hover { color: var(--color-accent-cyan); }
 }
 
 .btn-secondary {
-  background: rgba(102, 126, 234, 0.1);
-  color: var(--color-accent-blue);
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid transparent;
 }
 
 .btn-secondary:hover {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.4);
+  background: #E5E8FA;
+  border-color: rgba(91, 101, 220, 0.2);
 }
 
 .btn-success {
@@ -596,7 +588,7 @@ a:hover { color: var(--color-accent-cyan); }
 
 .form-input:focus, .form-select:focus {
   border-color: var(--color-accent-blue);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 0 0 3px rgba(91, 101, 220, 0.15);
 }
 
 .form-input::placeholder {

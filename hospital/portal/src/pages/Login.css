@@ -17,13 +17,13 @@
   z-index: 10;
   width: 100%;
   max-width: 400px;
-  background: rgba(15, 23, 52, 0.45);
+  background: rgba(255, 255, 255, 0.85); /* Light glass */
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(91, 101, 220, 0.2);
   border-radius: var(--border-radius-xl);
   padding: 24px 32px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px rgba(18, 32, 86, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
   animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   max-height: 95vh;
   overflow-y: auto;
@@ -46,7 +46,7 @@
   font-size: 1.5rem;
   font-weight: 800;
   color: white;
-  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 16px rgba(91, 101, 220, 0.3);
 }
 
 .login-header h2 {
@@ -63,11 +63,11 @@
 
 .role-toggle {
   display: flex;
-  background: rgba(8, 14, 35, 0.6);
+  background: rgba(238, 239, 253, 0.6); /* Very Light Blue */
   border-radius: var(--border-radius-lg);
   padding: 4px;
   margin-bottom: 16px;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(91, 101, 220, 0.1);
 }
 
 .toggle-btn {
@@ -91,8 +91,8 @@
 .toggle-btn.active {
   background: var(--color-bg-card);
   color: var(--color-text-bright);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(18, 32, 86, 0.1);
+  border: 1px solid rgba(91, 101, 220, 0.2);
 }
 
 .toggle-icon {
@@ -129,11 +129,11 @@
 
 .input-field input {
   width: 100%;
-  background: rgba(8, 14, 35, 0.6);
-  border: 1px solid rgba(102, 126, 234, 0.15);
+  background: rgba(250, 250, 253, 0.8);
+  border: 1px solid rgba(91, 101, 220, 0.15);
   border-radius: var(--border-radius-md);
   padding: 10px 14px 10px 40px;
-  color: var(--color-text-bright);
+  color: var(--color-text-primary);
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   transition: all 0.3s ease;
@@ -141,9 +141,9 @@
 }
 
 .input-field input:focus {
-  background: rgba(15, 23, 52, 0.8);
+  background: rgba(255, 255, 255, 1);
   border-color: var(--color-accent-blue);
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 0 0 4px rgba(91, 101, 220, 0.15);
 }
 
 .input-field input:focus + .input-icon,
@@ -163,7 +163,7 @@
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 20px rgba(91, 101, 220, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   justify-content: center;
@@ -172,7 +172,7 @@
 
 .login-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.45);
+  box-shadow: 0 8px 25px rgba(91, 101, 220, 0.45);
 }
 
 .login-btn:disabled {
@@ -217,14 +217,14 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.5;
+  opacity: 0.6;
   z-index: 1;
 }
 
 .orb-1 {
   width: 400px;
   height: 400px;
-  background: #667eea;
+  background: #EEEFFD; /* Light pastel blue from palette */
   top: -100px;
   left: -100px;
   animation: floatOrb 10s ease-in-out infinite alternate;
@@ -233,7 +233,7 @@
 .orb-2 {
   width: 500px;
   height: 500px;
-  background: #764ba2;
+  background: rgba(91, 101, 220, 0.2); /* Tint of accent #5B65DC */
   bottom: -200px;
   right: -100px;
   animation: floatOrb 12s ease-in-out infinite alternate-reverse;
@@ -242,7 +242,7 @@
 .orb-3 {
   width: 300px;
   height: 300px;
-  background: #00d2ff;
+  background: #E5E8FA; /* Soft blend for variety */
   bottom: 20%;
   left: 20%;
   animation: floatOrb 15s ease-in-out infinite;

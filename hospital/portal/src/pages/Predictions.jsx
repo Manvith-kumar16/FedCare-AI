@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { makePrediction, getPredictionHistory, getServers } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineSparkles, HiOutlineClipboardList, HiOutlineSearch,
@@ -154,7 +155,7 @@ export default function Predictions() {
   const shapValues = result?.explanation_data ? JSON.parse(result.explanation_data) : null
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Initializing global model predictors..." />
   }
 
   return (

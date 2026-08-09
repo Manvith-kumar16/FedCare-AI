@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getServers, getDatasets, triggerSync, getTrainingHistory } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineGlobe, HiOutlineRefresh, HiOutlineDatabase, 
@@ -79,7 +80,7 @@ export default function FederatedTraining() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Connecting to federated coordination..." />
   }
 
   return (

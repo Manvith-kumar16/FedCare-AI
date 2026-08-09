@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getServers, getTrainingHistory } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { HiOutlineClock, HiOutlineRefresh, HiOutlineServer, HiOutlineGlobe, HiOutlineOfficeBuilding } from 'react-icons/hi'
 
@@ -51,8 +52,8 @@ export default function TrainingHistory() {
     }
   }
 
-  if (loading && !selectedServerId) {
-    return <div className="loader"><div className="spinner"></div></div>
+  if (loading) {
+    return <Loader message="Loading training history..." />
   }
 
   return (
@@ -97,10 +98,7 @@ export default function TrainingHistory() {
         <h3>Timeline audit trail</h3>
 
         {loadingLogs ? (
-          <div className="text-center" style={{ padding: '48px 0' }}>
-            <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-            <p>Loading historical execution trail...</p>
-          </div>
+          <Loader message="Loading older rounds..." />
         ) : logs.length === 0 ? (
           <div className="empty-state">No execution runs logged for this pipeline server. Start training rounds to track progress.</div>
         ) : (

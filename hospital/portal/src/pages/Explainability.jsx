@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bar } from 'react-chartjs-2'
 import { getFeatureImportance, getPredictionHistory, getExplanation, getServers } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineSearch, HiOutlineChartBar, HiOutlineSparkles,
@@ -95,8 +96,8 @@ export default function Explainability() {
     }]
   }
 
-  if (loading && servers.length === 0) {
-    return <div className="loader"><div className="spinner"></div></div>
+  if (loading) {
+    return <Loader message="Fetching feature attributions..." />
   }
 
   return (
@@ -199,10 +200,7 @@ export default function Explainability() {
             </h3>
             
             {loadingExplanation ? (
-              <div className="text-center" style={{ padding: '48px 0' }}>
-                <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-                <p>Generating local SHAP attribution plot...</p>
-              </div>
+              <Loader message="Loading SHAP values..." />
             ) : selectedExplanation ? (
               <div className="fade-in">
                 <div style={{ marginBottom: '20px', textAlign: 'center' }}>

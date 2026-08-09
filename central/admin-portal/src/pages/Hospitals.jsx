@@ -6,6 +6,7 @@ import {
   HiOutlineRefresh, HiOutlineMail, HiOutlineLocationMarker,
   HiOutlineUser, HiOutlineLockClosed
 } from 'react-icons/hi'
+import { FaHospital } from 'react-icons/fa'
 
 export default function Hospitals() {
   const [hospitals, setHospitals] = useState([])
@@ -64,28 +65,35 @@ export default function Hospitals() {
   }
 
   if (loading && !showForm) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return (
+      <div style={{ display: 'flex', gap: '24px', flexDirection: 'column' }}>
+        <div style={{ height: '100px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ height: '400px', background: '#fff', borderRadius: '14px', animation: 'pulse 1.5s infinite' }} />
+      </div>
+    )
   }
 
   return (
     <div className="hospitals-page fade-in">
-      <div className="page-header">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h2>Medical Institutions Registry</h2>
-          <p>Govern investigator credentials and audit registered hospital nodes.</p>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
+            Medical Institutions Registry
+          </h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+            Govern investigator credentials and audit registered hospital nodes.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
             className="btn btn-secondary" 
             onClick={loadHospitals}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <HiOutlineRefresh /> Refresh
           </button>
           <button 
             className="btn btn-primary" 
             onClick={() => setShowForm(!showForm)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <HiOutlinePlus /> {showForm ? 'Cancel Registration' : 'Register New Hospital'}
           </button>
@@ -93,73 +101,74 @@ export default function Hospitals() {
       </div>
 
       {/* Privacy Guarantee Alert */}
-      <div className="glass-panel alert-bar alert-success" style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <HiOutlineShieldCheck size={28} style={{ color: '#34d399', flexShrink: 0 }} />
-        <span style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.5 }}>
-          <strong>Privacy Custody Protocol Enforced:</strong> Under no circumstances does the Central Coordinator collect, preview, or cache patient CSV datasets. Patient data resides exclusively within the local hospital boundary.
+      <div style={{ padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0, 230, 118, 0.08)', border: '1px solid rgba(0, 230, 118, 0.2)', borderRadius: '12px' }}>
+        <HiOutlineShieldCheck size={28} style={{ color: 'var(--color-accent-green)', flexShrink: 0 }} />
+        <span style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', lineHeight: 1.5 }}>
+          <strong style={{ color: 'var(--color-accent-green)' }}>Privacy Custody Protocol Enforced:</strong> Under no circumstances does the Central Coordinator collect, preview, or cache patient CSV datasets. Patient data resides exclusively within the local hospital boundary.
         </span>
       </div>
 
       {showForm && (
-        <div className="glass-panel fade-in" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h3>Register Hospital Node & Investigator Account</h3>
-          <form onSubmit={handleRegister} style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="input-group">
-              <label>Hospital Institution Name</label>
+        <div className="card fade-in" style={{ marginBottom: '24px' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '24px' }}>Register Hospital Node & Investigator Account</h3>
+          <form onSubmit={handleRegister} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Hospital Institution Name</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="e.g. Mayo Clinic"
                 value={form.hospitalName}
                 onChange={(e) => setForm(prev => ({ ...prev, hospitalName: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
             
-            <div className="input-group">
-              <label>Location / City</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Location / City</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="e.g. Rochester, MN"
                 value={form.location}
                 onChange={(e) => setForm(prev => ({ ...prev, location: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group">
-              <label>Lead Investigator Name</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Lead Investigator Name</label>
               <input 
                 type="text" 
+                className="form-input"
                 placeholder="e.g. Dr. John Doe"
                 value={form.name}
                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group">
-              <label>Investigator Email</label>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Investigator Email</label>
               <input 
                 type="email" 
+                className="form-input"
                 placeholder="investigator@hospital.org"
                 value={form.email}
                 onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
 
-            <div className="input-group" style={{ gridColumn: 'span 2' }}>
-              <label>Initial Login Password</label>
+            <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: 0 }}>
+              <label className="form-label">Initial Login Password</label>
               <input 
                 type="password" 
+                className="form-input"
                 placeholder="Minimum 6 characters"
                 value={form.password}
                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
                 required 
               />
             </div>
@@ -169,9 +178,8 @@ export default function Hospitals() {
                 type="submit" 
                 className="btn btn-primary"
                 disabled={registering}
-                style={{ padding: '12px 24px' }}
               >
-                {registering ? <span className="spinner-small"></span> : 'Provision Hospital Node'}
+                {registering ? 'Processing...' : 'Provision Hospital Node'}
               </button>
             </div>
           </form>
@@ -179,9 +187,9 @@ export default function Hospitals() {
       )}
 
       {/* Hospitals List */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h3>Registered Institutions List</h3>
-        <div className="table-responsive" style={{ marginTop: '16px' }}>
+      <div className="card">
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '24px' }}>Registered Institutions List</h3>
+        <div style={{ overflowX: 'auto' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -196,36 +204,38 @@ export default function Hospitals() {
             <tbody>
               {hospitals.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center">No hospitals registered yet.</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>No hospitals registered yet.</td>
                 </tr>
               ) : (
                 hospitals.map(h => (
                   <tr key={h.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                        <HiOutlineOfficeBuilding style={{ color: '#00d2ff' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(91, 101, 220, 0.1)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FaHospital size={14} />
+                        </div>
                         {h.name}
                       </div>
                     </td>
                     <td>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <HiOutlineLocationMarker style={{ opacity: 0.6 }} />
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)' }}>
+                        <HiOutlineLocationMarker size={16} />
                         {h.location}
                       </span>
                     </td>
                     <td>
-                      <span className="badge badge-info">{h.membership_count} approved servers</span>
+                      <span className="badge badge-training" style={{ padding: '6px 12px' }}>{h.membership_count} active servers</span>
                     </td>
                     <td>
-                      <div style={{ fontWeight: 500 }}>{h.name} Principal</div>
-                      <div style={{ fontSize: '0.75rem', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{h.name} Principal</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                         <HiOutlineMail size={12} /> User ID: #{h.user_id}
                       </div>
                     </td>
-                    <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', opacity: 0.6 }}>
+                    <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--color-text-muted)' }}>
                       0x{h.user_id}A8FD...{(h.name || '').substring(0, 3).toUpperCase()}
                     </td>
-                    <td style={{ opacity: 0.7 }}>
+                    <td style={{ color: 'var(--color-text-muted)' }}>
                       {h.created_at ? new Date(h.created_at).toLocaleDateString() : '-'}
                     </td>
                   </tr>

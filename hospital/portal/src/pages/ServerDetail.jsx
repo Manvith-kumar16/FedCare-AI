@@ -4,6 +4,7 @@ import {
   getServer, getDatasets, startLocalTraining, 
   getTrainingLogs, triggerSync, getTrainingHistory 
 } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineChevronLeft, HiOutlineServer, HiOutlineDatabase, 
@@ -130,7 +131,7 @@ export default function ServerDetail() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Loading workspace parameters..." />
   }
 
   if (!server) {

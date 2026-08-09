@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getServers, joinServer } from '../api'
+import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineServer, HiOutlineRefresh, HiOutlineCheckCircle, 
@@ -45,7 +46,7 @@ export default function Servers() {
   }
 
   if (loading) {
-    return <div className="loader"><div className="spinner"></div></div>
+    return <Loader message="Discovering federated networks..." />
   }
 
   const joinedServers = servers.filter(s => s.is_member && s.member_status === 'APPROVED')
