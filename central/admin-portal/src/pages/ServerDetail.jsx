@@ -57,7 +57,8 @@ export default function ServerDetail() {
     setLogs(['[SYSTEM] Initializing SSE log stream to Central Coordinator...', '[SYSTEM] Waiting for execution output...'])
     
     // Connect to actual FastAPI Server Sent Events stream
-    const sse = new EventSource(`/api/v1/training/stream/${id}`)
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+    const sse = new EventSource(`${baseUrl}/api/v1/training/stream/${id}`)
     sseSourceRef.current = sse
 
     sse.onmessage = (event) => {
