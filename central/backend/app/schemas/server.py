@@ -66,8 +66,8 @@ class ServerMemberResponse(BaseModel):
 
 class MemberJoin(BaseModel):
     server_id: int
-    hospital_id: int
-    hospital_name: str
+    hospital_id: Optional[int] = None
+    hospital_name: Optional[str] = None
 
 
 class MemberUpdate(BaseModel):

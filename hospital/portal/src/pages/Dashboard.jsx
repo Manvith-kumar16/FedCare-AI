@@ -7,6 +7,7 @@ import {
 } from 'chart.js'
 import { getServers, getDatasets, getTrainingHistory } from '../api'
 import { useApp } from '../contexts/AppContext'
+import { Player } from '@lottiefiles/react-lottie-player'
 import { 
   HiOutlineServer, HiOutlineDatabase, HiOutlineTrendingUp, 
   HiOutlineCheckCircle, HiOutlineLightningBolt, HiOutlineShieldCheck,
@@ -133,8 +134,8 @@ export default function Dashboard() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Custody Datasets</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(91, 101, 220, 0.1)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <HiOutlineDatabase size={18} />
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'transparent', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Player autoplay loop src="/lottie/VS- Data and Measure.json" style={{ height: '48px', width: '48px', transform: 'scale(1.5)' }} />
             </div>
           </div>
           <div>
@@ -147,8 +148,8 @@ export default function Dashboard() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Local Records</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(91, 101, 220, 0.1)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <HiOutlineTrendingUp size={18} />
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'transparent', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Player autoplay loop src="/lottie/graph.json" style={{ height: '48px', width: '48px', transform: 'scale(1.5)' }} />
             </div>
           </div>
           <div>
@@ -161,8 +162,8 @@ export default function Dashboard() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Disease Networks</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(91, 101, 220, 0.1)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <HiOutlineServer size={18} />
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'transparent', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Player autoplay loop src="/lottie/Running Server.json" style={{ height: '48px', width: '48px', transform: 'scale(1.5)' }} />
             </div>
           </div>
           <div>
@@ -175,8 +176,8 @@ export default function Dashboard() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Active FL Rounds</span>
-            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(91, 101, 220, 0.1)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <HiOutlineLightningBolt size={18} />
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'transparent', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Player autoplay loop src="/lottie/ai.json" style={{ height: '48px', width: '48px', transform: 'scale(1.5)' }} />
             </div>
           </div>
           <div>

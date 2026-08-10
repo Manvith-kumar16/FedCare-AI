@@ -32,7 +32,7 @@ async def get_servers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{server_id}")
+@router.get("/{server_id:int}")
 async def get_server_detail(
     server_id: int,
     current_user: dict = Depends(get_current_hospital_user),
@@ -63,7 +63,7 @@ async def join_server(
     """Join a server via central coordinator proxy."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization token required")
-    url = f"{settings.CENTRAL_API_URL}/api/v1/servers/join"
+    url = f"{settings.CENTRAL_API_URL}/api/v1/servers/members/join"
     
     # Force hospital_id from JWT payload to prevent tampering
     payload_data = dict(data)

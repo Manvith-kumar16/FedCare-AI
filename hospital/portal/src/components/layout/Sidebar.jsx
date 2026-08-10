@@ -1,22 +1,17 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import {
-  HiOutlineViewGrid, HiOutlineServer,
-  HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineEye,
-  HiOutlineShieldCheck, HiOutlineDatabase, HiOutlineCheckCircle,
-  HiOutlinePlay, HiOutlineGlobe, HiOutlineUser
-} from 'react-icons/hi'
-
+import { Player } from '@lottiefiles/react-lottie-player'
+import { HiOutlineShieldCheck } from 'react-icons/hi'
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: <HiOutlineViewGrid />, section: 'overview' },
-  { path: '/servers', label: 'Disease Servers', icon: <HiOutlineServer />, section: 'collaboration' },
-  { path: '/training/federated', label: 'Federated Training', icon: <HiOutlineGlobe />, section: 'collaboration' },
-  { path: '/datasets', label: 'Dataset Management', icon: <HiOutlineDatabase />, section: 'data' },
-  { path: '/datasets/validation', label: 'Dataset Validation', icon: <HiOutlineCheckCircle />, section: 'data' },
-  { path: '/training/local', label: 'Local Training', icon: <HiOutlinePlay />, section: 'development' },
-  { path: '/predictions', label: 'Local Predictions', icon: <HiOutlineChartBar />, section: 'development' },
-  { path: '/explainability', label: 'SHAP Explainability', icon: <HiOutlineEye />, section: 'explainability' },
-  { path: '/profile', label: 'Investigator Profile', icon: <HiOutlineUser />, section: 'account' },
+  { path: '/', label: 'Dashboard', icon: <Player autoplay loop src="/lottie/Dynamic Dashboard Icon.json" style={{ height: '24px', width: '24px', transform: 'scale(2.5)' }} />, section: 'overview' },
+  { path: '/servers', label: 'Disease Servers', icon: <Player autoplay loop src="/lottie/Running Server.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'collaboration' },
+  { path: '/training/federated', label: 'Federated Training', icon: <Player autoplay loop src="/lottie/Globe on mobile.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'collaboration' },
+  { path: '/datasets', label: 'Dataset Management', icon: <Player autoplay loop src="/lottie/analytics.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'data' },
+  { path: '/datasets/validation', label: 'Dataset Validation', icon: <Player autoplay loop src="/lottie/VS- Data and Measure.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'data' },
+  { path: '/training/local', label: 'Local Training', icon: <Player autoplay loop src="/lottie/ai.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'development' },
+  { path: '/predictions', label: 'Local Predictions', icon: <Player autoplay loop src="/lottie/graph.json" style={{ height: '24px', width: '24px', transform: 'scale(1.5)' }} />, section: 'development' },
+  { path: '/explainability', label: 'SHAP Explainability', icon: <Player autoplay loop src="/lottie/E V E.json" style={{ height: '24px', width: '24px', transform: 'scale(1.9)' }} />, section: 'explainability' },
+  { path: '/profile', label: 'Investigator Profile', icon: <Player autoplay loop src="/lottie/Profile Avatar of Young Boy.json" style={{ height: '24px', width: '24px', transform: 'scale(2.5)' }} />, section: 'account' },
 ]
 
 export default function Sidebar() {

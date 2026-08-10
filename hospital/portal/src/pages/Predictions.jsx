@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { makePrediction, getPredictionHistory, getServers } from '../api'
+import { makePrediction, getPredictionHistory, getServers, getDatasets } from '../api'
 import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
@@ -26,22 +26,45 @@ export default function Predictions() {
   }, [])
 
   useEffect(() => {
-    if (selectedServer) {
-      if (selectedServer.feature_columns) {
-        try {
-          const cols = JSON.parse(selectedServer.feature_columns)
-          setFeatureColumns(cols)
-          setForm(Object.fromEntries(cols.map(c => [c, ''])))
-        } catch (e) {
-          console.error("Failed to parse features", e)
-          setFeatureColumns([])
-          setForm({})
+    async function loadFeatures() {
+      if (selectedServer) {
+        if (selectedServer.feature_columns) {
+          try {
+            const cols = JSON.parse(selectedServer.feature_columns)
+            if (cols.length > 0) {
+              setFeatureColumns(cols)
+              setForm(Object.fromEntries(cols.map(c => [c, ''])))
+              return
+            }
+          } catch (e) {
+            console.error("Failed to parse features", e)
+          }
         }
-      } else {
+        
+        // Fallback to local dataset feature mapping
+        try {
+          const res = await getDatasets(selectedServer.id)
+          if (res.data && res.data.length > 0) {
+            const latest = res.data[0]
+            if (latest.columns) {
+              const allCols = JSON.parse(latest.columns)
+              const target = latest.target_column || 'Outcome'
+              const cols = allCols.filter(c => c !== target)
+              setFeatureColumns(cols)
+              setForm(Object.fromEntries(cols.map(c => [c, ''])))
+              return
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch local dataset features", e)
+        }
+
         setFeatureColumns([])
         setForm({})
       }
     }
+    
+    loadFeatures()
   }, [selectedServer])
 
   async function loadServers() {
@@ -160,31 +183,41 @@ export default function Predictions() {
 
   return (
     <div className="predictions-page fade-in">
-      <div className="page-header">
+      <div className="page-header" style={{ alignItems: 'flex-end', borderBottom: '1px solid var(--color-border)', paddingBottom: '24px', marginBottom: '32px' }}>
         <div>
-          <h2>Patient Inference Gateway</h2>
-          <p>Compute diagnostics locally. Input features remain 100% locally contained on this node.</p>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.5px' }}>Patient Inference Gateway</h2>
+          <p style={{ fontSize: '1.05rem', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
+            Compute diagnostics locally. Input features remain 100% locally contained on this node.
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0}><HiOutlineTemplate /> Fill Mock Patient</button>
-          <button className="btn btn-secondary" onClick={loadHistory} disabled={!selectedServer}><HiOutlineClock /> View History</button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn btn-secondary" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0} style={{ padding: '10px 20px', borderRadius: '12px' }}>
+            <HiOutlineTemplate size={18} /> Fill Mock Patient
+          </button>
+          <button className="btn btn-secondary" onClick={loadHistory} disabled={!selectedServer} style={{ padding: '10px 20px', borderRadius: '12px' }}>
+            <HiOutlineClock size={18} /> View History
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', marginTop: '20px' }}>
-        {/* Input Form */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <HiOutlineClipboardList /> Diagnostic Inputs
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+        {/* Input Form Column */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 className="section-header" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--color-text-bright)', fontSize: '1.4rem' }}>
+            <div style={{ background: 'rgba(91, 101, 220, 0.1)', padding: '10px', borderRadius: '12px', color: 'var(--color-accent-blue)', display: 'flex' }}>
+              <HiOutlineClipboardList size={24} />
+            </div>
+            Diagnostic Inputs
           </h3>
 
-          <div className="input-group" style={{ marginBottom: '24px' }}>
-            <label>Disease Model Pipeline</label>
+          <div className="form-group" style={{ background: 'var(--color-bg-secondary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
+            <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-accent-blue)', fontSize: '0.9rem', marginBottom: '12px' }}>Disease Model Pipeline</label>
             <select
+              className="form-select"
               value={selectedServer?.id || ''}
               onChange={handleServerChange}
               disabled={servers.length === 0}
-              style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+              style={{ padding: '12px', fontSize: '1rem' }}
             >
               {servers.length === 0 && <option value="">No Active Models Available</option>}
               {servers.map(s => (
@@ -194,24 +227,29 @@ export default function Predictions() {
           </div>
 
           {selectedServer && featureColumns.length === 0 && (
-            <div className="empty-state" style={{ padding: '24px 0' }}>
-              <p>No feature mapping found. Please upload a dataset to this server first.</p>
+            <div className="empty-state" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+              <div style={{ background: 'rgba(255, 145, 0, 0.1)', padding: '24px', borderRadius: '50%', marginBottom: '20px', display: 'flex' }}>
+                <HiOutlineExclamationCircle size={48} style={{ color: 'var(--color-accent-orange)' }} />
+              </div>
+              <h4 style={{ fontSize: '1.25rem', color: 'var(--color-text-bright)', marginBottom: '8px' }}>No Feature Mapping Found</h4>
+              <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '80%' }}>Please upload a dataset to this server first to enable predictions.</p>
             </div>
           )}
 
           {selectedServer && featureColumns.length > 0 && (
-            <form onSubmit={handlePredict}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <form onSubmit={handlePredict} style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px', overflowY: 'auto', paddingRight: '8px', maxHeight: '500px' }}>
                 {featureColumns.map(f => (
-                  <div className="input-group" key={f} style={{ margin: 0 }}>
-                    <label>{f}</label>
+                  <div className="form-group" key={f} style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{f}</label>
                     <input
                       type="number"
                       step="any"
                       placeholder={`Enter ${f}...`}
                       value={form[f] || ''}
                       onChange={e => updateField(f, e.target.value)}
-                      style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+                      className="form-input"
+                      style={{ padding: '12px', borderRadius: '8px' }}
                       required
                     />
                   </div>
@@ -221,108 +259,131 @@ export default function Predictions() {
                 type="submit"
                 className="btn btn-primary"
                 disabled={predicting}
-                style={{ width: '100%', justifyContent: 'center', marginTop: '24px', padding: '12px' }}
+                style={{ width: '100%', justifyContent: 'center', marginTop: '32px', padding: '16px', fontSize: '1.1rem', borderRadius: '12px', border: 'none', transition: 'all 0.3s ease' }}
               >
-                {predicting ? 'Processing local model...' : `Predict ${selectedServer.disease_type} Risk`}
+                {predicting ? (
+                  <>Processing local model <span className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', marginLeft: '12px' }}></span></>
+                ) : (
+                  <>Predict {selectedServer.disease_type} Risk <HiOutlineSparkles size={20} style={{ marginLeft: '4px' }} /></>
+                )}
               </button>
             </form>
           )}
         </div>
 
-        {/* Result */}
-        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        {/* Result Column */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden', minHeight: '600px' }}>
+          {/* subtle background glow */}
+          {result && (
+             <div style={{
+               position: 'absolute', top: '50%', left: '50%', width: '350px', height: '350px',
+               background: result.prediction === 1 ? 'var(--color-accent-red)' : 'var(--color-accent-green)',
+               opacity: 0.04, filter: 'blur(80px)', transform: 'translate(-50%, -50%)', pointerEvents: 'none', borderRadius: '50%', transition: 'all 0.8s ease'
+             }}></div>
+          )}
+
           {result ? (
-            <div className="fade-in">
-              <div className="text-center" style={{ padding: '16px 0' }}>
-                <div style={{ 
-                  fontSize: '3.5rem', 
-                  color: result.prediction === 1 ? '#ef4444' : '#10b981',
-                  marginBottom: '12px'
-                }}>
-                  {result.prediction === 1 ? <HiOutlineExclamationCircle style={{ margin: '0 auto' }} /> : <HiOutlineCheckCircle style={{ margin: '0 auto' }} />}
-                </div>
-                <h3 style={{ 
-                  color: result.prediction === 1 ? '#ef4444' : '#10b981',
-                  fontSize: '1.8rem',
-                  fontWeight: 800
-                }}>
-                  {result.prediction_label}
-                </h3>
-                <p style={{ opacity: 0.6, fontSize: '0.85rem', marginTop: '6px' }}>
-                  Local Inference Diagnosis Result
-                </p>
-              </div>
-
-              {/* Probability details */}
-              <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem' }}>
-                  <span style={{ color: '#10b981' }}>Negative: {((result?.probability_negative || 0) * 100).toFixed(1)}%</span>
-                  <span style={{ color: '#ef4444' }}>Positive: {((result?.probability_positive || 0) * 100).toFixed(1)}%</span>
-                </div>
-                <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${result.probability_positive * 100}%`,
-                    background: result.prediction === 1 ? '#ef4444' : '#10b981'
-                  }}></div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '0.85rem' }}>
-                  <span style={{ opacity: 0.7 }}>Confidence Threshold</span>
-                  <strong>{((result?.confidence || 0) * 100).toFixed(1)}%</strong>
-                </div>
-              </div>
-
-              {/* Local SHAP values bar breakdown */}
-              {shapValues && Object.keys(shapValues).length > 0 && (
-                <div style={{ marginTop: '24px' }}>
-                  <h4 style={{ marginBottom: '12px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <HiOutlineSearch style={{ opacity: 0.7 }} /> Local Feature SHAP Attribution
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {Object.entries(shapValues)
-                      .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
-                      .slice(0, 4)
-                      .map(([feature, value]) => {
-                        const maxVal = Math.max(...Object.values(shapValues).map(Math.abs)) || 1
-                        const width = (Math.abs(value) / maxVal) * 100
-                        return (
-                          <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem' }}>
-                            <span style={{ width: '90px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', opacity: 0.8 }}>{feature}</span>
-                            <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', position: 'relative' }}>
-                              <div style={{
-                                position: 'absolute',
-                                left: '50%',
-                                right: value < 0 ? 'auto' : 'none',
-                                transform: value < 0 ? 'translateX(-100%)' : 'none',
-                                width: `${width / 2}%`,
-                                height: '100%',
-                                background: value > 0 ? '#ef4444' : '#10b981',
-                                borderRadius: '3px'
-                              }}></div>
-                            </div>
-                            <span style={{ width: '55px', textAlign: 'right', fontWeight: 600, color: value > 0 ? '#ef4444' : '#10b981' }}>
-                              {value > 0 ? '+' : ''}{value.toFixed(3)}
-                            </span>
-                          </div>
-                        )
-                      })}
+            <div className="fade-in" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div className="prediction-result" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                  <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`} style={{ width: '120px', height: '120px', fontSize: '4rem', margin: 0, boxShadow: `0 0 40px ${result.prediction === 1 ? 'rgba(255, 82, 82, 0.15)' : 'rgba(0, 230, 118, 0.15)'}`, background: result.prediction === 1 ? 'rgba(255, 82, 82, 0.08)' : 'rgba(0, 230, 118, 0.08)', border: `1px solid ${result.prediction === 1 ? 'rgba(255, 82, 82, 0.2)' : 'rgba(0, 230, 118, 0.2)'}` }}>
+                    {result.prediction === 1 ? <HiOutlineExclamationCircle /> : <HiOutlineCheckCircle />}
                   </div>
                 </div>
-              )}
+                <h3 className="result-label" style={{ color: result.prediction === 1 ? 'var(--color-accent-red)' : 'var(--color-accent-green)', fontSize: '3rem', letterSpacing: '-0.5px' }}>
+                  {result.prediction_label}
+                </h3>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.1rem', marginTop: '12px' }}>
+                  Local Inference Diagnosis Result
+                </p>
+
+                {/* Probability details */}
+                <div style={{ marginTop: '40px', padding: '24px', background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '1rem', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--color-accent-green)', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-accent-green)', display: 'inline-block' }}></span> Negative: {((result?.probability_negative || 0) * 100).toFixed(1)}%</span>
+                    <span style={{ color: 'var(--color-accent-red)', display: 'flex', alignItems: 'center', gap: '8px' }}>Positive: {((result?.probability_positive || 0) * 100).toFixed(1)}% <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-accent-red)', display: 'inline-block' }}></span></span>
+                  </div>
+                  <div style={{ height: '14px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '7px', overflow: 'hidden', display: 'flex' }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${result.probability_negative * 100}%`,
+                      background: 'var(--gradient-success)',
+                      transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}></div>
+                    <div style={{
+                      height: '100%',
+                      width: `${result.probability_positive * 100}%`,
+                      background: 'var(--gradient-danger)',
+                      transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}></div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
+                    <span style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>Model Confidence Threshold</span>
+                    <strong className="confidence-value" style={{ fontSize: '1.75rem' }}>{((result?.confidence || 0) * 100).toFixed(1)}%</strong>
+                  </div>
+                </div>
+
+                {/* Local SHAP values */}
+                {shapValues && Object.keys(shapValues).length > 0 && (
+                  <div style={{ marginTop: '40px', textAlign: 'left' }}>
+                    <h4 style={{ marginBottom: '20px', fontSize: '1.1rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ background: 'rgba(0, 210, 255, 0.1)', padding: '6px', borderRadius: '8px', color: 'var(--color-accent-cyan)', display: 'flex' }}>
+                        <HiOutlineSearch size={18} />
+                      </div>
+                      Feature Attributions (SHAP)
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {Object.entries(shapValues)
+                        .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
+                        .slice(0, 5)
+                        .map(([feature, value]) => {
+                          const maxVal = Math.max(...Object.values(shapValues).map(Math.abs)) || 1
+                          const width = (Math.abs(value) / maxVal) * 100
+                          return (
+                            <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.9rem' }}>
+                              <span style={{ width: '120px', fontWeight: 500, color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{feature}</span>
+                              <div style={{ flex: 1, height: '10px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '5px', position: 'relative' }}>
+                                <div style={{
+                                  position: 'absolute',
+                                  left: '50%',
+                                  right: value < 0 ? 'auto' : 'none',
+                                  transform: value < 0 ? 'translateX(-100%)' : 'none',
+                                  width: `${width / 2}%`,
+                                  height: '100%',
+                                  background: value > 0 ? 'var(--gradient-danger)' : 'var(--gradient-success)',
+                                  borderRadius: '5px'
+                                }}></div>
+                              </div>
+                              <span style={{ width: '70px', textAlign: 'right', fontWeight: 700, color: value > 0 ? 'var(--color-accent-red)' : 'var(--color-accent-green)' }}>
+                                {value > 0 ? '+' : ''}{value.toFixed(3)}
+                              </span>
+                            </div>
+                          )
+                        })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : predictionError ? (
-            <div className="text-center" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>⚠️</div>
-              <h4 style={{ color: '#ef4444', marginBottom: '12px' }}>Prediction Bypassed</h4>
-              <p style={{ fontSize: '0.85rem', opacity: 0.8, background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', padding: '12px', borderRadius: '6px', textAlign: 'left' }}>
+            <div className="empty-state fade-in" style={{ padding: '32px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                <div style={{ background: 'rgba(255, 82, 82, 0.1)', padding: '24px', borderRadius: '50%', display: 'flex' }}>
+                   <HiOutlineExclamationCircle size={64} style={{ color: 'var(--color-accent-red)' }} />
+                </div>
+              </div>
+              <h4 style={{ color: 'var(--color-accent-red)', marginBottom: '16px', fontSize: '1.5rem', fontWeight: 700 }}>Prediction Bypassed</h4>
+              <p style={{ fontSize: '1rem', background: 'rgba(255, 82, 82, 0.05)', border: '1px solid rgba(255, 82, 82, 0.2)', padding: '20px', borderRadius: '12px', textAlign: 'center', color: 'var(--color-text-primary)', lineHeight: 1.6 }}>
                 {predictionError}
               </p>
             </div>
           ) : (
-            <div className="text-center" style={{ padding: '48px 0', opacity: 0.5 }}>
-              <HiOutlineSparkles size={48} style={{ margin: '0 auto 16px auto' }} />
-              <h4>Awaiting Diagnostic Features</h4>
-              <p style={{ fontSize: '0.85rem', marginTop: '6px' }}>Select an active disease pipeline, input metrics, and click predict.</p>
+            <div className="empty-state fade-in" style={{ padding: '48px 0', opacity: 0.8, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(91, 101, 220, 0.05)', padding: '32px', borderRadius: '50%', marginBottom: '32px', display: 'flex', border: '1px solid rgba(91, 101, 220, 0.1)' }}>
+                <HiOutlineSparkles size={64} style={{ color: 'var(--color-accent-blue)' }} />
+              </div>
+              <h4 style={{ fontSize: '1.5rem', color: 'var(--color-text-bright)', marginBottom: '12px', fontWeight: 600 }}>Awaiting Diagnostic Features</h4>
+              <p style={{ fontSize: '1.05rem', color: 'var(--color-text-secondary)', maxWidth: '70%', lineHeight: 1.5 }}>Select an active disease pipeline, input the required medical metrics, and click predict to run local inference.</p>
             </div>
           )}
         </div>
@@ -330,45 +391,52 @@ export default function Predictions() {
 
       {/* History Table */}
       {showHistory && history.length > 0 && (
-        <div className="glass-panel fade-in" style={{ marginTop: '24px', padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3>Prediction Log History</h3>
-            <button className="btn-small btn-secondary" onClick={() => setShowHistory(false)}>Close Log</button>
+        <div className="card fade-in" style={{ marginTop: '32px', padding: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ background: 'rgba(91, 101, 220, 0.1)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-violet)', display: 'flex' }}>
+                 <HiOutlineClock size={20} />
+              </div>
+              Prediction Log History
+            </h3>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowHistory(false)} style={{ borderRadius: '8px' }}>Close Log</button>
           </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Prediction ID</th>
-                <th>Result Class</th>
-                <th>Model Confidence</th>
-                <th>Probability (Positive)</th>
-                <th>Inputs Captured</th>
-                <th>Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map(p => (
-                <tr key={p.id}>
-                  <td>#{p.id}</td>
-                  <td>
-                    <span className={`badge ${p.prediction === 1 ? 'badge-error' : 'badge-active'}`}>
-                      {p.prediction_label}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: 700 }}>
-                    {(p.confidence * 100).toFixed(1)}%
-                  </td>
-                  <td>{(p.probability_positive * 100).toFixed(1)}%</td>
-                  <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', maxWidth: '280px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    {p.input_data}
-                  </td>
-                  <td style={{ opacity: 0.6, fontSize: '0.80rem' }}>
-                    {p.created_at ? new Date(p.created_at).toLocaleString() : '-'}
-                  </td>
+          <div style={{ overflowX: 'auto', background: 'var(--color-bg-secondary)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ padding: '16px' }}>Prediction ID</th>
+                  <th style={{ padding: '16px' }}>Result Class</th>
+                  <th style={{ padding: '16px' }}>Model Confidence</th>
+                  <th style={{ padding: '16px' }}>Probability (Positive)</th>
+                  <th style={{ padding: '16px' }}>Inputs Captured</th>
+                  <th style={{ padding: '16px' }}>Timestamp</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {history.map(p => (
+                  <tr key={p.id}>
+                    <td style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>#{p.id}</td>
+                    <td style={{ padding: '16px' }}>
+                      <span className={`badge ${p.prediction === 1 ? 'badge-error' : 'badge-active'}`} style={{ padding: '6px 12px' }}>
+                        {p.prediction_label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px', fontWeight: 700, color: 'var(--color-text-bright)' }}>
+                      {(p.confidence * 100).toFixed(1)}%
+                    </td>
+                    <td style={{ padding: '16px' }}>{(p.probability_positive * 100).toFixed(1)}%</td>
+                    <td style={{ padding: '16px', fontSize: '0.8rem', fontFamily: 'monospace', maxWidth: '280px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--color-text-muted)' }}>
+                      {p.input_data}
+                    </td>
+                    <td style={{ padding: '16px', opacity: 0.7, fontSize: '0.85rem' }}>
+                      {p.created_at ? new Date(p.created_at).toLocaleString() : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
