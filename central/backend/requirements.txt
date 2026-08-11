@@ -23,3 +23,6 @@ opencv-python-headless==4.10.0.84
 pydicom==2.4.4
 email-validator>=2.0.0
 aiosqlite==0.20.0
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2
