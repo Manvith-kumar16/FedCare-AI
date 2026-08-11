@@ -68,7 +68,8 @@ async def start_local_training(
             hospital_id=current_user["hospital_id"],
             server_id=data.server_id,
             model_type=model_type,
-            epochs=data.epochs or 10
+            epochs=data.epochs or 10,
+            log_callback=lambda msg: _push_log(data.server_id, msg)
         )
         
         # Save locally in history (round = 0 represents local-only run)
@@ -136,3 +137,12 @@ async def list_training_history(
     res = await db.execute(query)
     history = res.scalars().all()
     return history
+
+
+@router.get("/logs/{server_id}")
+async def get_training_logs(
+    server_id: int,
+    current_user: dict = Depends(get_current_hospital_user)
+):
+    """Get training logs for a specific server execution."""
+    return _STREAM_LOGS.get(server_id, [])

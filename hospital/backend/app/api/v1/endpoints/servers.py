@@ -28,7 +28,8 @@ async def get_servers(
             res_data = response.read().decode("utf-8")
             return json.loads(res_data)
     except urllib.error.HTTPError as e:
-        raise HTTPException(status_code=e.code, detail="Failed to fetch servers from coordinator")
+        err_body = e.read().decode("utf-8")
+        raise HTTPException(status_code=e.code, detail=f"Failed to fetch servers from coordinator: {err_body}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
