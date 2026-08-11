@@ -17,3 +17,4 @@ __pycache__/
 *.xlsx
 # Local development databases
 *.db
+*-firebase-adminsdk-*.json

@@ -2,6 +2,7 @@ import client from './client'
 
 // Authentication
 export const login = (email, password) => client.post('/auth/login', { email, password })
+export const register = (data) => client.post('/auth/register', data)
 export const getMe = () => client.get('/auth/me')
 
 // Hospitals / Investigators
@@ -26,5 +27,9 @@ export const getTrainingRounds = () => client.get('/training/rounds')
 export const getTrainingHistory = (serverId) => client.get(`/training/logs/${serverId}`)
 export const getGlobalModels = () => client.get('/training/global-models')
 
+// Predictions (Public User)
+export const predictDisease = (data) => client.post('/predictions/predict', data)
+
 // Explainable AI
 export const getGlobalFeatureImportance = (serverId) => client.get(`/explainability/feature-importance/${serverId}`)
+export const explainPrediction = (serverId, data) => client.post(`/explainability/explain/${serverId}`, data)

@@ -1105,3 +1105,22 @@ a:hover { color: var(--color-accent-cyan); }
 .pulse-animation {
   animation: dataFlow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+@keyframes dataFlowLeftToRight {
+  0% { left: 0; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px rgba(91, 101, 220, 0.2); }
+  50% { box-shadow: 0 0 35px rgba(91, 101, 220, 0.6); }
+  100% { box-shadow: 0 0 10px rgba(91, 101, 220, 0.2); }
+}
+
+@keyframes pulseBorder {
+  0% { border-color: rgba(91, 101, 220, 0.3); }
+  50% { border-color: rgba(91, 101, 220, 1); }
+  100% { border-color: rgba(91, 101, 220, 0.3); }
+}

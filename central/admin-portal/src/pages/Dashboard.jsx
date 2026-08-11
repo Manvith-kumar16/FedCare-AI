@@ -190,62 +190,111 @@ export default function Dashboard() {
           {/* Hospitals List */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {networkNodes.map((node, i) => (
-              <div key={i} style={{
+              <div key={i} className="glass-card" style={{
                 display: 'flex', alignItems: 'center', padding: '16px',
-                background: 'var(--color-bg-primary)', border: '1px solid var(--color-border)',
-                borderRadius: '12px', position: 'relative'
-              }}>
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.5))',
+                border: '1px solid rgba(91, 101, 220, 0.15)',
+                backdropFilter: 'blur(12px)',
+                borderRadius: '16px', position: 'relative',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+                transition: 'all 0.3s ease',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(91, 101, 220, 0.12)'; e.currentTarget.style.borderColor = 'rgba(91, 101, 220, 0.4)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.02)'; e.currentTarget.style.borderColor = 'rgba(91, 101, 220, 0.15)'; }}
+              >
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <FaHospitalSymbol style={{ color: 'var(--color-accent-blue)' }} />
-                    <strong style={{ fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>{node.name}</strong>
-                    <span className="badge badge-active" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{node.status}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ padding: '8px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '10px' }}>
+                        <FaHospitalSymbol size={16} style={{ color: 'var(--color-accent-blue)' }} />
+                    </div>
+                    <strong style={{ fontSize: '1rem', color: 'var(--color-text-primary)' }}>{node.name}</strong>
+                    <span className="badge" style={{ background: 'rgba(0, 230, 118, 0.12)', color: '#00c853', fontSize: '0.7rem', padding: '4px 10px', borderRadius: '12px' }}>
+                        <span className="status-dot" style={{ width: '6px', height: '6px', marginRight: '4px' }}></span> {node.status}
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    <span>Model: <strong>{node.model}</strong></span>
-                    <span>Data: <strong>{node.samples}</strong></span>
-                    <span>Sync: <strong>{node.sync}</strong></span>
-                    <span style={{ color: 'var(--color-accent-green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <HiOutlineShieldCheck /> {node.privacy}
+                  <div style={{ display: 'flex', gap: '18px', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    <span>Model: <strong style={{ color: 'var(--color-text-primary)' }}>{node.model}</strong></span>
+                    <span>Data: <strong style={{ color: 'var(--color-text-primary)' }}>{node.samples}</strong></span>
+                    <span>Sync: <strong style={{ color: 'var(--color-text-primary)' }}>{node.sync}</strong></span>
+                    <span style={{ color: '#00c853', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                      <HiOutlineShieldCheck size={14} /> {node.privacy}
                     </span>
                   </div>
                 </div>
                 {/* Connection Line */}
                 <div style={{
                   position: 'absolute', right: '-40px', top: '50%', width: '40px', height: '2px',
-                  background: 'var(--color-border)', zIndex: 0
-                }} />
+                  background: 'rgba(91, 101, 220, 0.2)', zIndex: 0
+                }}>
+                   {/* Data Packet Animation */}
+                   <div style={{
+                       position: 'absolute', top: '-3px', left: 0, width: '8px', height: '8px',
+                       borderRadius: '50%', background: 'var(--color-accent-blue)',
+                       boxShadow: '0 0 8px var(--color-accent-blue)',
+                       animation: `dataFlowLeftToRight 2.5s infinite linear ${i * 0.4}s`
+                   }} />
+                </div>
               </div>
             ))}
           </div>
 
           {/* Central Coordinator */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 1 }}>
             <div style={{
-              width: '2px', height: 'calc(100% - 100px)', background: 'var(--color-border)',
+              width: '2px', height: 'calc(100% - 100px)', background: 'rgba(91, 101, 220, 0.2)',
               position: 'absolute', left: '-40px', top: '50px'
             }} />
+            
             <div style={{
-              width: '90px', height: '90px', borderRadius: '50%',
-              background: 'var(--color-bg-primary)', border: '4px solid var(--color-accent-blue)',
+              width: '110px', height: '110px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(255,255,255,1), rgba(240,242,255,1))', 
+              border: '4px solid var(--color-accent-blue)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(91, 101, 220, 0.15)', zIndex: 2
+              boxShadow: '0 0 25px rgba(91, 101, 220, 0.3)', zIndex: 2,
+              animation: 'pulseGlow 3s infinite alternate'
             }}>
-              <FaNetworkWired size={32} style={{ color: 'var(--color-accent-blue)' }} />
+              <FaNetworkWired size={40} style={{ color: 'var(--color-accent-blue)' }} />
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>FedCare Coordinator</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-accent-green)', fontWeight: 600 }}>Secure Aggregation Active</div>
+            
+            <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.85)', padding: '10px 20px', borderRadius: '12px', backdropFilter: 'blur(8px)', border: '1px solid rgba(91, 101, 220, 0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>FedCare Coordinator</div>
+              <div style={{ fontSize: '0.8rem', color: '#00c853', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '2px' }}>
+                <HiOutlineShieldCheck size={14} /> Secure Aggregation Active
+              </div>
             </div>
           </div>
 
           {/* Global Model */}
-          <div style={{ flex: 0.5, display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ height: '2px', flex: 1, background: 'var(--color-accent-blue)', opacity: 0.3 }} />
-            <div className="card" style={{ padding: '24px', textAlign: 'center', border: '2px solid var(--color-accent-blue)' }}>
-              <FaStethoscope size={28} style={{ color: 'var(--color-accent-blue)', marginBottom: '12px' }} />
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Global Model</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>Version {latestModel ? latestModel.version : 'v20'}</div>
+          <div style={{ flex: 0.6, display: 'flex', alignItems: 'center', gap: '0', position: 'relative' }}>
+            {/* Connection Line to Global Model */}
+            <div style={{ height: '2px', width: '60px', background: 'rgba(91, 101, 220, 0.2)', position: 'relative' }}>
+                {/* Data Packet Animation */}
+                <div style={{
+                    position: 'absolute', top: '-3px', left: 0, width: '8px', height: '8px',
+                    borderRadius: '50%', background: 'var(--color-accent-blue)',
+                    boxShadow: '0 0 10px var(--color-accent-blue)',
+                    animation: `dataFlowLeftToRight 2s infinite linear 1s`
+                }} />
+            </div>
+
+            <div style={{
+                flex: 1, padding: '32px 24px', textAlign: 'center', 
+                background: 'linear-gradient(135deg, rgba(91, 101, 220, 0.05) 0%, rgba(91, 101, 220, 0.15) 100%)',
+                border: '2px solid rgba(91, 101, 220, 0.4)', borderRadius: '24px',
+                backdropFilter: 'blur(10px)', boxShadow: '0 10px 30px rgba(91, 101, 220, 0.12)',
+                animation: 'pulseBorder 4s infinite alternate',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px'
+            }}>
+              <div style={{ padding: '20px', background: 'rgba(255,255,255,0.9)', borderRadius: '50%', boxShadow: '0 8px 25px rgba(91, 101, 220, 0.15)' }}>
+                  <FaStethoscope size={40} style={{ color: 'var(--color-accent-blue)' }} />
+              </div>
+              <div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Global Model</div>
+                  <div className="badge" style={{ marginTop: '12px', background: 'linear-gradient(135deg, var(--color-accent-blue) 0%, #122056 100%)', color: 'white', padding: '8px 18px', fontSize: '0.9rem', boxShadow: '0 4px 15px rgba(91, 101, 220, 0.3)' }}>
+                      Version {latestModel ? latestModel.version : 'v20'}
+                  </div>
+              </div>
             </div>
           </div>
 

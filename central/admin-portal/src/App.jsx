@@ -13,8 +13,12 @@ import Metrics from './pages/Metrics'
 import Explainability from './pages/Explainability'
 import TrainingHistory from './pages/TrainingHistory'
 import Profile from './pages/Profile'
+import Register from './pages/Register'
+import UserDashboard from './pages/UserDashboard'
+import UserPredictionResults from './pages/UserPredictionResults'
+import AdminLogin from './pages/AdminLogin'
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, userRole, loading } = useApp()
 
   if (loading) {
@@ -25,36 +29,51 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />
   }
 
-  if (userRole !== 'ADMIN') {
-    return <Navigate to="/login" replace />
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return <Navigate to={userRole === 'PUBLIC_USER' ? '/user-dashboard' : '/'} replace />
   }
 
   return children
 }
 
 function AppRoutes() {
+  const { userRole, isAuthenticated } = useApp()
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to={userRole === 'PUBLIC_USER' ? '/user-dashboard' : '/'} replace /> : <Login />} />
+      <Route path="/admin/login" element={isAuthenticated ? <Navigate to={userRole === 'PUBLIC_USER' ? '/user-dashboard' : '/'} replace /> : <AdminLogin />} />
+      <Route path="/register" element={isAuthenticated ? <Navigate to={userRole === 'PUBLIC_USER' ? '/user-dashboard' : '/'} replace /> : <Register />} />
       
       <Route path="/" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['ADMIN', 'PUBLIC_USER']}>
           <Layout />
         </ProtectedRoute>
       }>
-        <Route index element={<Dashboard />} />
-        <Route path="hospitals" element={<Hospitals />} />
-        <Route path="servers" element={<Servers />} />
-        <Route path="servers/:id" element={<ServerDetail />} />
-        <Route path="rounds" element={<Rounds />} />
-        <Route path="models" element={<Models />} />
-        <Route path="metrics" element={<Metrics />} />
-        <Route path="explainability" element={<Explainability />} />
+        {/* Admin Routes */}
+        <Route index element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="hospitals" element={<ProtectedRoute allowedRoles={['ADMIN']}><Hospitals /></ProtectedRoute>} />
+        <Route path="servers" element={<ProtectedRoute allowedRoles={['ADMIN']}><Servers /></ProtectedRoute>} />
+        <Route path="servers/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><ServerDetail /></ProtectedRoute>} />
+        <Route path="rounds" element={<ProtectedRoute allowedRoles={['ADMIN']}><Rounds /></ProtectedRoute>} />
+        <Route path="models" element={<ProtectedRoute allowedRoles={['ADMIN']}><Models /></ProtectedRoute>} />
+        <Route path="metrics" element={<ProtectedRoute allowedRoles={['ADMIN']}><Metrics /></ProtectedRoute>} />
+        <Route path="explainability" element={<ProtectedRoute allowedRoles={['ADMIN']}><Explainability /></ProtectedRoute>} />
+        
+        {/* Public User Routes */}
+        <Route path="user-dashboard" element={<ProtectedRoute allowedRoles={['PUBLIC_USER']}><UserDashboard /></ProtectedRoute>} />
+        <Route path="predict/:serverId" element={<ProtectedRoute allowedRoles={['PUBLIC_USER']}><UserPredictionResults /></ProtectedRoute>} />
+        
+        {/* Shared Routes */}
         <Route path="history" element={<TrainingHistory />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={userRole === 'PUBLIC_USER' ? '/user-dashboard' : '/'} replace />} />
     </Routes>
   )
 }

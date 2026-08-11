@@ -12,7 +12,7 @@ from app.db import get_db
 from app.models.user import User
 from app.models.disease_server import DiseaseServer
 from app.models.model_version import ModelVersion
-from app.api.deps import get_current_active_admin
+from app.api.deps import get_current_active_admin, get_current_user
 from app.services.fl_coordinator import FederatedEnsembleClassifier
 from sklearn.linear_model import LogisticRegression
 
@@ -104,3 +104,43 @@ async def get_global_feature_importance(
             status_code=500,
             detail=f"Failed to extract global feature importance: {str(e)}"
         )
+
+from app.schemas.prediction import PredictionInput, ExplanationResponse
+from app.services.xai_service import generate_shap_explanation
+import json
+
+@router.post("/explain/{server_id}", response_model=ExplanationResponse)
+async def explain_prediction(
+    server_id: int,
+    data: PredictionInput,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    """
+    Generate local SHAP explanation for a prediction on the global model.
+    """
+    # 1. Check server
+    srv_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+    server = srv_res.scalar_one_or_none()
+    if not server:
+        raise HTTPException(status_code=404, detail="Disease server not found")
+
+    try:
+        feature_columns = json.loads(server.schema_json)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Server schema is invalid")
+
+    explanation = generate_shap_explanation(server_id, data.features, feature_columns)
+    
+    if "error" in explanation:
+        raise HTTPException(status_code=500, detail=explanation["error"])
+        
+    return ExplanationResponse(
+        prediction_id=0,
+        prediction_label="Prediction",
+        confidence=1.0,
+        feature_names=[item["feature"] for item in explanation["feature_importance"]],
+        shap_values=[item["shap_value"] for item in explanation["feature_importance"]],
+        base_value=explanation.get("base_value", 0.0),
+        plot_base64=explanation.get("plot_base64")
+    )

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../api'
+import { register, login } from '../api'
 import { useApp } from '../contexts/AppContext'
-import { HiLockClosed } from 'react-icons/hi'
+import { HiUserAdd } from 'react-icons/hi'
 
-export default function Login() {
+export default function Register() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,20 +16,24 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await login(email, password)
-      const data = res.data
+      // 1. Register with role PUBLIC_USER
+      await register({
+        name,
+        email,
+        password,
+        role: 'PUBLIC_USER'
+      })
       
-      if (data.user.role !== 'PUBLIC_USER') {
-        addToast('Access Denied: This login portal is for patients only.', 'error')
-        return
-      }
-
+      // 2. Automatically login after successful registration
+      const loginRes = await login(email, password)
+      const data = loginRes.data
+      
       handleLoginSuccess(data)
       localStorage.setItem('fedcare_admin_token', data.access_token)
-      addToast(`Welcome back, ${data.user.name}! Session authenticated securely.`, 'success')
+      addToast(`Account created! Welcome, ${data.user.name}.`, 'success')
       navigate('/user-dashboard')
     } catch (err) {
-      let msg = 'Authentication failed. Please check credentials.'
+      let msg = 'Registration failed. Please try again.'
       if (err.response?.data?.detail) {
         msg = typeof err.response.data.detail === 'string' 
           ? err.response.data.detail 
@@ -53,18 +58,34 @@ export default function Login() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 16px auto', boxShadow: '0 8px 24px rgba(91, 101, 220, 0.2)'
           }}>
-            <HiLockClosed size={30} style={{ color: '#fff' }} />
+            <HiUserAdd size={30} style={{ color: '#fff' }} />
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Patient Login</h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '6px' }}>Sign in to your account</p>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Create Account</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '6px' }}>Join the FedCare Patient Portal</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="input-group" style={{ margin: 0 }}>
+            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Full Name</label>
+            <input
+              type="text"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                width: '100%', padding: '12px', borderRadius: '8px',
+                background: 'rgba(250, 250, 253, 0.8)', border: '1px solid rgba(91, 101, 220, 0.15)',
+                color: 'var(--color-text-primary)', outline: 'none'
+              }}
+              required
+            />
+          </div>
+
+          <div className="input-group" style={{ margin: 0 }}>
             <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Email Address</label>
             <input
               type="email"
-              placeholder="user@fedcare.ai"
+              placeholder="user@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{
@@ -103,18 +124,12 @@ export default function Login() {
               display: 'flex', justifyContent: 'center', alignItems: 'center'
             }}
           >
-            {loading ? <span className="spinner-small" style={{ borderColor: '#fff' }}></span> : 'Sign In'}
+            {loading ? <span className="spinner-small" style={{ borderColor: '#fff' }}></span> : 'Register'}
           </button>
 
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Don't have an account? <span onClick={() => navigate('/register')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Sign up</span>
-             </p>
-          </div>
-          
-          <div style={{ textAlign: 'center', marginTop: '5px' }}>
-             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Are you an administrator? <span onClick={() => navigate('/admin/login')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Admin Portal</span>
+                Already have an account? <span onClick={() => navigate('/login')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Sign in</span>
              </p>
           </div>
         </form>

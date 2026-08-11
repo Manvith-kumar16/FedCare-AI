@@ -8,6 +8,7 @@ from app.models.base import Base, TimestampMixin
 class UserRole(str, enum.Enum):
     ADMIN = "ADMIN"
     HOSPITAL = "HOSPITAL"
+    PUBLIC_USER = "PUBLIC_USER"
 
 
 class User(Base, TimestampMixin):

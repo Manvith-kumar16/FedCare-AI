@@ -4,7 +4,7 @@ import { login } from '../api'
 import { useApp } from '../contexts/AppContext'
 import { HiLockClosed } from 'react-icons/hi'
 
-export default function Login() {
+export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,15 +18,15 @@ export default function Login() {
       const res = await login(email, password)
       const data = res.data
       
-      if (data.user.role !== 'PUBLIC_USER') {
-        addToast('Access Denied: This login portal is for patients only.', 'error')
+      if (data.user.role !== 'ADMIN') {
+        addToast('Access Denied: Only Administrator accounts are permitted access to this portal.', 'error')
         return
       }
 
       handleLoginSuccess(data)
       localStorage.setItem('fedcare_admin_token', data.access_token)
       addToast(`Welcome back, ${data.user.name}! Session authenticated securely.`, 'success')
-      navigate('/user-dashboard')
+      navigate('/')
     } catch (err) {
       let msg = 'Authentication failed. Please check credentials.'
       if (err.response?.data?.detail) {
@@ -55,16 +55,16 @@ export default function Login() {
           }}>
             <HiLockClosed size={30} style={{ color: '#fff' }} />
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Patient Login</h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '6px' }}>Sign in to your account</p>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>Central Admin</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '6px' }}>Collaborative Federated Health Network</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="input-group" style={{ margin: 0 }}>
-            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Email Address</label>
+            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Administrator Email</label>
             <input
               type="email"
-              placeholder="user@fedcare.ai"
+              placeholder="admin@fedcare.ai"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{
@@ -77,7 +77,7 @@ export default function Login() {
           </div>
 
           <div className="input-group" style={{ margin: 0 }}>
-            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Password</label>
+            <label style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>Security Password</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -103,18 +103,12 @@ export default function Login() {
               display: 'flex', justifyContent: 'center', alignItems: 'center'
             }}
           >
-            {loading ? <span className="spinner-small" style={{ borderColor: '#fff' }}></span> : 'Sign In'}
+            {loading ? <span className="spinner-small" style={{ borderColor: '#fff' }}></span> : 'Authenticate Admin Session'}
           </button>
-
+          
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Don't have an account? <span onClick={() => navigate('/register')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Sign up</span>
-             </p>
-          </div>
-          
-          <div style={{ textAlign: 'center', marginTop: '5px' }}>
-             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Are you an administrator? <span onClick={() => navigate('/admin/login')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Admin Portal</span>
+                Are you a patient? <span onClick={() => navigate('/login')} style={{ color: 'var(--color-accent-blue)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>Patient Portal</span>
              </p>
           </div>
         </form>
