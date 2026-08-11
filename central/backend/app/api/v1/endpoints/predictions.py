@@ -34,9 +34,11 @@ async def make_prediction(
     feature_columns = []
     
     try:
-        feature_columns = json.loads(server.schema_json)
+        if server.feature_columns is None:
+            raise ValueError("Feature columns are not set.")
+        feature_columns = json.loads(server.feature_columns)
     except Exception:
-        raise HTTPException(status_code=500, detail="Server schema is invalid")
+        raise HTTPException(status_code=500, detail="Server schema is invalid or not yet initialized.")
 
     try:
         pred_result = predict_single(model, features, feature_columns)

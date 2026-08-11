@@ -126,9 +126,11 @@ async def explain_prediction(
         raise HTTPException(status_code=404, detail="Disease server not found")
 
     try:
-        feature_columns = json.loads(server.schema_json)
+        if server.feature_columns is None:
+            raise ValueError("Feature columns are not set.")
+        feature_columns = json.loads(server.feature_columns)
     except Exception:
-        raise HTTPException(status_code=500, detail="Server schema is invalid")
+        raise HTTPException(status_code=500, detail="Server schema is invalid or not yet initialized.")
 
     explanation = generate_shap_explanation(server_id, data.features, feature_columns)
     

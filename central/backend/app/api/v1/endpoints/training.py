@@ -246,6 +246,10 @@ async def trigger_aggregation(
         else:
             global_model = aggregate_xgboost_ensemble(updates)
 
+        # Extract feature columns and save to the server
+        if hasattr(global_model, "feature_names_in_"):
+            server.feature_columns = json.dumps(list(global_model.feature_names_in_))
+
         # 4. Save global model file
         dest_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")
         global_path = os.path.join(dest_dir, f"global_model_v{server.current_round}.pkl")
