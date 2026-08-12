@@ -150,8 +150,7 @@ def aggregate_cnn(
     averaged_state_dict = None
     
     for u in updates:
-        with open(u.update_path, "rb") as f:
-            local_state_dict = pickle.load(f)
+        local_state_dict = torch.load(u.update_path, weights_only=True)
             
         weight = u.sample_count / total_samples
         

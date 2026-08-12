@@ -260,13 +260,16 @@ async def trigger_aggregation(
         # 4. Save global model file
         dest_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")
         global_path = os.path.join(dest_dir, f"global_model_v{server.current_round}.pkl")
-        with open(global_path, "wb") as f:
-            pickle.dump(global_model, f)
-
-        # Legacy active model path updates
         latest_path = os.path.join(dest_dir, "global_model.pkl")
-        with open(latest_path, "wb") as f:
-            pickle.dump(global_model, f)
+
+        if server.model_type == ModelType.CNN:
+            torch.save(global_model, global_path)
+            torch.save(global_model, latest_path)
+        else:
+            with open(global_path, "wb") as f:
+                pickle.dump(global_model, f)
+            with open(latest_path, "wb") as f:
+                pickle.dump(global_model, f)
 
         # Calculate hash
         model_hash = calculate_file_sha256(global_path)

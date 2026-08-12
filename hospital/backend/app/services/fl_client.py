@@ -140,7 +140,7 @@ async def check_and_run_federated_round(
         try:
             # We train locally on the downloaded model framework, or train a new local model
             # and output the parameters. We run 10 epochs.
-            if model_type.lower() == "cnn":
+            if dataset.file_path.lower().endswith(".zip") or (isinstance(model_type, str) and model_type.lower() == "cnn"):
                 model, metrics = train_local_cnn(
                     file_path=dataset.file_path,
                     hospital_id=settings.HOSPITAL_ID,

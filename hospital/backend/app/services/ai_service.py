@@ -401,6 +401,25 @@ def train_local_cnn(
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SimpleCNN(num_classes=num_classes).to(device)
+    
+    # Load global model weights if they exist
+    local_global_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")
+    global_model_path = os.path.join(local_global_dir, "global_model.pkl")
+    if os.path.exists(global_model_path):
+        log("Loading global model weights...")
+        try:
+            # First try torch.load since central uses torch.save (or pickle)
+            # If it's a dummy XGBoost seed model, torch.load will fail, which we catch.
+            state_dict = torch.load(global_model_path, weights_only=False, map_location=device)
+            # Make sure it's actually a PyTorch state dict, not an XGBoost model dict
+            if isinstance(state_dict, dict) and 'features.0.weight' in state_dict:
+                model.load_state_dict(state_dict)
+                log("Successfully loaded global weights.")
+            else:
+                log("Global model is not a valid CNN state dict (likely initial seed). Starting from scratch.")
+        except Exception as e:
+            log(f"Could not load global model (likely initial seed): {e}. Starting from scratch.")
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -478,5 +497,12 @@ def train_local_cnn(
     state_dict = model.state_dict()
     # Move to CPU before saving to avoid device mismatch issues across hospitals
     state_dict = {k: v.cpu() for k, v in state_dict.items()}
+    
+    # Save PyTorch state dict locally
+    path_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")
+    os.makedirs(path_dir, exist_ok=True)
+    file_path = os.path.join(path_dir, f"local_model_{hospital_id}.pkl")
+    torch.save(state_dict, file_path)
+    log(f"Model saved locally -> {file_path}")
     
     return state_dict, metrics

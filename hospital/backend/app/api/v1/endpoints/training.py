@@ -56,7 +56,9 @@ async def start_local_training(
     try:
         with urllib.request.urlopen(req, timeout=5) as response:
             server_info = json.loads(response.read().decode("utf-8"))
+            print("FETCHED SERVER INFO:", server_info)
             model_type = server_info.get("model_type", "xgboost")
+            print("MODEL TYPE:", model_type)
             target_column = server_info.get("target_column", "Outcome")
     except Exception as e:
         print(f"Error fetching server info from central: {e}")
@@ -65,7 +67,9 @@ async def start_local_training(
         target_column = dataset.target_column
 
     try:
-        if model_type.lower() == "cnn":
+        # Bypassing model_type check and using dataset file extension to robustly route
+        if dataset.file_path.lower().endswith(".zip") or (isinstance(model_type, str) and model_type.lower() == "cnn"):
+            print("ROUTING TO CNN PIPELINE")
             model, metrics = train_local_cnn(
                 file_path=dataset.file_path,
                 hospital_id=current_user["hospital_id"],
@@ -74,6 +78,7 @@ async def start_local_training(
                 log_callback=lambda msg: _push_log(data.server_id, msg)
             )
         else:
+            print(f"ROUTING TO TABULAR PIPELINE. model_type was: {model_type}")
             model, metrics = train_local_model(
                 file_path=dataset.file_path,
                 target_column=target_column,
