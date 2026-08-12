@@ -10,7 +10,7 @@ from typing import Callable, Optional, Tuple
 from app.core import settings
 from app.models.dataset import Dataset
 from app.models.training_history import TrainingHistory
-from app.services.ai_service import train_local_model
+from app.services.ai_service import train_local_model, train_local_cnn
 
 logger = logging.getLogger("fedcare-hospital")
 
@@ -140,15 +140,24 @@ async def check_and_run_federated_round(
         try:
             # We train locally on the downloaded model framework, or train a new local model
             # and output the parameters. We run 10 epochs.
-            model, metrics = train_local_model(
-                file_path=dataset.file_path,
-                target_column=target_column,
-                hospital_id=settings.HOSPITAL_ID,
-                server_id=server_id,
-                model_type=model_type,
-                epochs=settings.FL_LOCAL_EPOCHS,
-                log_callback=log
-            )
+            if model_type.lower() == "cnn":
+                model, metrics = train_local_cnn(
+                    file_path=dataset.file_path,
+                    hospital_id=settings.HOSPITAL_ID,
+                    server_id=server_id,
+                    epochs=settings.FL_LOCAL_EPOCHS,
+                    log_callback=log
+                )
+            else:
+                model, metrics = train_local_model(
+                    file_path=dataset.file_path,
+                    target_column=target_column,
+                    hospital_id=settings.HOSPITAL_ID,
+                    server_id=server_id,
+                    model_type=model_type,
+                    epochs=settings.FL_LOCAL_EPOCHS,
+                    log_callback=log
+                )
         except Exception as e:
             log(f"❌ Local training failed: {e}")
             continue

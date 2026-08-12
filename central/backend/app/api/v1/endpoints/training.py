@@ -241,14 +241,21 @@ async def trigger_aggregation(
     try:
         # 3. Perform model aggregation
         import pickle
+        import torch
+        from app.services.fl_coordinator import aggregate_cnn
+        
         if server.model_type == ModelType.LOGISTIC_REGRESSION:
             global_model = aggregate_logistic_regression(updates)
+        elif server.model_type == ModelType.CNN:
+            global_model = aggregate_cnn(updates)
         else:
             global_model = aggregate_xgboost_ensemble(updates)
 
         # Extract feature columns and save to the server
         if hasattr(global_model, "feature_names_in_"):
             server.feature_columns = json.dumps(list(global_model.feature_names_in_))
+        elif server.model_type == ModelType.CNN:
+            server.feature_columns = json.dumps(["Image"])
 
         # 4. Save global model file
         dest_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")

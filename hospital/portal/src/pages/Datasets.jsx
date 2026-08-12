@@ -147,7 +147,7 @@ export default function Datasets() {
       <div className="card" style={{ marginBottom: '32px' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>Import Patient Dataset</h3>
         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '24px' }}>
-          Select a Disease Server network below to import patient metrics for training. Only CSV and TXT formats are supported.
+          Select a Disease Server network below to import patient metrics for training. CSV, TXT, and ZIP (for Image Datasets) formats are supported.
         </p>
 
         {servers.length === 0 ? (
@@ -176,7 +176,7 @@ export default function Datasets() {
               ref={fileInputRef} 
               onChange={handleFileChange} 
               style={{ display: 'none' }}
-              accept=".csv,.txt"
+              accept=".csv,.txt,.zip"
             />
 
             <button 

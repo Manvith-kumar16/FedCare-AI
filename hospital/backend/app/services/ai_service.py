@@ -7,6 +7,11 @@ import pickle
 import json
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, random_split
+from torchvision import datasets, transforms
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -325,3 +330,153 @@ def predict_single(
         "probability_positive": prob_pos,
         "probability_negative": prob_neg,
     }
+
+
+# ─── PyTorch CNN for Image Datasets ───────────────────────────────────────────
+
+class SimpleCNN(nn.Module):
+    def __init__(self, num_classes=2):
+        super(SimpleCNN, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(16, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
+        self.classifier = nn.Sequential(
+            nn.Linear(32 * 56 * 56, 128),  # Assuming 224x224 input
+            nn.ReLU(),
+            nn.Linear(128, num_classes)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+
+def train_local_cnn(
+    file_path: str,
+    hospital_id: int,
+    server_id: int,
+    epochs: int = 5,
+    log_callback=None
+) -> Tuple[Dict, Dict]:
+    """Train PyTorch CNN locally on image datasets."""
+    def log(msg):
+        if log_callback:
+            log_callback(msg)
+        else:
+            print(msg)
+
+    # Assuming file_path is the .zip file path. We extract to file_path without .zip
+    data_dir = file_path.replace('.zip', '')
+    if not os.path.exists(data_dir):
+        raise FileNotFoundError(f"Dataset directory not found: {data_dir}")
+
+    log(f"Loading Image Dataset from {data_dir}...")
+    
+    # Standard ResNet/CNN preprocessing
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    dataset = datasets.ImageFolder(root=data_dir, transform=transform)
+    num_classes = len(dataset.classes)
+    log(f"Found {len(dataset)} images belonging to {num_classes} classes: {dataset.classes}")
+
+    if len(dataset) == 0:
+        raise ValueError("No images found in the dataset directory.")
+
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = SimpleCNN(num_classes=num_classes).to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    log(f"Starting CNN training for {epochs} epochs on {device}...")
+
+    history_loss = []
+    history_acc = []
+
+    for epoch in range(epochs):
+        model.train()
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        train_loss = running_loss / len(train_loader)
+        train_acc = correct / total
+        history_loss.append(train_loss)
+        history_acc.append(train_acc)
+        log(f"Epoch {epoch+1}/{epochs} - Loss: {train_loss:.4f} - Acc: {train_acc:.4f}")
+
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for inputs, labels in val_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            val_total += labels.size(0)
+            val_correct += (predicted == labels).sum().item()
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
+    val_loss = val_loss / len(val_loader) if len(val_loader) > 0 else 0
+    val_acc = val_correct / val_total if val_total > 0 else 0
+
+    log(f"Validation Loss: {val_loss:.4f} - Validation Acc: {val_acc:.4f}")
+
+    # Metrics format to match XGBoost return
+    metrics = {
+        "accuracy": val_acc,
+        "precision": float(precision_score(all_labels, all_preds, average='macro', zero_division=0)),
+        "recall": float(recall_score(all_labels, all_preds, average='macro', zero_division=0)),
+        "f1": float(f1_score(all_labels, all_preds, average='macro', zero_division=0)),
+        "loss": val_loss,
+        "auc": 0.0, # Not calculating AUC for multi-class simple demo
+        "samples": len(val_dataset),
+        "history": {
+            "loss": history_loss,
+            "accuracy": history_acc
+        }
+    }
+
+    # Extract state dict for Federated Averaging
+    state_dict = model.state_dict()
+    # Move to CPU before saving to avoid device mismatch issues across hospitals
+    state_dict = {k: v.cpu() for k, v in state_dict.items()}
+    
+    return state_dict, metrics

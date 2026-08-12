@@ -2,7 +2,7 @@ import os
 import tempfile
 import pandas as pd
 import pytest
-from app.services.ai_service import train_local_model, load_dataframe
+from app.services.ai_service import train_local_model, train_local_cnn, load_dataframe
 
 def test_load_dataframe():
     """Test that the load_dataframe function can parse a CSV and handle missing values."""
@@ -61,3 +61,40 @@ def test_train_local_model():
         assert model is not None
     finally:
         os.remove(f_name)
+
+def test_train_local_cnn():
+    """Test training a PyTorch CNN on a tiny dummy image dataset."""
+    import zipfile
+    import shutil
+    
+    # We will use the pre-generated dummy_dataset.zip path which extract to dummy_images
+    dataset_zip = "/home/manvith/Desktop/Projects/FedCare-AI/dummy_dataset.zip"
+    extract_dir = "/home/manvith/Desktop/Projects/FedCare-AI/dummy_dataset"
+    if not os.path.exists(dataset_zip):
+        pytest.skip("dummy_dataset.zip not found, skipping CNN test.")
+        
+    try:
+        os.makedirs(extract_dir, exist_ok=True)
+        with zipfile.ZipFile(dataset_zip, 'r') as zip_ref:
+            # We need to flatten it since our script zipped the "dummy_images" folder
+            # but datasets.py usually expects images directly or in class folders
+            # Let's just use the default extraction and train_local_cnn will use ImageFolder
+            zip_ref.extractall(extract_dir)
+            
+        state_dict, metrics = train_local_cnn(
+            file_path=dataset_zip,
+            hospital_id=1,
+            server_id=1,
+            epochs=2
+        )
+        
+        assert "accuracy" in metrics
+        assert "loss" in metrics
+        assert state_dict is not None
+        # Should have layer keys in state_dict
+        assert len(state_dict.keys()) > 0
+    except Exception as e:
+        pytest.fail(f"CNN training failed with exception: {e}")
+    finally:
+        if os.path.exists(extract_dir):
+            shutil.rmtree(extract_dir)

@@ -6,6 +6,8 @@ import urllib.request
 import urllib.error
 import pandas as pd
 import numpy as np
+import zipfile
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -76,8 +78,8 @@ async def upload_dataset(
     """Upload a new dataset locally to this hospital node."""
     # Validate file extension
     filename_lower = (file.filename or '').lower()
-    if not (filename_lower.endswith('.csv') or filename_lower.endswith('.txt')):
-        raise HTTPException(status_code=400, detail="Only .csv and .txt files are supported")
+    if not (filename_lower.endswith('.csv') or filename_lower.endswith('.txt') or filename_lower.endswith('.zip')):
+        raise HTTPException(status_code=400, detail="Only .csv, .txt, and .zip files are supported")
 
     hospital_id = current_user["hospital_id"]
 
@@ -95,40 +97,62 @@ async def upload_dataset(
         raise HTTPException(status_code=500, detail=f"Could not save file locally: {str(e)}")
 
     try:
-        # Load CSV using pandas and auto-detect columns/structure
-        try:
-            df = pd.read_csv(file_path, sep=None, engine='python')
-            if df.shape[1] <= 1:
-                for s in [',', '\t', ';', r'\s+']:
-                    df = pd.read_csv(file_path, sep=s, engine='python')
-                    if df.shape[1] > 1:
-                        break
-        except Exception:
-            df = pd.read_csv(file_path)
-
-        if df.shape[1] <= 1:
-            raise ValueError("CSV/TXT parsing failed: Only one column detected.")
-
-        row_count = len(df)
-        columns = list(df.columns)
-        
-        # Simple local auto-target detection
-        target_candidates = ['outcome', 'Outcome', 'target', 'Target', 'label', 'Label', 'class', 'Class', 'y']
-        target_column = None
-        for candidate in target_candidates:
-            if candidate in columns:
-                target_column = candidate
-                break
-        if target_column is None:
-            target_column = columns[-1]
+        if filename_lower.endswith('.zip'):
+            # Handle Image Dataset
+            extract_dir = file_path.replace('.zip', '')
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_dir)
             
-        feature_count = len([c for c in columns if c != target_column])
-        file_size_kb = round(os.path.getsize(file_path) / 1024, 2)
+            # Count images
+            image_extensions = {'.png', '.jpg', '.jpeg'}
+            row_count = 0
+            for path in Path(extract_dir).rglob('*'):
+                if path.suffix.lower() in image_extensions:
+                    row_count += 1
+            
+            if row_count == 0:
+                raise ValueError("No images found in the ZIP file.")
+                
+            columns = ["Image"]
+            target_column = "Image Class"
+            feature_count = 1
+            file_size_kb = round(os.path.getsize(file_path) / 1024, 2)
+            
+        else:
+            # Load CSV using pandas and auto-detect columns/structure
+            try:
+                df = pd.read_csv(file_path, sep=None, engine='python')
+                if df.shape[1] <= 1:
+                    for s in [',', '\t', ';', r'\s+']:
+                        df = pd.read_csv(file_path, sep=s, engine='python')
+                        if df.shape[1] > 1:
+                            break
+            except Exception:
+                df = pd.read_csv(file_path)
+
+            if df.shape[1] <= 1:
+                raise ValueError("CSV/TXT parsing failed: Only one column detected.")
+
+            row_count = len(df)
+            columns = list(df.columns)
+            
+            # Simple local auto-target detection
+            target_candidates = ['outcome', 'Outcome', 'target', 'Target', 'label', 'Label', 'class', 'Class', 'y']
+            target_column = None
+            for candidate in target_candidates:
+                if candidate in columns:
+                    target_column = candidate
+                    break
+            if target_column is None:
+                target_column = columns[-1]
+                
+            feature_count = len([c for c in columns if c != target_column])
+            file_size_kb = round(os.path.getsize(file_path) / 1024, 2)
 
     except Exception as e:
         if os.path.exists(file_path):
             os.remove(file_path)
-        raise HTTPException(status_code=400, detail=f"Invalid CSV file: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid file: {str(e)}")
 
     # Add record to local DB
     dataset = Dataset(

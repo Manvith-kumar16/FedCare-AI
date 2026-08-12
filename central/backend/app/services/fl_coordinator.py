@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import json
 import logging
+import torch
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier
 from typing import List, Dict, Tuple
@@ -131,6 +132,36 @@ def aggregate_xgboost_ensemble(
         
     ensemble = FederatedEnsembleClassifier(models, weights, feature_names)
     return ensemble
+
+
+def aggregate_cnn(
+    updates: List[ModelUpdate]
+) -> dict:
+    """
+    FedAvg for PyTorch CNNs:
+    Averages the state_dict tensors weighted by client sample sizes.
+    """
+    logger.info(f"Aggregating {len(updates)} CNN models via FedAvg...")
+    
+    total_samples = sum(u.sample_count for u in updates)
+    if total_samples == 0:
+        raise ValueError("Total sample count is zero.")
+
+    averaged_state_dict = None
+    
+    for u in updates:
+        with open(u.update_path, "rb") as f:
+            local_state_dict = pickle.load(f)
+            
+        weight = u.sample_count / total_samples
+        
+        if averaged_state_dict is None:
+            averaged_state_dict = {k: v * weight for k, v in local_state_dict.items()}
+        else:
+            for k, v in local_state_dict.items():
+                averaged_state_dict[k] += v * weight
+                
+    return averaged_state_dict
 
 
 def aggregate_metrics(

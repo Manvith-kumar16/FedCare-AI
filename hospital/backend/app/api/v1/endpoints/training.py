@@ -9,9 +9,9 @@ from app.db import get_db
 from app.models.dataset import Dataset
 from app.models.training_history import TrainingHistory
 from app.schemas.training import LocalTrainingRequest, LocalTrainingHistoryResponse
-from app.services.ai_service import train_local_model
+from app.services.ai_service import train_local_model, train_local_cnn
 from app.services.fl_client import check_and_run_federated_round
-from app.api.deps import get_current_hospital_user
+from app.api.deps import get_current_hospital_user, oauth2_scheme
 from app.core import settings
 
 router = APIRouter(prefix="/training", tags=["Training"])
@@ -29,7 +29,8 @@ def _push_log(server_id: int, msg: str):
 async def start_local_training(
     data: LocalTrainingRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: dict = Depends(get_current_hospital_user)
+    current_user: dict = Depends(get_current_hospital_user),
+    token: str = Depends(oauth2_scheme)
 ):
     """Run local training on the hospital's local dataset."""
     # Find dataset
@@ -49,6 +50,7 @@ async def start_local_training(
     # We fetch model_type and target_column details from Central Coordinator
     url = f"{settings.CENTRAL_API_URL}/api/v1/servers/{data.server_id}"
     req = urllib.request.Request(url, method="GET")
+    req.add_header("Authorization", f"Bearer {token}")
     # Retrieve auth header to forward to Central Coordinator
     # (or use generic central authentication for node communication)
     try:
@@ -57,20 +59,30 @@ async def start_local_training(
             model_type = server_info.get("model_type", "xgboost")
             target_column = server_info.get("target_column", "Outcome")
     except Exception as e:
+        print(f"Error fetching server info from central: {e}")
         # fallback defaults
         model_type = "xgboost"
         target_column = dataset.target_column
 
     try:
-        model, metrics = train_local_model(
-            file_path=dataset.file_path,
-            target_column=target_column,
-            hospital_id=current_user["hospital_id"],
-            server_id=data.server_id,
-            model_type=model_type,
-            epochs=data.epochs or 10,
-            log_callback=lambda msg: _push_log(data.server_id, msg)
-        )
+        if model_type.lower() == "cnn":
+            model, metrics = train_local_cnn(
+                file_path=dataset.file_path,
+                hospital_id=current_user["hospital_id"],
+                server_id=data.server_id,
+                epochs=data.epochs or 5,
+                log_callback=lambda msg: _push_log(data.server_id, msg)
+            )
+        else:
+            model, metrics = train_local_model(
+                file_path=dataset.file_path,
+                target_column=target_column,
+                hospital_id=current_user["hospital_id"],
+                server_id=data.server_id,
+                model_type=model_type,
+                epochs=data.epochs or 10,
+                log_callback=lambda msg: _push_log(data.server_id, msg)
+            )
         
         # Save locally in history (round = 0 represents local-only run)
         hist = TrainingHistory(

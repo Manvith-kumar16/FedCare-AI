@@ -18,6 +18,7 @@ export default function Servers() {
     name: '',
     disease_type: '',
     description: '',
+    input_type: 'tabular',
     num_rounds: 5,
     target_column: 'Outcome',
     model_type: 'xgboost',
@@ -50,11 +51,11 @@ export default function Servers() {
         name: form.name,
         disease_type: form.disease_type,
         description: form.description,
-        input_type: 'tabular',
+        input_type: form.input_type,
         model_type: form.model_type,
         fl_algorithm: form.fl_algorithm,
         num_rounds: parseInt(form.num_rounds),
-        target_column: form.target_column
+        target_column: form.input_type === 'image' ? 'Image Class' : form.target_column
       })
 
       addToast('Federated disease server created successfully!', 'success')
@@ -63,6 +64,7 @@ export default function Servers() {
         name: '',
         disease_type: '',
         description: '',
+        input_type: 'tabular',
         num_rounds: 5,
         target_column: 'Outcome',
         model_type: 'xgboost',
@@ -170,6 +172,25 @@ export default function Servers() {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Data Input Type</label>
+              <select 
+                className="form-select"
+                value={form.input_type}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setForm(prev => ({ 
+                    ...prev, 
+                    input_type: val,
+                    model_type: val === 'image' ? 'cnn' : 'xgboost'
+                  }))
+                }}
+              >
+                <option value="tabular">Tabular (CSV/TXT)</option>
+                <option value="image">Image Dataset (ZIP)</option>
+              </select>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Model Architecture</label>
               <select 
                 className="form-select"
@@ -183,8 +204,16 @@ export default function Servers() {
                   }))
                 }}
               >
-                <option value="xgboost">XGBoost Ensemble (Voting Ensemble)</option>
-                <option value="logistic_regression">Logistic Regression (True Parameter FedAvg)</option>
+                {form.input_type === 'tabular' ? (
+                  <>
+                    <option value="xgboost">XGBoost Ensemble (Voting Ensemble)</option>
+                    <option value="logistic_regression">Logistic Regression (True Parameter FedAvg)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="cnn">PyTorch Convolutional Neural Net (CNN)</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -212,17 +241,19 @@ export default function Servers() {
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Dataset Target Class Label Column</label>
-              <input 
-                type="text" 
-                className="form-input"
-                placeholder="Outcome"
-                value={form.target_column}
-                onChange={(e) => setForm(prev => ({ ...prev, target_column: e.target.value }))}
-                required 
-              />
-            </div>
+            {form.input_type === 'tabular' && (
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Dataset Target Class Label Column</label>
+                <input 
+                  type="text" 
+                  className="form-input"
+                  placeholder="Outcome"
+                  value={form.target_column}
+                  onChange={(e) => setForm(prev => ({ ...prev, target_column: e.target.value }))}
+                  required 
+                />
+              </div>
+            )}
 
             <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
               <button 
