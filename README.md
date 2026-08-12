@@ -1,66 +1,101 @@
 <div align="center">
-  <img src="central/admin-portal/public/Logo/FedCare%20AI_Logo.png" alt="FedCare AI Logo" width="150" />
-  <h1>FedCare AI 🏥🤖</h1>
-  <p><strong>A Privacy-Preserving Federated Learning Platform for Healthcare</strong></p>
+  <h1>🏥 FedCare AI</h1>
+  <p><b>Privacy-Preserving Federated Learning Platform for Healthcare</b></p>
+  
+  [![Live Demo](https://img.shields.io/badge/Live_Demo-fedcare--central--portal.web.app-blue?style=for-the-badge)](https://fedcare-central-portal.web.app)
 </div>
 
-FedCare AI is an advanced machine learning architecture that enables hospitals and medical facilities to collaboratively train AI models without ever sharing sensitive patient data. By utilizing **Federated Learning**, hospitals train models locally on their own servers and only share mathematical gradients/updates with the Central Server.
+<br>
 
----
+## 🤔 What is Federated Learning? (In Simple Terms)
+Imagine multiple hospitals want to collaborate to build a highly accurate AI for disease detection. Normally, they would have to pool all their sensitive patient records into one massive central database. But medical data is strictly private and cannot be shared!
 
-## 🚀 Deployed Links
-- **Central Admin Portal (Frontend):** [Insert Frontend Link Here]
-- **Central Coordinator API (Backend):** [Insert Backend Link Here]
-- **Hospital Node Portal (Frontend):** [Insert Hospital Link Here]
+**Federated Learning** solves this brilliantly:
+1. Hospitals keep all their patient data safely locked on their own local servers.
+2. An empty AI model is sent to each hospital.
+3. The AI learns from the data locally at the hospital.
+4. The AI only sends its *"knowledge"* (mathematical model weights/parameters) back to the central server.
+5. The central server combines (aggregates) the knowledge from all hospitals into one super-smart global AI.
 
-*(Note: The Hospital nodes are typically run locally on-premise at the hospital facility).*
+**Result:** A highly accurate, collaborative AI model is built **without a single patient record ever leaving its host hospital!**
 
 ---
 
 ## ✨ Features
-- **Data Privacy (Zero-Trust):** Patient data never leaves the hospital's local server.
-- **Explainable AI (SHAP):** Transparent AI predictions with waterfall visualization showing exactly which biomarkers contributed to the diagnosis.
-- **XGBoost & Logistic Regression Support:** Supports complex tree-based ensemble models via federated aggregation.
-- **Role-Based Portals:** Dedicated web interfaces for Hospital Admins to manage training and Central Admins to monitor global model performance.
+
+```mermaid
+mindmap
+  root((FedCare AI))
+    Privacy First
+      No Raw Data Sharing
+      Local Training
+    Machine Learning
+      PyTorch CNNs
+      XGBoost
+      Logistic Regression
+    Architecture
+      Central Coordinator
+      Hospital Nodes
+    Evaluation
+      Accuracy, F1, Loss
+      Global Model History
+```
+
+- **Dual-Architecture Portals**: Dedicated interfaces for both Central Administrators and Hospital Nodes.
+- **Multi-Modal AI**: Supports both **Tabular Data** (CSV/TXT for XGBoost & Logistic Regression) and **Image Datasets** (ZIP for PyTorch Convolutional Neural Networks).
+- **Federated Averaging (FedAvg)**: Advanced mathematical aggregation of parameters to build robust global models.
+- **Dataset Management**: Hospitals can securely upload and manage datasets entirely locally.
+- **Real-Time Monitoring**: Stream real-time logs of the federated training loops and synchronization.
 
 ---
 
-## 🔄 System Architecture & Workflow
+## 🏗️ Two-Portal Architecture
 
-The platform operates on a **Hub-and-Spoke** topology where the Central Server acts as the aggregator (Hub) and individual hospitals act as the clients (Spokes).
+FedCare AI operates using a distributed system with two distinct types of portals:
+
+1. **Central Coordinator (Admin Portal)**: Used by principal investigators to create new disease prediction pipelines, trigger training rounds, and aggregate the submitted knowledge.
+2. **Hospital Node (Client Portal)**: Used by participating hospitals to link their local datasets, download global model seeds, train locally, and submit privacy-preserving model parameters.
 
 ```mermaid
-sequenceDiagram
-    participant Central Server (FastAPI)
-    participant Hospital Node (React UI)
-    participant Hospital Backend (FastAPI)
-    
-    Note over Central Server: 1. Initializes Global Model Schema
-    Central Server->>Hospital Backend: Broadcast Initial Model Weights
-    
-    loop Every Federated Round
-        Hospital Node->>Hospital Backend: Trigger Local Training
-        Note over Hospital Backend: Trains model on Local Patient Data
-        Hospital Backend->>Central Server: Push Encrypted Model Updates (Gradients)
-        Note over Central Server: Aggregates updates from all hospitals (FedAvg)
-        Central Server-->>Hospital Backend: Return updated Global Model
+graph TD
+    subgraph Central Environment
+        A[Central Admin Portal<br/>React Frontend] --> |REST API| B(Central Coordinator<br/>FastAPI Backend)
+        B --> |Stores| C[(Global Models & DB)]
     end
-    
-    Note over Hospital Backend,Central Server: 2. Model Ready for Inference
-    
-    Hospital Node->>Central Server: User requests Prediction (Patient Biomarkers)
-    Central Server-->>Hospital Node: AI Diagnosis + Confidence Score
-    Hospital Node->>Central Server: Request SHAP Explainability
-    Central Server-->>Hospital Node: Returns SHAP Waterfall Chart
+
+    subgraph Hospital Node A
+        D[Hospital Portal<br/>React Frontend] --> |REST API| E(Hospital Node<br/>FastAPI Backend)
+        E --> |Trains Locally| F[(Local Patient Data)]
+    end
+
+    subgraph Hospital Node B
+        G[Hospital Portal<br/>React Frontend] --> |REST API| H(Hospital Node<br/>FastAPI Backend)
+        H --> |Trains Locally| I[(Local Patient Data)]
+    end
+
+    B <==> |1. Sends Global Weights| E
+    B <==> |1. Sends Global Weights| H
+    E -.-> |2. Uploads Model Updates Only<br>NO RAW DATA| B
+    H -.-> |2. Uploads Model Updates Only<br>NO RAW DATA| B
 ```
 
 ---
 
 ## 💻 Tech Stack
-- **Frontend:** React, Vite, CSS Glassmorphism
-- **Backend:** FastAPI (Python), SQLite, SQLAlchemy
-- **Machine Learning:** Scikit-Learn, XGBoost, SHAP
-- **Federated Engine:** Custom FedAvg Aggregator
+
+| Category | Technologies Used |
+|---|---|
+| **Frontend** | React, Vite, CSS3, React Router |
+| **Backend** | Python 3.10+, FastAPI, Uvicorn |
+| **Database** | SQLite, SQLAlchemy (Async), Pydantic |
+| **Machine Learning** | PyTorch (CNN), XGBoost, Scikit-learn, Pandas, NumPy |
+| **Security** | JWT (JSON Web Tokens), OAuth2 |
+
+---
+
+## 🚀 Live Demo
+You can view the deployed Central Coordinator portal here:  
+👉 **[FedCare Central Portal](https://fedcare-central-portal.web.app)**
 
 ---
 
@@ -155,4 +190,3 @@ npm run dev
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
