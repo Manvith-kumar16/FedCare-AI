@@ -59,7 +59,7 @@ async def start_local_training(
             print("FETCHED SERVER INFO:", server_info)
             model_type = server_info.get("model_type", "xgboost")
             print("MODEL TYPE:", model_type)
-            target_column = server_info.get("target_column", "Outcome")
+            target_column = dataset.target_column or server_info.get("target_column", "Outcome")
     except Exception as e:
         print(f"Error fetching server info from central: {e}")
         # fallback defaults

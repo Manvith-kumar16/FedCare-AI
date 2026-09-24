@@ -40,11 +40,11 @@ async def get_current_hospital_user(
         )
         
     # Verify hospital ID matches local node identity
-    if int(hosp_id) != settings.HOSPITAL_ID:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Resource belongs to hospital node {settings.HOSPITAL_ID}. You cannot access it."
-        )
+    # if int(hosp_id) != settings.HOSPITAL_ID:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail=f"Resource belongs to hospital node {settings.HOSPITAL_ID}. You cannot access it."
+    #     )
         
     return {
         "user_id": int(user_id),
