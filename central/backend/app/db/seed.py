@@ -56,6 +56,32 @@ async def seed_database():
         await session.flush()
         print(f"  [OK] Base Hospital account aj@gmail.com initialized")
 
+        # 3. Create Pneumonia Disease Server
+        pneumonia_server = DiseaseServer(
+            name="Pneumonia Detection (Chest X-ray)",
+            disease_type="Pneumonia",
+            description="Federated learning model to detect pneumonia from Chest X-ray images using a PyTorch CNN.",
+            created_by=admin.id,
+            status=ServerStatus.ACTIVE,
+            input_type=InputType.IMAGE,
+            model_type=ModelType.CNN,
+            fl_algorithm=FLAlgorithm.FEDAVG,
+            target_column="Label",
+        )
+        session.add(pneumonia_server)
+        await session.flush()
+        print(f"  [OK] Pneumonia Disease Server created")
+
+        # 4. Enroll the hospital into the server
+        member = ServerMember(
+            server_id=pneumonia_server.id,
+            hospital_id=custom_hosp.id,
+            status=MemberStatus.APPROVED,
+        )
+        session.add(member)
+        await session.flush()
+        print(f"  [OK] Hospital enrolled in Pneumonia Server")
+
         await session.commit()
         print("\nDatabase seeding complete!")
 
