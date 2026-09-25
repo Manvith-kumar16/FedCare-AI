@@ -13,7 +13,7 @@ services:
           name: fedcare-central-db
           property: connectionString
       - key: SECRET_KEY
-        generateValue: true
+        value: "fedcare-ai-central-coordinator-super-secret-key-2026"
 
 databases:
   - name: fedcare-central-db
