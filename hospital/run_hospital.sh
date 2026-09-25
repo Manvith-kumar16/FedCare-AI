@@ -1,4 +1,7 @@
 #!/bin/bash
+# Change to the directory where the script is located
+cd "$(dirname "$0")" || exit
+
 echo "🚀 Starting FedCare AI Hospital Node..."
 
 # Check if Python is installed
