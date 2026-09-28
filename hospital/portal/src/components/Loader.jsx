@@ -1,5 +1,3 @@
-import { Player } from '@lottiefiles/react-lottie-player';
-
 export default function Loader({ message = "Loading...", fullScreen = false }) {
     const containerStyle = fullScreen 
         ? { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: 'var(--color-bg-primary)' }
@@ -7,13 +5,22 @@ export default function Loader({ message = "Loading...", fullScreen = false }) {
 
     return (
         <div style={containerStyle} className="fade-in">
-            <Player
-                autoplay
-                loop
-                src="https://lottie.host/195b0ff7-93cf-4ed3-b68f-9a7ed7efbb75/6gB58U8iZt.json" // Abstract clean loader
-                style={{ height: '120px', width: '120px' }}
-            />
-            {message && <div style={{ marginTop: '16px', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>{message}</div>}
+            <div style={{
+                width: '60px',
+                height: '60px',
+                border: '4px solid rgba(0, 122, 255, 0.1)',
+                borderLeftColor: 'var(--color-primary, #007aff)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+            }}></div>
+            <style>
+                {`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+                `}
+            </style>
+            {message && <div style={{ marginTop: '20px', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.5px' }}>{message}</div>}
         </div>
     );
 }

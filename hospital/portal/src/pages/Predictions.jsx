@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { makePrediction, getPredictionHistory, getServers, getDatasets } from '../api'
+import { makePrediction, getPredictionHistory, getServers, getDatasets, makeImagePrediction } from '../api'
 import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
@@ -13,6 +13,7 @@ export default function Predictions() {
   const [selectedServer, setSelectedServer] = useState(null)
   const [featureColumns, setFeatureColumns] = useState([])
   const [form, setForm] = useState({})
+  const [imageFile, setImageFile] = useState(null)
   const [result, setResult] = useState(null)
   const [predictionError, setPredictionError] = useState(null)
   const [history, setHistory] = useState([])
@@ -112,24 +113,39 @@ export default function Predictions() {
   async function handlePredict(e) {
     if (e) e.preventDefault()
 
-    const unfilled = featureColumns.filter(f => !form[f])
-    if (unfilled.length > 0) {
-      addToast(`Please fill all fields: ${unfilled.join(', ')}`, 'warning')
-      return
+    if (selectedServer?.model_type !== 'cnn') {
+      const unfilled = featureColumns.filter(f => !form[f])
+      if (unfilled.length > 0) {
+        addToast(`Please fill all fields: ${unfilled.join(', ')}`, 'warning')
+        return
+      }
+    } else {
+      if (!imageFile) {
+        addToast("Please select an image file to upload", "warning")
+        return
+      }
     }
 
     setPredicting(true)
     setResult(null)
     setPredictionError(null)
     try {
-      const payload = {
-        server_id: selectedServer.id,
-        features: {}
+      let res;
+      if (selectedServer?.model_type === 'cnn') {
+        const formData = new FormData()
+        formData.append('server_id', selectedServer.id)
+        formData.append('image', imageFile)
+        res = await makeImagePrediction(formData)
+      } else {
+        const payload = {
+          server_id: selectedServer.id,
+          features: {}
+        }
+        featureColumns.forEach(f => {
+          payload.features[f] = parseFloat(form[f]) || 0
+        })
+        res = await makePrediction(payload)
       }
-      featureColumns.forEach(f => {
-        payload.features[f] = parseFloat(form[f]) || 0
-      })
-      const res = await makePrediction(payload)
       setResult(res.data)
       addToast('Prediction generated successfully!', 'success')
     } catch (err) {
@@ -238,23 +254,39 @@ export default function Predictions() {
 
           {selectedServer && featureColumns.length > 0 && (
             <form onSubmit={handlePredict} style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px', overflowY: 'auto', paddingRight: '8px', maxHeight: '500px' }}>
-                {featureColumns.map(f => (
-                  <div className="form-group" key={f} style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{f}</label>
-                    <input
-                      type="number"
-                      step="any"
-                      placeholder={`Enter ${f}...`}
-                      value={form[f] || ''}
-                      onChange={e => updateField(f, e.target.value)}
-                      className="form-input"
-                      style={{ padding: '12px', borderRadius: '8px' }}
-                      required
-                    />
-                  </div>
-                ))}
-              </div>
+              {selectedServer?.model_type === 'cnn' ? (
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Chest X-Ray Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setImageFile(e.target.files[0])}
+                    style={{ 
+                      width: '100%', padding: '12px', background: 'var(--color-bg-secondary)', 
+                      border: '1px solid var(--color-border)', borderRadius: '8px',
+                      color: 'var(--color-text-primary)'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px', overflowY: 'auto', paddingRight: '8px', maxHeight: '500px' }}>
+                  {featureColumns.map(f => (
+                    <div className="form-group" key={f} style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>{f}</label>
+                      <input
+                        type="number"
+                        step="any"
+                        placeholder={`Enter ${f}...`}
+                        value={form[f] || ''}
+                        onChange={e => updateField(f, e.target.value)}
+                        className="form-input"
+                        style={{ padding: '12px', borderRadius: '8px' }}
+                        required
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <button
                 type="submit"
                 className="btn btn-primary"
@@ -324,44 +356,55 @@ export default function Predictions() {
                 </div>
 
                 {/* Local SHAP values */}
-                {shapValues && Object.keys(shapValues).length > 0 && (
+                {shapValues && (shapValues.is_image ? shapValues.plot_base64 : Object.keys(shapValues).length > 0) && (
                   <div style={{ marginTop: '40px', textAlign: 'left' }}>
                     <h4 style={{ marginBottom: '20px', fontSize: '1.1rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ background: 'rgba(0, 210, 255, 0.1)', padding: '6px', borderRadius: '8px', color: 'var(--color-accent-cyan)', display: 'flex' }}>
                         <HiOutlineSearch size={18} />
                       </div>
-                      Feature Attributions (SHAP)
+                      {shapValues.is_image ? 'Visual Explainability (Grad-CAM)' : 'Feature Attributions (SHAP)'}
                     </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {Object.entries(shapValues)
-                        .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
-                        .slice(0, 5)
-                        .map(([feature, value]) => {
-                          const maxVal = Math.max(...Object.values(shapValues).map(Math.abs)) || 1
-                          const width = (Math.abs(value) / maxVal) * 100
-                          return (
-                            <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.9rem' }}>
-                              <span style={{ width: '120px', fontWeight: 500, color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{feature}</span>
-                              <div style={{ flex: 1, height: '10px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '5px', position: 'relative' }}>
-                                <div style={{
-                                  position: 'absolute',
-                                  left: '50%',
-                                  right: value < 0 ? 'auto' : 'none',
-                                  transform: value < 0 ? 'translateX(-100%)' : 'none',
-                                  width: `${width / 2}%`,
-                                  height: '100%',
-                                  background: value > 0 ? 'var(--gradient-danger)' : 'var(--gradient-success)',
-                                  borderRadius: '5px'
-                                }}></div>
+                    {shapValues.is_image ? (
+                      <div style={{ textAlign: 'center', background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '12px' }}>
+                        <img 
+                          src={`data:image/jpeg;base64,${shapValues.plot_base64}`} 
+                          alt="Grad-CAM" 
+                          style={{ maxWidth: '100%', borderRadius: '8px' }} 
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {Object.entries(shapValues)
+                          .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
+                          .slice(0, 5)
+                          .map(([feature, value]) => {
+                            const maxVal = Math.max(...Object.values(shapValues).map(Math.abs)) || 1
+                            const width = (Math.abs(value) / maxVal) * 100
+                            return (
+                              <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.9rem' }}>
+                                <span style={{ width: '120px', fontWeight: 500, color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{feature}</span>
+                                <div style={{ flex: 1, height: '10px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '5px', position: 'relative' }}>
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '50%',
+                                    right: value < 0 ? 'auto' : 'none',
+                                    transform: value < 0 ? 'translateX(-100%)' : 'none',
+                                    width: `${width / 2}%`,
+                                    height: '100%',
+                                    background: value > 0 ? 'var(--gradient-danger)' : 'var(--gradient-success)',
+                                    borderRadius: '5px'
+                                  }}></div>
+                                </div>
+                                <span style={{ width: '70px', textAlign: 'right', fontWeight: 700, color: value > 0 ? 'var(--color-accent-red)' : 'var(--color-accent-green)' }}>
+                                  {value > 0 ? '+' : ''}{value.toFixed(3)}
+                                </span>
                               </div>
-                              <span style={{ width: '70px', textAlign: 'right', fontWeight: 700, color: value > 0 ? 'var(--color-accent-red)' : 'var(--color-accent-green)' }}>
-                                {value > 0 ? '+' : ''}{value.toFixed(3)}
-                              </span>
-                            </div>
-                          )
-                        })}
-                    </div>
+                            )
+                          })}
+                      </div>
+                    )}
                   </div>
+
                 )}
               </div>
             </div>

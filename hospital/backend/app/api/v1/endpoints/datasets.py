@@ -214,6 +214,29 @@ async def validate_dataset(
         raise HTTPException(status_code=404, detail="Physical dataset file is missing")
 
     try:
+        if ds.file_path.lower().endswith('.zip'):
+            extract_dir = ds.file_path.replace('.zip', '')
+            class_dist = {}
+            image_extensions = {'.png', '.jpg', '.jpeg'}
+            for path in Path(extract_dir).rglob('*'):
+                if path.suffix.lower() in image_extensions:
+                    class_name = path.parent.name
+                    if class_name not in class_dist:
+                        class_dist[class_name] = 0
+                    class_dist[class_name] += 1
+            
+            return {
+                "dataset_id": ds.id,
+                "filename": ds.filename,
+                "row_count": sum(class_dist.values()),
+                "feature_count": 1,
+                "missing_values": {"total": 0, "by_column": {}},
+                "duplicates": 0,
+                "data_types": {"Image": "image"},
+                "class_distribution": class_dist,
+                "status": "valid"
+            }
+            
         df = pd.read_csv(ds.file_path)
         
         # Missing values

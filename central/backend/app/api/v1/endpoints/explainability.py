@@ -10,7 +10,7 @@ import os
 from typing import List
 from app.db import get_db
 from app.models.user import User
-from app.models.disease_server import DiseaseServer
+from app.models.disease_server import DiseaseServer, ModelType
 from app.models.model_version import ModelVersion
 from app.api.deps import get_current_active_admin, get_current_user
 from app.services.fl_coordinator import FederatedEnsembleClassifier
@@ -50,6 +50,13 @@ async def get_global_feature_importance(
 
     # 3. Load model and extract feature importances
     try:
+        if server.model_type == ModelType.CNN:
+            return {
+                "server_id": server_id,
+                "model_type": server.model_type.value,
+                "feature_ranking": []
+            }
+
         with open(model_version.model_path, "rb") as f:
             model = pickle.load(f)
             

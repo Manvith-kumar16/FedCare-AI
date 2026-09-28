@@ -27,22 +27,26 @@ async def explain_prediction(
 
     # Reconstruct input features
     features = json.loads(prediction.input_data or "{}")
-    feature_columns = list(features.keys())
-
-    # Generate SHAP values
-    explanation = generate_shap_explanation(prediction.server_id, hospital_id, features, feature_columns)
     
-    if "error" in explanation:
-        raise HTTPException(status_code=500, detail=explanation["error"])
+    # Use cached explanation data
+    cached_explanation = json.loads(prediction.explanation_data or "{}")
+    plot_base64 = cached_explanation.get("plot_base64")
+    
+    if not plot_base64 and not cached_explanation.get("is_image"):
+        # Fallback for tabular data if not fully cached
+        feature_columns = list(features.keys())
+        explanation = generate_shap_explanation(prediction.server_id, hospital_id, features, feature_columns)
+        if "error" not in explanation:
+            cached_explanation = explanation
 
     return ExplanationResponse(
         prediction_id=prediction.id,
         prediction_label=prediction.prediction_label,
         confidence=prediction.confidence,
-        shap_values=explanation.get("shap_values", {}),
-        feature_importance=explanation.get("feature_importance", []),
-        base_value=explanation.get("base_value", 0.0),
-        plot_base64=explanation.get("plot_base64")
+        shap_values=cached_explanation.get("shap_values", {}),
+        feature_importance=cached_explanation.get("feature_importance", []),
+        base_value=cached_explanation.get("base_value", 0.0),
+        plot_base64=cached_explanation.get("plot_base64")
     )
 
 

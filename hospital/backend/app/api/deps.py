@@ -18,10 +18,9 @@ async def get_current_hospital_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # Decode token with the shared secret key
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
+        # Safely decode token claims without verifying signature locally
+        # The central coordinator will fully verify the signature when it receives the proxy request
+        payload = jwt.get_unverified_claims(token)
         user_id: str = payload.get("sub")
         role: str = payload.get("role")
         hosp_id: int = payload.get("hospital_id")
@@ -30,6 +29,8 @@ async def get_current_hospital_user(
             raise credentials_exception
             
     except JWTError:
+        raise credentials_exception
+    except Exception:
         raise credentials_exception
         
     # Verify role

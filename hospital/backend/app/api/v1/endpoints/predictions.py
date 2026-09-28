@@ -7,9 +7,11 @@ from typing import List
 from app.db import get_db
 from app.models.prediction import Prediction
 from app.schemas.prediction import PredictionInput, PredictionResponse, ExplanationResponse
-from app.services.ai_service import load_local_model, load_global_model, predict_single
+from app.services.ai_service import load_local_model, load_global_model, predict_single, predict_image, explain_image
 from app.services.xai_service import generate_shap_explanation, generate_local_feature_importance
 from app.api.deps import get_current_hospital_user
+from fastapi import File, UploadFile, Form
+import base64
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
 
@@ -72,6 +74,66 @@ async def make_prediction(
         probability_negative=pred_result["probability_negative"],
         explanation_data=explanation_json,
         feature_importance=importance_json
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+
+    return PredictionResponse(
+        id=record.id,
+        server_id=record.server_id,
+        prediction=record.prediction,
+        prediction_label=record.prediction_label,
+        confidence=record.confidence,
+        probability_positive=record.probability_positive,
+        probability_negative=record.probability_negative,
+        input_data=record.input_data,
+        explanation_data=record.explanation_data,
+        feature_importance=record.feature_importance,
+        created_at=record.created_at
+    )
+
+
+@router.post("/predict-image", response_model=PredictionResponse)
+async def make_image_prediction(
+    server_id: int = Form(...),
+    image: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_hospital_user)
+):
+    hospital_id = current_user["hospital_id"]
+
+    model = load_local_model(server_id, hospital_id)
+    if model is None:
+        model = load_global_model(server_id)
+        
+    if model is None:
+        raise HTTPException(status_code=400, detail="No trained local or global model found.")
+
+    image_bytes = await image.read()
+    
+    # 1. Run prediction
+    pred_result = predict_image(model, image_bytes)
+
+    # 2. Generate Explainability (Grad-CAM Base64)
+    explanation_json = "{}"
+    try:
+        plot_base64 = explain_image(model, image_bytes)
+        # We package it similarly to SHAP to be compatible with the UI
+        explanation_json = json.dumps({"plot_base64": plot_base64, "is_image": True})
+    except Exception as e:
+        print(f"[local-predict] Grad-CAM generation failed: {e}")
+
+    record = Prediction(
+        server_id=server_id,
+        input_data=json.dumps({"IMAGE": image.filename}),
+        prediction=pred_result["prediction"],
+        prediction_label=pred_result["prediction_label"],
+        confidence=pred_result["confidence"],
+        probability_positive=pred_result["probability_positive"],
+        probability_negative=pred_result["probability_negative"],
+        explanation_data=explanation_json,
+        feature_importance="[]"
     )
     db.add(record)
     await db.commit()

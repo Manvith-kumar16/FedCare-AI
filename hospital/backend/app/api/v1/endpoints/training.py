@@ -133,7 +133,11 @@ async def trigger_federated_sync(
 
     # Run sync in background or inline. Let's run it inline so the API response blocks until it is done,
     # giving the verification script immediate feedback!
-    result = await check_and_run_federated_round(db, token)
+    result = await check_and_run_federated_round(
+        db, 
+        token, 
+        log_callback=lambda sid, msg: _push_log(sid, msg)
+    )
     if "error" in result:
         raise HTTPException(status_code=500, detail=result["error"])
         

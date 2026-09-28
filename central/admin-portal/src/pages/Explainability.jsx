@@ -163,8 +163,10 @@ export default function Explainability() {
                 <Bar data={barData} options={chartOptions} />
               </div>
             ) : (
-              <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', background: 'var(--color-bg-primary)', borderRadius: '12px' }}>
-                No active global model available to interpret. Start a round to aggregate parameters.
+              <div style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px', color: 'var(--color-text-muted)', background: 'var(--color-bg-primary)', borderRadius: '12px' }}>
+                {selectedServer?.model_type === 'cnn' || importance?.model_type === 'cnn' 
+                  ? "CNN architectures process raw image pixels. Global tabular feature rankings are not applicable to unstructured neural networks."
+                  : "No active global model available to interpret. Start a round to aggregate parameters."}
               </div>
             )}
           </div>

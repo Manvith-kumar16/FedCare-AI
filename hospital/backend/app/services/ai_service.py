@@ -126,8 +126,12 @@ def load_local_model(server_id: int, hospital_id: int):
     path = _local_model_path(server_id, hospital_id)
     if not os.path.exists(path):
         return None
-    with open(path, "rb") as f:
-        return pickle.load(f)
+    try:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception:
+        import torch
+        return torch.load(path, map_location="cpu", weights_only=True)
 
 
 def save_global_model(model, server_id: int) -> str:
@@ -141,8 +145,12 @@ def load_global_model(server_id: int):
     path = _global_model_path(server_id)
     if not os.path.exists(path):
         return None
-    with open(path, "rb") as f:
-        return pickle.load(f)
+    try:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception:
+        import torch
+        return torch.load(path, map_location="cpu", weights_only=True)
 
 
 # ─── Training ─────────────────────────────────────────────────────────────────
@@ -506,3 +514,83 @@ def train_local_cnn(
     log(f"Model saved locally -> {file_path}")
     
     return state_dict, metrics
+
+def predict_image(model_state_dict, image_bytes: bytes) -> dict:
+    """Run inference on a single image byte stream."""
+    import io
+    from PIL import Image
+    from torchvision import transforms
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = SimpleCNN(num_classes=2).to(device)
+    model.load_state_dict(model_state_dict)
+    model.eval()
+
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    input_tensor = transform(image).unsqueeze(0).to(device)
+    
+    with torch.no_grad():
+        outputs = model(input_tensor)
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)[0]
+        
+    prob_pos = float(probabilities[1].item())
+    prob_neg = float(probabilities[0].item())
+    prediction = int(prob_pos >= 0.5)
+    
+    return {
+        "prediction": prediction,
+        "prediction_label": "Pneumonia Detected" if prediction == 1 else "Normal (Healthy)",
+        "confidence": max(prob_pos, prob_neg),
+        "probability_positive": prob_pos,
+        "probability_negative": prob_neg,
+    }
+
+def explain_image(model_state_dict, image_bytes: bytes) -> str:
+    """Generate a Grad-CAM style heatmap and return base64 encoded image."""
+    import io
+    from PIL import Image
+    from torchvision import transforms
+    import cv2
+    import base64
+    
+    device = torch.device("cpu") # For grad operations, stick to CPU to avoid complexity
+    model = SimpleCNN(num_classes=2).to(device)
+    model.load_state_dict(model_state_dict)
+    model.eval()
+    
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    original_np = np.array(image.resize((224, 224)))
+    input_tensor = transform(image).unsqueeze(0).to(device)
+    
+    input_tensor.requires_grad = True
+    outputs = model(input_tensor)
+    
+    target_class = int(torch.argmax(outputs).item())
+    outputs[0, target_class].backward()
+    
+    saliency, _ = torch.max(input_tensor.grad.data.abs(), dim=1)
+    saliency = saliency.squeeze().numpy()
+    
+    # Normalize
+    saliency = (saliency - saliency.min()) / (saliency.max() - saliency.min() + 1e-8)
+    saliency = np.uint8(255 * saliency)
+    
+    heatmap = cv2.applyColorMap(saliency, cv2.COLORMAP_JET)
+    superimposed_img = cv2.addWeighted(original_np, 0.6, heatmap, 0.4, 0)
+    
+    _, buffer = cv2.imencode('.jpg', superimposed_img)
+    encoded = base64.b64encode(buffer).decode('utf-8')
+    
+    return encoded
