@@ -151,7 +151,7 @@ export default function Datasets() {
         </p>
 
         {servers.length === 0 ? (
-          <div style={{ padding: '16px', background: '#FFF7ED', border: '1px solid #FFEDD5', borderRadius: '8px', color: '#C2410C', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ padding: '16px', background: '#FFF7ED', border: '3px solid #FFEDD5', borderRadius: '8px', color: '#C2410C', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <HiOutlineExclamationCircle size={24} />
             <span>You have not joined any Disease Servers yet. Please <Link to="/servers" style={{ color: '#EA580C', fontWeight: 600, textDecoration: 'underline' }}>join a server</Link> to associate dataset records.</span>
           </div>
@@ -203,7 +203,7 @@ export default function Datasets() {
         <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '24px' }}>Local Datasets Under Custody</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px' }}>
           {datasets.length === 0 ? (
-            <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', background: '#FAFAFD', borderRadius: '12px', border: '1px dashed var(--color-border)' }}>
+            <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', background: '#FFFFFF', borderRadius: '12px', border: '1px dashed var(--color-border)' }}>
               <div style={{ color: 'var(--color-text-muted)', marginBottom: '16px' }}>
                 <HiOutlineDatabase size={48} />
               </div>
@@ -230,7 +230,7 @@ export default function Datasets() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', padding: '16px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', padding: '16px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
                     <div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>Records Count</div>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{ds.row_count} patients</div>

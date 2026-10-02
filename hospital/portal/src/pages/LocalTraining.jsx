@@ -184,7 +184,7 @@ export default function LocalTraining() {
             </div>
 
             {currentServer && (
-              <div style={{ padding: '16px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.85rem' }}>
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.85rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--color-border)' }}>
                   <span style={{ color: 'var(--color-text-secondary)' }}>Model Type</span>
                   <strong style={{ color: 'var(--color-text-primary)' }}>{currentServer.model_type?.toUpperCase()}</strong>
@@ -242,7 +242,7 @@ export default function LocalTraining() {
               style={{ 
                 background: activeTab === 'history' ? 'var(--color-bg-secondary)' : 'transparent', 
                 border: 'none', 
-                color: activeTab === 'history' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', 
+                color: activeTab === 'history' ? '#FFFFFF' : 'var(--color-text-secondary)', 
                 cursor: 'pointer', 
                 fontWeight: 600,
                 padding: '8px 16px',
@@ -260,7 +260,7 @@ export default function LocalTraining() {
               style={{ 
                 background: activeTab === 'logs' ? 'var(--color-bg-secondary)' : 'transparent', 
                 border: 'none', 
-                color: activeTab === 'logs' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', 
+                color: activeTab === 'logs' ? '#FFFFFF' : 'var(--color-text-secondary)', 
                 cursor: 'pointer', 
                 fontWeight: 600,
                 padding: '8px 16px',
@@ -285,10 +285,10 @@ export default function LocalTraining() {
                     {history.map(hist => {
                       const srv = servers.find(s => s.id === hist.server_id)
                       return (
-                        <div key={hist.id} style={{ padding: '16px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border)', borderRadius: '12px' }}>
+                        <div key={hist.id} style={{ padding: '16px', background: 'rgba(0,0,0,0.03)', border: '1px solid var(--color-border)', borderRadius: '12px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-bg-secondary)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(152, 94, 109, 0.15)', color: 'var(--color-accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <HiOutlineServer size={18} />
                               </div>
                               <strong style={{ color: 'var(--color-text-primary)' }}>{srv ? srv.name : `Server #${hist.server_id}`}</strong>
@@ -298,19 +298,19 @@ export default function LocalTraining() {
                             </span>
                           </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                            <div style={{ background: '#FAFAFD', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <div style={{ background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Accuracy</div>
                               <strong style={{ color: 'var(--color-accent-blue)', fontSize: '1rem' }}>{(hist.local_accuracy * 100).toFixed(1)}%</strong>
                             </div>
-                            <div style={{ background: '#FAFAFD', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <div style={{ background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>F1-Score</div>
                               <strong style={{ color: 'var(--color-accent-blue)', fontSize: '1rem' }}>{(hist.local_f1 * 100).toFixed(1)}%</strong>
                             </div>
-                            <div style={{ background: '#FAFAFD', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <div style={{ background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Loss</div>
                               <strong style={{ color: 'var(--color-accent-red)', fontSize: '1rem' }}>{hist.local_loss.toFixed(4)}</strong>
                             </div>
-                            <div style={{ background: '#FAFAFD', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                            <div style={{ background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
                               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Samples</div>
                               <strong style={{ color: 'var(--color-text-primary)', fontSize: '1rem' }}>{hist.samples_trained}</strong>
                             </div>
@@ -324,7 +324,7 @@ export default function LocalTraining() {
             )}
 
             {activeTab === 'logs' && (
-              <div className="fade-in" style={{ height: '100%', background: '#FAFAFD', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-text-primary)', overflowY: 'auto' }}>
+              <div className="fade-in" style={{ height: '100%', background: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-text-primary)', overflowY: 'auto' }}>
                 {logs.length === 0 ? (
                   <div style={{ color: 'var(--color-text-muted)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Execution terminal idle. Logs will display here during run.</div>
                 ) : (

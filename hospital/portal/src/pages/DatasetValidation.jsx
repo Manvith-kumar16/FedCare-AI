@@ -83,14 +83,14 @@ export default function DatasetValidation() {
       </div>
 
       {/* Dataset Selection */}
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div className="input-group" style={{ margin: 0, minWidth: '320px' }}>
             <label>Select Custody Dataset</label>
             <select 
               value={selectedDatasetId} 
               onChange={handleSelectChange}
-              style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+              style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-border)', color: '#fff', borderRadius: '6px' }}
             >
               {datasets.length === 0 ? (
                 <option value="">No custody datasets available</option>
@@ -149,7 +149,7 @@ export default function DatasetValidation() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '24px' }}>
             {/* Left Column: Metadata & Metrics */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div className="glass-panel" style={{ padding: '20px' }}>
+              <div className="card" style={{ padding: '20px' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <HiOutlineDatabase style={{ color: '#38bdf8' }} /> Metadata Profile
                 </h4>
@@ -175,7 +175,7 @@ export default function DatasetValidation() {
                 </div>
               </div>
 
-              <div className="glass-panel" style={{ padding: '20px' }}>
+              <div className="card" style={{ padding: '20px' }}>
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <HiOutlineChartPie style={{ color: '#818cf8' }} /> Class Distribution
                 </h4>
@@ -191,7 +191,7 @@ export default function DatasetValidation() {
                             <span>Label Class "{lbl}"</span>
                             <strong>{val} samples ({pct}%)</strong>
                           </div>
-                          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ height: '8px', background: '#FFFFFF', borderRadius: '4px', overflow: 'hidden' }}>
                             <div style={{ height: '100%', background: lbl === '1' ? '#38bdf8' : '#818cf8', width: `${pct}%` }}></div>
                           </div>
                         </div>
@@ -203,7 +203,7 @@ export default function DatasetValidation() {
             </div>
 
             {/* Right Column: Missing Values & Data Types */}
-            <div className="glass-panel" style={{ padding: '20px' }}>
+            <div className="card" style={{ padding: '20px' }}>
               <h4 style={{ marginBottom: '16px' }}>Missing Values & Data Types Per Column</h4>
               <div className="table-responsive">
                 <table className="data-table text-xs">

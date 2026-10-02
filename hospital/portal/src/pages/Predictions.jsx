@@ -201,7 +201,7 @@ export default function Predictions() {
     <div className="predictions-page fade-in">
       <div className="page-header" style={{ alignItems: 'flex-end', borderBottom: '1px solid var(--color-border)', paddingBottom: '24px', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.5px' }}>Patient Inference Gateway</h2>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>Patient Inference Gateway</h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
             Compute diagnostics locally. Input features remain 100% locally contained on this node.
           </p>
@@ -220,13 +220,13 @@ export default function Predictions() {
         {/* Input Form Column */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <h3 className="section-header" style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--color-text-bright)', fontSize: '1.4rem' }}>
-            <div style={{ background: 'rgba(91, 101, 220, 0.1)', padding: '10px', borderRadius: '12px', color: 'var(--color-accent-blue)', display: 'flex' }}>
+            <div style={{ background: 'rgba(114, 176, 171, 0.1)', padding: '10px', borderRadius: '12px', color: 'var(--color-accent-blue)', display: 'flex' }}>
               <HiOutlineClipboardList size={24} />
             </div>
             Diagnostic Inputs
           </h3>
 
-          <div className="form-group" style={{ background: 'var(--color-bg-secondary)', padding: '20px', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
+          <div className="form-group" style={{ background: 'rgba(0,0,0,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid var(--color-border)' }}>
             <label className="form-label" style={{ fontWeight: 600, color: 'var(--color-accent-blue)', fontSize: '0.9rem', marginBottom: '12px' }}>Disease Model Pipeline</label>
             <select
               className="form-select"
@@ -244,7 +244,7 @@ export default function Predictions() {
 
           {selectedServer && featureColumns.length === 0 && (
             <div className="empty-state" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-              <div style={{ background: 'rgba(255, 145, 0, 0.1)', padding: '24px', borderRadius: '50%', marginBottom: '20px', display: 'flex' }}>
+              <div style={{ background: 'rgba(184, 157, 71, 0.1)', padding: '24px', borderRadius: '50%', marginBottom: '20px', display: 'flex' }}>
                 <HiOutlineExclamationCircle size={48} style={{ color: 'var(--color-accent-orange)' }} />
               </div>
               <h4 style={{ fontSize: '1.25rem', color: 'var(--color-text-bright)', marginBottom: '8px' }}>No Feature Mapping Found</h4>
@@ -261,11 +261,8 @@ export default function Predictions() {
                     type="file"
                     accept="image/*"
                     onChange={e => setImageFile(e.target.files[0])}
-                    style={{ 
-                      width: '100%', padding: '12px', background: 'var(--color-bg-secondary)', 
-                      border: '1px solid var(--color-border)', borderRadius: '8px',
-                      color: 'var(--color-text-primary)'
-                    }}
+                    className="form-input"
+                    style={{ padding: '12px', width: '100%' }}
                   />
                 </div>
               ) : (
@@ -318,7 +315,7 @@ export default function Predictions() {
             <div className="fade-in" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div className="prediction-result" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                  <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`} style={{ width: '120px', height: '120px', fontSize: '4rem', margin: 0, boxShadow: `0 0 40px ${result.prediction === 1 ? 'rgba(255, 82, 82, 0.15)' : 'rgba(0, 230, 118, 0.15)'}`, background: result.prediction === 1 ? 'rgba(255, 82, 82, 0.08)' : 'rgba(0, 230, 118, 0.08)', border: `1px solid ${result.prediction === 1 ? 'rgba(255, 82, 82, 0.2)' : 'rgba(0, 230, 118, 0.2)'}` }}>
+                  <div className={`result-icon ${result.prediction === 1 ? 'positive' : 'negative'}`} style={{ width: '120px', height: '120px', fontSize: '4rem', margin: 0, boxShadow: `0 0 40px ${result.prediction === 1 ? 'rgba(254, 145, 121, 0.15)' : 'rgba(114, 176, 171, 0.15)'}`, background: result.prediction === 1 ? 'rgba(254, 145, 121, 0.08)' : 'rgba(114, 176, 171, 0.08)', border: `3px solid ${result.prediction === 1 ? 'rgba(254, 145, 121, 0.2)' : 'rgba(114, 176, 171, 0.2)'}` }}>
                     {result.prediction === 1 ? <HiOutlineExclamationCircle /> : <HiOutlineCheckCircle />}
                   </div>
                 </div>
@@ -335,7 +332,7 @@ export default function Predictions() {
                     <span style={{ color: 'var(--color-accent-green)', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-accent-green)', display: 'inline-block' }}></span> Negative: {((result?.probability_negative || 0) * 100).toFixed(1)}%</span>
                     <span style={{ color: 'var(--color-accent-red)', display: 'flex', alignItems: 'center', gap: '8px' }}>Positive: {((result?.probability_positive || 0) * 100).toFixed(1)}% <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-accent-red)', display: 'inline-block' }}></span></span>
                   </div>
-                  <div style={{ height: '14px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '7px', overflow: 'hidden', display: 'flex' }}>
+                  <div style={{ height: '14px', background: 'rgba(114, 176, 171, 0.1)', borderRadius: '7px', overflow: 'hidden', display: 'flex' }}>
                     <div style={{
                       height: '100%',
                       width: `${result.probability_negative * 100}%`,
@@ -359,7 +356,7 @@ export default function Predictions() {
                 {shapValues && (shapValues.is_image ? shapValues.plot_base64 : Object.keys(shapValues).length > 0) && (
                   <div style={{ marginTop: '40px', textAlign: 'left' }}>
                     <h4 style={{ marginBottom: '20px', fontSize: '1.1rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ background: 'rgba(0, 210, 255, 0.1)', padding: '6px', borderRadius: '8px', color: 'var(--color-accent-cyan)', display: 'flex' }}>
+                      <div style={{ background: 'rgba(114, 176, 171, 0.1)', padding: '6px', borderRadius: '8px', color: 'var(--color-accent-cyan)', display: 'flex' }}>
                         <HiOutlineSearch size={18} />
                       </div>
                       {shapValues.is_image ? 'Visual Explainability (Grad-CAM)' : 'Feature Attributions (SHAP)'}
@@ -383,7 +380,7 @@ export default function Predictions() {
                             return (
                               <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.9rem' }}>
                                 <span style={{ width: '120px', fontWeight: 500, color: 'var(--color-text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{feature}</span>
-                                <div style={{ flex: 1, height: '10px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '5px', position: 'relative' }}>
+                                <div style={{ flex: 1, height: '10px', background: 'rgba(114, 176, 171, 0.1)', borderRadius: '5px', position: 'relative' }}>
                                   <div style={{
                                     position: 'absolute',
                                     left: '50%',
@@ -411,18 +408,18 @@ export default function Predictions() {
           ) : predictionError ? (
             <div className="empty-state fade-in" style={{ padding: '32px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                <div style={{ background: 'rgba(255, 82, 82, 0.1)', padding: '24px', borderRadius: '50%', display: 'flex' }}>
+                <div style={{ background: 'rgba(254, 145, 121, 0.1)', padding: '24px', borderRadius: '50%', display: 'flex' }}>
                    <HiOutlineExclamationCircle size={64} style={{ color: 'var(--color-accent-red)' }} />
                 </div>
               </div>
               <h4 style={{ color: 'var(--color-accent-red)', marginBottom: '16px', fontSize: '1.5rem', fontWeight: 700 }}>Prediction Bypassed</h4>
-              <p style={{ fontSize: '1rem', background: 'rgba(255, 82, 82, 0.05)', border: '1px solid rgba(255, 82, 82, 0.2)', padding: '20px', borderRadius: '12px', textAlign: 'center', color: 'var(--color-text-primary)', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '1rem', background: 'rgba(254, 145, 121, 0.05)', border: '1px solid var(--color-border)', padding: '20px', borderRadius: '12px', textAlign: 'center', color: 'var(--color-text-primary)', lineHeight: 1.6 }}>
                 {predictionError}
               </p>
             </div>
           ) : (
             <div className="empty-state fade-in" style={{ padding: '48px 0', opacity: 0.8, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-              <div style={{ background: 'rgba(91, 101, 220, 0.05)', padding: '32px', borderRadius: '50%', marginBottom: '32px', display: 'flex', border: '1px solid rgba(91, 101, 220, 0.1)' }}>
+              <div style={{ background: 'rgba(114, 176, 171, 0.05)', padding: '32px', borderRadius: '50%', marginBottom: '32px', display: 'flex', border: '1px solid var(--color-border)' }}>
                 <HiOutlineSparkles size={64} style={{ color: 'var(--color-accent-blue)' }} />
               </div>
               <h4 style={{ fontSize: '1.5rem', color: 'var(--color-text-bright)', marginBottom: '12px', fontWeight: 600 }}>Awaiting Diagnostic Features</h4>
@@ -437,7 +434,7 @@ export default function Predictions() {
         <div className="card fade-in" style={{ marginTop: '32px', padding: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h3 style={{ fontSize: '1.4rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ background: 'rgba(91, 101, 220, 0.1)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-violet)', display: 'flex' }}>
+              <div style={{ background: 'rgba(114, 176, 171, 0.1)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-violet)', display: 'flex' }}>
                  <HiOutlineClock size={20} />
               </div>
               Prediction Log History

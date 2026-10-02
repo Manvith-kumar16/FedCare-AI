@@ -70,7 +70,7 @@ export default function Sidebar() {
       </nav>
 
       <div style={{ padding: '20px', borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'rgba(0, 230, 118, 0.1)', borderRadius: '8px', color: 'var(--color-accent-green)', fontSize: '0.75rem', fontWeight: 600 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'rgba(152, 94, 109, 0.2)', border: '1px solid rgba(152, 94, 109, 0.4)', borderRadius: '12px', color: '#FFB8C6', fontSize: '0.75rem', fontWeight: 600 }}>
           <HiOutlineShieldCheck size={18} />
           <span>Local Data Secure</span>
         </div>

@@ -34,7 +34,7 @@ export default function Profile() {
                     <div style={{
                         width: '100px', height: '100px',
                         borderRadius: '50%',
-                        background: 'rgba(91, 101, 220, 0.1)',
+                        background: 'rgba(114, 176, 171, 0.1)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '3rem', fontWeight: 800, color: 'var(--color-accent-blue)',
                         marginBottom: '20px',
@@ -49,7 +49,7 @@ export default function Profile() {
                         <HiOutlineMail size={16} /> {userEmail}
                     </p>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 16px', background: 'rgba(0, 230, 118, 0.1)', color: 'var(--color-accent-green)', borderRadius: '24px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 16px', background: 'rgba(114, 176, 171, 0.1)', color: 'var(--color-accent-green)', borderRadius: '24px', fontSize: '0.85rem', fontWeight: 600, marginBottom: '32px' }}>
                         <HiOutlineShieldCheck size={16} /> Active Session
                     </div>
 
@@ -93,7 +93,7 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    <div className="card" style={{ background: '#F0FDF4', border: '1px solid #DCFCE7' }}>
+                    <div className="card" style={{ background: '#F0FDF4', border: '3px solid #DCFCE7' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
                             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <HiOutlineKey size={24} />

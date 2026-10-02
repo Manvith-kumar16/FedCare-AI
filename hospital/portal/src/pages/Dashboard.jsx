@@ -62,8 +62,8 @@ export default function Dashboard() {
     datasets: [{
       label: 'Sample Count',
       data: datasets.map(d => d.row_count),
-      backgroundColor: 'rgba(91, 101, 220, 0.7)',
-      borderColor: '#5B65DC',
+      backgroundColor: 'rgba(114, 176, 171, 0.7)',
+      borderColor: '#72B0AB',
       borderWidth: 1,
       borderRadius: 6
     }]
@@ -76,11 +76,11 @@ export default function Dashboard() {
     datasets: [{
       label: 'Local Training Accuracy',
       data: chronHistory.map(h => (h.local_accuracy * 100).toFixed(1)),
-      borderColor: '#5B65DC',
-      backgroundColor: 'rgba(91, 101, 220, 0.1)',
+      borderColor: '#72B0AB',
+      backgroundColor: 'rgba(114, 176, 171, 0.1)',
       tension: 0.3,
       fill: true,
-      pointBackgroundColor: '#5B65DC',
+      pointBackgroundColor: '#72B0AB',
       pointBorderColor: '#fff',
       pointRadius: 4
     }]
@@ -93,8 +93,8 @@ export default function Dashboard() {
       legend: { labels: { color: 'var(--color-text-secondary)', font: { family: 'Inter' } } }
     },
     scales: {
-      x: { grid: { color: 'rgba(91, 101, 220, 0.1)' }, ticks: { color: 'var(--color-text-muted)' } },
-      y: { grid: { color: 'rgba(91, 101, 220, 0.1)' }, ticks: { color: 'var(--color-text-muted)' } }
+      x: { grid: { color: 'rgba(114, 176, 171, 0.1)' }, ticks: { color: 'var(--color-text-muted)' } },
+      y: { grid: { color: 'rgba(114, 176, 171, 0.1)' }, ticks: { color: 'var(--color-text-muted)' } }
     }
   }
 
@@ -121,7 +121,7 @@ export default function Dashboard() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'rgba(0, 230, 118, 0.1)', color: 'var(--color-accent-green)', borderRadius: '24px', fontSize: '0.85rem', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'rgba(152, 94, 109, 0.2)', color: '#FFB8C6', border: '1px solid rgba(152, 94, 109, 0.4)', borderRadius: '24px', fontSize: '0.85rem', fontWeight: 600 }}>
             <HiOutlineLockClosed size={16} /> Data Custody Secured
           </div>
         </div>
@@ -192,25 +192,25 @@ export default function Dashboard() {
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Latest Node Model Validation Metrics</h3>
         {latestLocalRun ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginTop: '16px' }}>
-            <div style={{ background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Accuracy</div>
-              <strong style={{ fontSize: '1.5rem', color: 'var(--color-accent-blue)' }}>{(latestLocalRun.local_accuracy * 100).toFixed(1)}%</strong>
+            <div style={{ background: 'linear-gradient(135deg, #494E6B 0%, #192231 100%)', padding: '16px', borderRadius: '12px', textAlign: 'center', border: 'none', boxShadow: '0 4px 12px rgba(25, 34, 49, 0.2)' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Accuracy</div>
+              <strong style={{ fontSize: '1.75rem', color: '#FFFFFF' }}>{(latestLocalRun.local_accuracy * 100).toFixed(1)}%</strong>
             </div>
-            <div style={{ background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>F1-Score</div>
-              <strong style={{ fontSize: '1.5rem', color: 'var(--color-accent-blue)' }}>{(latestLocalRun.local_f1 * 100).toFixed(1)}%</strong>
+            <div style={{ background: 'linear-gradient(135deg, #985E6D 0%, #494E6B 100%)', padding: '16px', borderRadius: '12px', textAlign: 'center', border: 'none', boxShadow: '0 4px 12px rgba(152, 94, 109, 0.2)' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>F1-Score</div>
+              <strong style={{ fontSize: '1.75rem', color: '#FFFFFF' }}>{(latestLocalRun.local_f1 * 100).toFixed(1)}%</strong>
             </div>
-            <div style={{ background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Precision</div>
-              <strong style={{ fontSize: '1.5rem', color: 'var(--color-accent-green)' }}>{(latestLocalRun.local_precision * 100).toFixed(1)}%</strong>
+            <div style={{ background: 'linear-gradient(135deg, #98878F 0%, #985E6D 100%)', padding: '16px', borderRadius: '12px', textAlign: 'center', border: 'none', boxShadow: '0 4px 12px rgba(152, 135, 143, 0.2)' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Precision</div>
+              <strong style={{ fontSize: '1.75rem', color: '#FFFFFF' }}>{(latestLocalRun.local_precision * 100).toFixed(1)}%</strong>
             </div>
-            <div style={{ background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Recall</div>
-              <strong style={{ fontSize: '1.5rem', color: 'var(--color-accent-orange)' }}>{(latestLocalRun.local_recall * 100).toFixed(1)}%</strong>
+            <div style={{ background: 'linear-gradient(135deg, #192231 0%, #98878F 100%)', padding: '16px', borderRadius: '12px', textAlign: 'center', border: 'none', boxShadow: '0 4px 12px rgba(25, 34, 49, 0.2)' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Recall</div>
+              <strong style={{ fontSize: '1.75rem', color: '#FFFFFF' }}>{(latestLocalRun.local_recall * 100).toFixed(1)}%</strong>
             </div>
-            <div style={{ background: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px' }}>Loss</div>
-              <strong style={{ fontSize: '1.5rem', color: 'var(--color-accent-red)' }}>{latestLocalRun.local_loss.toFixed(4)}</strong>
+            <div style={{ background: 'linear-gradient(135deg, #985E6D 0%, #192231 100%)', padding: '16px', borderRadius: '12px', textAlign: 'center', border: 'none', boxShadow: '0 4px 12px rgba(152, 94, 109, 0.2)' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.5px' }}>Loss</div>
+              <strong style={{ fontSize: '1.75rem', color: '#FFFFFF' }}>{latestLocalRun.local_loss.toFixed(4)}</strong>
             </div>
           </div>
         ) : (

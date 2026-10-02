@@ -109,14 +109,14 @@ export default function Explainability() {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px' }}>
+      <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
         <div className="input-group" style={{ margin: 0, minWidth: '320px' }}>
           <label>Select Disease Network</label>
           <select
             value={selectedServer?.id || ''}
             onChange={handleServerChange}
             disabled={servers.length === 0}
-            style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+            style={{ padding: '10px', background: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-border)', color: '#fff', borderRadius: '6px' }}
           >
             {servers.length === 0 && <option value="">No Active Models Available</option>}
             {servers.map(s => (
@@ -129,7 +129,7 @@ export default function Explainability() {
       {selectedServer && (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
           {/* Global Feature Importance */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
               <HiOutlineChartBar size={20} /> Local Feature Rankings
             </h3>
@@ -165,7 +165,7 @@ export default function Explainability() {
                       style={{
                         padding: '12px',
                         borderRadius: '6px',
-                        border: `1px solid ${selectedExplanation?.prediction_id === p.id ? '#38bdf8' : 'rgba(255,255,255,0.05)'}`,
+                        border: `3px solid ${selectedExplanation?.prediction_id === p.id ? '#38bdf8' : 'rgba(255,255,255,0.05)'}`,
                         background: selectedExplanation?.prediction_id === p.id ? 'rgba(56, 189, 248, 0.05)' : 'rgba(255,255,255,0.01)',
                         cursor: 'pointer',
                         display: 'flex',
@@ -194,7 +194,7 @@ export default function Explainability() {
           </div>
 
           {/* SHAP Explanation Detail */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
               <HiOutlinePuzzle size={20} /> Attributive Explanation
             </h3>
@@ -224,7 +224,7 @@ export default function Explainability() {
                   </div>
                 )}
 
-                <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.8rem', opacity: 0.8 }}>
+                <div style={{ marginTop: '16px', padding: '12px', background: '#F5F3F5', border: '1px solid var(--color-border)', borderRadius: '6px', fontSize: '0.8rem', opacity: 0.8 }}>
                   <p>
                     <strong style={{ color: '#ef4444' }}>Red variables</strong> drive risk output higher. 
                     <strong style={{ color: '#10b981' }}> Green variables</strong> decrease overall risk output.

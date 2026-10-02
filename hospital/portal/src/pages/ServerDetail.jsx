@@ -164,7 +164,7 @@ export default function ServerDetail() {
         {/* Left Column: Server Status & Data Management */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Status Card */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3>Pipeline Configuration</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px', fontSize: '0.85rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -191,7 +191,7 @@ export default function ServerDetail() {
           </div>
 
           {/* Local Dataset Status */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3>Local Dataset Status</h3>
             {dataset ? (
               <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -230,7 +230,7 @@ export default function ServerDetail() {
         {/* Right Column: Training controls & history */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Training Control Area */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3>Node Model Actions</h3>
             <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: '180px' }}>
@@ -243,7 +243,7 @@ export default function ServerDetail() {
                     value={epochs} 
                     onChange={(e) => setEpochs(e.target.value)} 
                     disabled={training}
-                    style={{ padding: '8px', background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '6px' }}
+                    style={{ padding: '8px', background: 'rgba(15,23,42,0.6)', border: '1px solid var(--color-border)', color: '#fff', borderRadius: '6px' }}
                   />
                 </div>
                 <button 
@@ -274,7 +274,7 @@ export default function ServerDetail() {
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', marginBottom: '8px' }}>
                   <HiOutlineTerminal /> Live Execution Log
                 </h4>
-                <div style={{ height: '160px', background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', padding: '10px', fontFamily: 'monospace', fontSize: '0.75rem', color: '#10b981', overflowY: 'auto' }}>
+                <div style={{ height: '160px', background: 'rgba(15,23,42,0.9)', border: '1px solid var(--color-border)', borderRadius: '6px', padding: '10px', fontFamily: 'monospace', fontSize: '0.75rem', color: '#10b981', overflowY: 'auto' }}>
                   {logs.map((log, idx) => (
                     <div key={idx} style={{ marginBottom: '3px' }}>{log}</div>
                   ))}
@@ -285,7 +285,7 @@ export default function ServerDetail() {
           </div>
 
           {/* Local Training History Table */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3>Execution Run History</h3>
             <div className="table-responsive" style={{ marginTop: '12px' }}>
               <table className="data-table text-xs">

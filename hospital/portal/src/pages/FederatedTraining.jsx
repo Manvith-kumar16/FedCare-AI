@@ -95,7 +95,7 @@ export default function FederatedTraining() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
         {/* Left Column: Sync Controls & Real-time Status */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="glass-panel" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: '24px' }}>
             <h3>Node Synchronization Control</h3>
             <p style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '8px', marginBottom: '20px' }}>
               Manually trigger synchronization. The local node will contact the coordinator, query active rounds for joined disease servers, download weight seeds, train local parameters locally, and upload weight updates.
@@ -152,7 +152,7 @@ export default function FederatedTraining() {
           )}
 
           {/* Joined servers status */}
-          <div className="glass-panel" style={{ padding: '20px' }}>
+          <div className="card" style={{ padding: '20px' }}>
             <h3>Registered Disease Servers Status</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
               {servers.length === 0 ? (
@@ -161,7 +161,7 @@ export default function FederatedTraining() {
                 servers.map(srv => {
                   const hasDs = datasets.some(d => d.server_id === srv.id)
                   return (
-                    <div key={srv.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.85rem' }}>
+                    <div key={srv.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#F5F3F5', border: '1px solid var(--color-border)', borderRadius: '6px', fontSize: '0.85rem' }}>
                       <div>
                         <strong>{srv.name}</strong>
                         <div style={{ opacity: 0.6, fontSize: '0.75rem', marginTop: '2px' }}>
@@ -193,7 +193,7 @@ export default function FederatedTraining() {
         </div>
 
         {/* Right Column: Federated Round History */}
-        <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '540px' }}>
+        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '540px' }}>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <HiOutlineClock size={20} style={{ color: '#38bdf8' }} /> Federated Submission Log
           </h3>
@@ -208,7 +208,7 @@ export default function FederatedTraining() {
               history.map(hist => {
                 const srv = servers.find(s => s.id === hist.server_id)
                 return (
-                  <div key={hist.id} className="history-card" style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                  <div key={hist.id} className="history-card" style={{ padding: '12px', background: '#F5F3F5', border: '1px solid var(--color-border)', borderRadius: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                       <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <HiOutlineBadgeCheck style={{ color: '#34d399' }} />
@@ -217,20 +217,20 @@ export default function FederatedTraining() {
                       <span className="badge badge-success">Round {hist.round_number}</span>
                     </div>
                     
-                    <p style={{ fontSize: '0.8rem', opacity: 0.8, margin: '8px 0', borderLeft: '2px solid #38bdf8', paddingLeft: '8px' }}>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.8, margin: '8px 0', borderLeft: '3px solid #38bdf8', paddingLeft: '8px' }}>
                       {hist.details}
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '0.75rem', textAlign: 'center', marginTop: '8px' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '4px' }}>
+                      <div style={{ background: '#F5F3F5', padding: '4px', borderRadius: '4px' }}>
                         <div style={{ opacity: 0.6 }}>Local Accuracy</div>
                         <strong>{(hist.local_accuracy * 100).toFixed(1)}%</strong>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '4px' }}>
+                      <div style={{ background: '#F5F3F5', padding: '4px', borderRadius: '4px' }}>
                         <div style={{ opacity: 0.6 }}>Local Loss</div>
                         <strong>{hist.local_loss.toFixed(4)}</strong>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '4px' }}>
+                      <div style={{ background: '#F5F3F5', padding: '4px', borderRadius: '4px' }}>
                         <div style={{ opacity: 0.6 }}>Samples Trained</div>
                         <strong>{hist.samples_trained}</strong>
                       </div>

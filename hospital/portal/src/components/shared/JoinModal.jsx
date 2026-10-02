@@ -95,7 +95,7 @@ const JoinModal = ({ isOpen, onClose, onConfirm, initialName, loading }) => {
         }
         
         .modal-content {
-          border: 1px solid rgba(102, 126, 234, 0.3);
+          border: 1px solid var(--color-border);
           box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5), var(--shadow-glow);
         }
       `}</style>

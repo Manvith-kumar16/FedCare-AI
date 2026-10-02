@@ -101,19 +101,19 @@ export default function Training() {
     datasets: [{
       label: 'Global Accuracy (%)',
       data: globalLogs.map(l => (l.global_accuracy * 100).toFixed(2)),
-      borderColor: '#667eea',
-      backgroundColor: 'rgba(102, 126, 234, 0.15)',
+      borderColor: '#72B0AB',
+      backgroundColor: 'rgba(114, 176, 171, 0.15)',
       tension: 0.4,
       fill: true,
       pointRadius: 6,
-      pointBackgroundColor: '#667eea',
+      pointBackgroundColor: '#72B0AB',
       pointBorderColor: '#fff',
       pointBorderWidth: 2,
     }, {
       label: 'Global Loss',
       data: globalLogs.map(l => (l.global_loss * 100).toFixed(2)),
-      borderColor: '#ff5252',
-      backgroundColor: 'rgba(255, 82, 82, 0.08)',
+      borderColor: '#FE9179',
+      backgroundColor: 'rgba(254, 145, 121, 0.08)',
       tension: 0.4,
       fill: false,
       pointRadius: 4,
@@ -123,7 +123,7 @@ export default function Training() {
 
   // Hospital comparison
   const hospitalNames = [...new Set(localLogs.map(l => l.hospital_name))]
-  const colors = ['#667eea', '#764ba2', '#00d2ff', '#00e676']
+  const colors = ['#72B0AB', '#053229', '#72B0AB', '#72B0AB']
   const hospitalChart = {
     labels: uniqueRounds.map(r => `Round ${r}`),
     datasets: hospitalNames.map((name, idx) => ({
@@ -142,8 +142,8 @@ export default function Training() {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { labels: { color: '#9ea7c0', font: { family: 'Inter' } } } },
     scales: {
-      x: { ticks: { color: '#5c6484' }, grid: { color: 'rgba(102, 126, 234, 0.06)' } },
-      y: { ticks: { color: '#5c6484' }, grid: { color: 'rgba(102, 126, 234, 0.06)' }, min: 0 },
+      x: { ticks: { color: '#5c6484' }, grid: { color: 'rgba(114, 176, 171, 0.06)' } },
+      y: { ticks: { color: '#5c6484' }, grid: { color: 'rgba(114, 176, 171, 0.06)' }, min: 0 },
     }
   }
 
@@ -265,7 +265,7 @@ export default function Training() {
 
           {/* Result banner */}
           {result && (
-            <div className="card" style={{ marginBottom: 'var(--space-lg)', background: 'rgba(0, 230, 118, 0.06)', borderColor: 'rgba(0, 230, 118, 0.2)', padding: '16px' }}>
+            <div className="card" style={{ marginBottom: 'var(--space-lg)', background: 'rgba(114, 176, 171, 0.06)', borderColor: 'rgba(114, 176, 171, 0.2)', padding: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <span style={{ fontSize: '1.5rem', color: 'var(--color-accent-green)' }}><HiOutlineCheckCircle /></span>
                 <div>

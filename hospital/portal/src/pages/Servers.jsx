@@ -72,7 +72,7 @@ export default function Servers() {
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginTop: '20px' }}>
         {/* Left Column: Joined Networks */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="glass-panel" style={{ padding: '24px' }}>
+          <div className="card" style={{ padding: '24px' }}>
             <h3>Joined Networks ({joinedServers.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
               {joinedServers.length === 0 ? (
@@ -81,7 +81,7 @@ export default function Servers() {
                 </div>
               ) : (
                 joinedServers.map(srv => (
-                  <div key={srv.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={srv.id} style={{ padding: '16px', background: '#F5F3F5', border: '1px solid var(--color-border)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <HiOutlineServer style={{ color: '#38bdf8' }} size={20} />
@@ -105,11 +105,11 @@ export default function Servers() {
 
           {/* Pending Memberships */}
           {pendingServers.length > 0 && (
-            <div className="glass-panel" style={{ padding: '24px' }}>
+            <div className="card" style={{ padding: '24px' }}>
               <h3>Awaiting Registration Approval ({pendingServers.length})</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
                 {pendingServers.map(srv => (
-                  <div key={srv.id} style={{ padding: '14px', background: 'rgba(251, 191, 36, 0.02)', border: '1px solid rgba(251, 191, 36, 0.1)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={srv.id} style={{ padding: '14px', background: 'rgba(251, 191, 36, 0.02)', border: '1px solid var(--color-border)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ fontWeight: 600, fontSize: '0.95rem' }}>{srv.name}</h4>
                       <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>Targeting {srv.disease_type} using {srv.model_type?.toUpperCase()}</span>
@@ -125,7 +125,7 @@ export default function Servers() {
         </div>
 
         {/* Right Column: Available Networks */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
+        <div className="card" style={{ padding: '24px' }}>
           <h3>Available Networks ({availableServers.length})</h3>
           <p style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '4px', marginBottom: '16px' }}>
             Register your local node to participate in these collaborative disease prediction pipelines.
@@ -138,7 +138,7 @@ export default function Servers() {
               </div>
             ) : (
               availableServers.map(srv => (
-                <div key={srv.id} style={{ padding: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                <div key={srv.id} style={{ padding: '14px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--color-border)', borderRadius: '6px' }}>
                   <h4 style={{ fontWeight: 600, fontSize: '0.95rem' }}>{srv.name}</h4>
                   <div style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '2px' }}>{srv.disease_type} Predictor ({srv.model_type?.toUpperCase()})</div>
                   <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: '8px 0' }}>{srv.description}</p>
