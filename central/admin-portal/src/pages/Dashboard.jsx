@@ -11,7 +11,7 @@ import {
   HiOutlineOfficeBuilding, HiOutlineServer, HiOutlineLightningBolt,
   HiOutlineGlobe, HiOutlineShieldCheck, HiOutlineTrendingUp, HiRefresh
 } from 'react-icons/hi'
-import { FaHospitalSymbol, FaNetworkWired, FaStethoscope } from 'react-icons/fa'
+import { FaHospital, FaNetworkWired, FaStethoscope } from 'react-icons/fa'
 import { Player } from '@lottiefiles/react-lottie-player'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
@@ -190,7 +190,15 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px' }}>
 
           {/* Hospitals List */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
+            {/* Vertical Connection Line */}
+            {networkNodes.length > 1 && (
+              <div style={{
+                position: 'absolute', right: '-40px', top: '50px', bottom: '50px', width: '2px',
+                background: 'rgba(91, 101, 220, 0.2)', zIndex: 0
+              }} />
+            )}
+            
             {networkNodes.map((node, i) => (
               <div key={i} className="glass-card" style={{
                 display: 'flex', alignItems: 'center', padding: '16px',
@@ -201,6 +209,7 @@ export default function Dashboard() {
                 boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
                 transition: 'all 0.3s ease',
                 cursor: 'default',
+                zIndex: 1
               }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(91, 101, 220, 0.12)'; e.currentTarget.style.borderColor = 'rgba(91, 101, 220, 0.4)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.02)'; e.currentTarget.style.borderColor = 'rgba(91, 101, 220, 0.15)'; }}
@@ -208,7 +217,7 @@ export default function Dashboard() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                     <div style={{ padding: '8px', background: 'rgba(91, 101, 220, 0.1)', borderRadius: '10px' }}>
-                        <FaHospitalSymbol size={16} style={{ color: 'var(--color-accent-blue)' }} />
+                        <FaHospital size={16} style={{ color: 'var(--color-accent-blue)' }} />
                     </div>
                     <strong style={{ fontSize: '1rem', color: 'var(--color-text-primary)' }}>{node.name}</strong>
                     <span className="badge" style={{ background: 'rgba(0, 230, 118, 0.12)', color: '#00c853', fontSize: '0.7rem', padding: '4px 10px', borderRadius: '12px' }}>
@@ -224,7 +233,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
-                {/* Connection Line */}
+                {/* Horizontal Connection Line */}
                 <div style={{
                   position: 'absolute', right: '-40px', top: '50%', width: '40px', height: '2px',
                   background: 'rgba(91, 101, 220, 0.2)', zIndex: 0
@@ -243,9 +252,10 @@ export default function Dashboard() {
 
           {/* Central Coordinator */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 1 }}>
+            {/* Connection Line from Vertical line to Coordinator */}
             <div style={{
-              width: '2px', height: 'calc(100% - 100px)', background: 'rgba(91, 101, 220, 0.2)',
-              position: 'absolute', left: '-40px', top: '50px'
+              position: 'absolute', left: '-40px', top: '50%', width: '40px', height: '2px',
+              background: 'rgba(91, 101, 220, 0.2)', zIndex: 0
             }} />
             
             <div style={{
