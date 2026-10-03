@@ -13,8 +13,6 @@ from app.models.user import User
 from app.models.disease_server import DiseaseServer, ModelType
 from app.models.model_version import ModelVersion
 from app.api.deps import get_current_active_admin, get_current_user
-from app.services.fl_coordinator import FederatedEnsembleClassifier
-from sklearn.linear_model import LogisticRegression
 
 router = APIRouter(prefix="/explainability", tags=["Explainability"])
 
@@ -50,60 +48,11 @@ async def get_global_feature_importance(
 
     # 3. Load model and extract feature importances
     try:
-        if server.model_type == ModelType.CNN:
-            return {
-                "server_id": server_id,
-                "model_type": server.model_type.value,
-                "feature_ranking": []
-            }
-
-        with open(model_version.model_path, "rb") as f:
-            model = pickle.load(f)
-            
-        ranking = []
-        
-        # XGBoost Federated Ensemble
-        if hasattr(model, "models") and hasattr(model, "weights"):
-            # We average the feature importances of the underlying sub-models in the ensemble
-            total_imp = np.zeros_like(model.models[0].feature_importances_)
-            for sub_model, w in zip(model.models, model.weights):
-                total_imp += sub_model.feature_importances_ * w
-                
-            # Pair with features
-            features = model.feature_names_in_.tolist() if hasattr(model, "feature_names_in_") else [f"feature_{i}" for i in range(len(total_imp))]
-            
-            # Normalize to sum to 1
-            if total_imp.sum() > 0:
-                total_imp = total_imp / total_imp.sum()
-                
-            for feat, val in zip(features, total_imp):
-                ranking.append({
-                    "feature": feat,
-                    "importance": float(val)
-                })
-                
-        # Logistic Regression
-        elif isinstance(model, LogisticRegression):
-            coef = np.abs(model.coef_[0])
-            features = model.feature_names_in_.tolist() if hasattr(model, "feature_names_in_") else [f"feature_{i}" for i in range(len(coef))]
-            
-            # Normalize to sum to 1
-            if coef.sum() > 0:
-                coef = coef / coef.sum()
-                
-            for feat, val in zip(features, coef):
-                ranking.append({
-                    "feature": feat,
-                    "importance": float(val)
-                })
-        
-        # Sort ranking by importance descending
-        ranking.sort(key=lambda x: x["importance"], reverse=True)
-        
+        # Currently, global feature importance ranking is not supported for CNNs
         return {
             "server_id": server_id,
             "model_type": server.model_type.value,
-            "feature_ranking": ranking
+            "feature_ranking": []
         }
         
     except Exception as e:
