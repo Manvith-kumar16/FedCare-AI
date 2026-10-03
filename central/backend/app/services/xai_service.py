@@ -12,8 +12,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from typing import Dict, List, Optional
 from app.services.ai_service import load_global_model
-from app.services.fl_coordinator import FederatedEnsembleClassifier
-from sklearn.linear_model import LogisticRegression
 
 def _generate_shap_waterfall(
     shap_values: np.ndarray,
@@ -76,52 +74,9 @@ def generate_shap_explanation(
     input_df = pd.DataFrame(input_vec, columns=feature_columns)
 
     try:
-        if isinstance(model, FederatedEnsembleClassifier):
-            all_vals = []
-            base_vals = []
-            
-            for sub_model, w in zip(model.models, model.weights):
-                explainer = shap.TreeExplainer(sub_model)
-                shap_vals = explainer.shap_values(input_df)
-                
-                if isinstance(shap_vals, list):
-                    vals_sub = shap_vals[1][0] if len(shap_vals) > 1 else shap_vals[0][0]
-                elif len(shap_vals.shape) == 3:
-                    vals_sub = shap_vals[0, :, 1]
-                else:
-                    vals_sub = shap_vals[0]
-                    
-                all_vals.append(vals_sub * w)
-                
-                base_v = explainer.expected_value
-                if isinstance(base_v, (list, np.ndarray)):
-                    base_v = float(base_v[1]) if len(base_v) > 1 else float(base_v[0])
-                base_vals.append(float(base_v) * w)
-                
-            vals = sum(all_vals)
-            base_val = sum(base_vals)
-            
-        elif isinstance(model, LogisticRegression):
-            explainer = shap.LinearExplainer(model, mask=shap.maskers.Independent(input_df))
-            shap_vals = explainer.shap_values(input_df)
-            vals = shap_vals[0]
-            base_val = float(explainer.expected_value)
-            
-        else:
-            explainer = shap.TreeExplainer(model)
-            shap_vals = explainer.shap_values(input_df)
-            if isinstance(shap_vals, list):
-                vals = shap_vals[1][0] if len(shap_vals) > 1 else shap_vals[0][0]
-            elif len(shap_vals.shape) == 3:
-                vals = shap_vals[0, :, 1]
-            else:
-                vals = shap_vals[0]
-                
-            base_val = explainer.expected_value
-            if isinstance(base_val, (list, np.ndarray)):
-                base_val = float(base_val[1]) if len(base_val) > 1 else float(base_val[0])
-            else:
-                base_val = float(base_val)
+        # SHAP calculation for CNN image models is not supported centrally
+        # because the central coordinator doesn't hold the raw image data.
+        return {"error": "Global SHAP explanations are not supported for CNNs."}
 
         shap_dict = {col: float(vals[i]) for i, col in enumerate(feature_columns)}
         importance_list = sorted(
