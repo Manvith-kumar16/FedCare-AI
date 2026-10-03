@@ -27,8 +27,13 @@ export const getTrainingRounds = () => client.get('/training/rounds')
 export const getTrainingHistory = (serverId) => client.get(`/training/logs/${serverId}`)
 export const getGlobalModels = () => client.get('/training/global-models')
 
-// Predictions (Public User)
+// Predictions (Public User & Admin)
 export const predictDisease = (data) => client.post('/predictions/predict', data)
+export const predictDiseaseImage = (formData) => client.post('/predictions/predict-image', formData, {
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
+})
 
 // Explainable AI
 export const getGlobalFeatureImportance = (serverId) => client.get(`/explainability/feature-importance/${serverId}`)

@@ -14,13 +14,13 @@
   --color-bg-input: #F5F3F5; /* Light grey for high visibility inside cards */
 
   /* Accent colors - vibrant and attractive */
-  --color-accent-blue: #985E6D; /* SUNSET */
-  --color-accent-violet: #98878F; /* CLOUD */
-  --color-accent-cyan: #494E6B; /* STORMY */
-  --color-accent-green: #985E6D; /* SUNSET */
-  --color-accent-orange: #985E6D; /* SUNSET */
-  --color-accent-red: #985E6D; /* SUNSET */
-  --color-accent-pink: #98878F; /* CLOUD */
+  --color-accent-blue: #2563eb; 
+  --color-accent-violet: #7c3aed; 
+  --color-accent-cyan: #0891b2; 
+  --color-accent-green: #065f46; /* Dark Green */
+  --color-accent-orange: #ea580c; 
+  --color-accent-red: #dc2626; 
+  --color-accent-pink: #db2777; 
 
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #192231 0%, #494E6B 100%);

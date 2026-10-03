@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 class PredictionInput(BaseModel):
     server_id: int
@@ -11,6 +11,7 @@ class PredictionResponse(BaseModel):
     confidence: float
     probability_positive: float
     probability_negative: float
+    plot_base64: Optional[str] = None
 
 class ExplanationResponse(BaseModel):
     prediction_id: int

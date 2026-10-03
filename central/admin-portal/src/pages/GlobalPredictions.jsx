@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react'
-import { makePrediction, getPredictionHistory, getServers, getDatasets, makeImagePrediction } from '../api'
+import { predictDisease, predictDiseaseImage, explainPrediction, getServers } from '../api'
 import Loader from '../components/Loader'
 import { useApp } from '../contexts/AppContext'
 import { 
   HiOutlineSparkles, HiOutlineClipboardList, HiOutlineSearch,
-  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineClock,
-  HiOutlineTemplate
+  HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlineTemplate
 } from 'react-icons/hi'
 
-export default function Predictions() {
+export default function GlobalPredictions() {
   const [servers, setServers] = useState([])
   const [selectedServer, setSelectedServer] = useState(null)
   const [featureColumns, setFeatureColumns] = useState([])
@@ -16,10 +15,9 @@ export default function Predictions() {
   const [imageFile, setImageFile] = useState(null)
   const [result, setResult] = useState(null)
   const [predictionError, setPredictionError] = useState(null)
-  const [history, setHistory] = useState([])
   const [predicting, setPredicting] = useState(false)
-  const [showHistory, setShowHistory] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [explanation, setExplanation] = useState(null)
   const { addToast } = useApp()
 
   useEffect(() => {
@@ -27,69 +25,31 @@ export default function Predictions() {
   }, [])
 
   useEffect(() => {
-    async function loadFeatures() {
-      if (selectedServer) {
-        if (selectedServer.feature_columns) {
-          try {
-            const cols = JSON.parse(selectedServer.feature_columns)
-            if (cols.length > 0) {
-              setFeatureColumns(cols)
-              setForm(Object.fromEntries(cols.map(c => [c, ''])))
-              return
-            }
-          } catch (e) {
-            console.error("Failed to parse features", e)
-          }
-        }
-        
-        // Fallback to local dataset feature mapping
+    if (selectedServer) {
+      if (selectedServer.feature_columns) {
         try {
-          const res = await getDatasets(selectedServer.id)
-          if (res.data && res.data.length > 0) {
-            const latest = res.data[0]
-            if (latest.columns) {
-              const allCols = JSON.parse(latest.columns)
-              const target = latest.target_column || 'Outcome'
-              const cols = allCols.filter(c => c !== target)
-              setFeatureColumns(cols)
-              setForm(Object.fromEntries(cols.map(c => [c, ''])))
-              return
-            }
+          const cols = JSON.parse(selectedServer.feature_columns)
+          if (cols.length > 0) {
+            setFeatureColumns(cols)
+            setForm(Object.fromEntries(cols.map(c => [c, ''])))
+            return
           }
         } catch (e) {
-          console.error("Failed to fetch local dataset features", e)
+          console.error("Failed to parse features", e)
         }
-
-        setFeatureColumns([])
-        setForm({})
       }
+      setFeatureColumns([])
+      setForm({})
     }
-    
-    loadFeatures()
   }, [selectedServer])
 
   async function loadServers() {
     setLoading(true)
     try {
       const res = await getServers()
-      // Only show servers where user is an Approved Member
-      const validServers = res.data.filter(s =>
-        s.is_member && s.member_status === 'APPROVED'
-      )
-      setServers(validServers)
-      
-      const params = new URLSearchParams(window.location.search)
-      const paramId = params.get('server_id')
-      
-      if (paramId) {
-        const preselected = validServers.find(s => s.id === parseInt(paramId))
-        if (preselected) {
-          setSelectedServer(preselected)
-        } else if (validServers.length > 0) {
-          setSelectedServer(validServers[0])
-        }
-      } else if (validServers.length > 0) {
-        setSelectedServer(validServers[0])
+      setServers(res.data)
+      if (res.data.length > 0) {
+        setSelectedServer(res.data[0])
       }
     } catch (err) {
       addToast("Failed to load disease servers list", "error")
@@ -102,8 +62,8 @@ export default function Predictions() {
     const srv = servers.find(s => s.id === parseInt(e.target.value))
     setSelectedServer(srv)
     setResult(null)
-    setShowHistory(false)
-    setHistory([])
+    setExplanation(null)
+    setImageFile(null)
   }
 
   function updateField(key, value) {
@@ -114,7 +74,7 @@ export default function Predictions() {
     if (e) e.preventDefault()
 
     if (selectedServer?.model_type !== 'cnn') {
-      const unfilled = featureColumns.filter(f => !form[f])
+      const unfilled = featureColumns.filter(f => form[f] === '')
       if (unfilled.length > 0) {
         addToast(`Please fill all fields: ${unfilled.join(', ')}`, 'warning')
         return
@@ -128,28 +88,46 @@ export default function Predictions() {
 
     setPredicting(true)
     setResult(null)
+    setExplanation(null)
     setPredictionError(null)
+    
     try {
       let res;
       if (selectedServer?.model_type === 'cnn') {
         const formData = new FormData()
         formData.append('server_id', selectedServer.id)
         formData.append('image', imageFile)
-        res = await makeImagePrediction(formData)
+        res = await predictDiseaseImage(formData)
+        setResult(res.data)
+        
+        if (res.data.plot_base64) {
+          setExplanation({ is_image: true, plot_base64: res.data.plot_base64 })
+        }
       } else {
+        const numericFeatures = {}
+        featureColumns.forEach(f => {
+          numericFeatures[f] = parseFloat(form[f]) || 0.0
+        })
+
         const payload = {
           server_id: selectedServer.id,
-          features: {}
+          features: numericFeatures
         }
-        featureColumns.forEach(f => {
-          payload.features[f] = parseFloat(form[f]) || 0
-        })
-        res = await makePrediction(payload)
+
+        res = await predictDisease(payload)
+        setResult(res.data)
+        
+        try {
+          const expRes = await explainPrediction(selectedServer.id, payload)
+          setExplanation(expRes.data)
+        } catch (err) {
+          console.error("Failed to generate global SHAP", err)
+        }
       }
-      setResult(res.data)
-      addToast('Prediction generated successfully!', 'success')
+
+      addToast('Global Prediction generated successfully!', 'success')
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Prediction failed. Global model may not be synced yet.'
+      const msg = err.response?.data?.detail || 'Prediction failed. Global model may not be compiled yet.'
       setPredictionError(msg)
       addToast(msg, 'error')
     } finally {
@@ -157,22 +135,10 @@ export default function Predictions() {
     }
   }
 
-  async function loadHistory() {
-    if (!selectedServer) return
-    try {
-      const res = await getPredictionHistory(selectedServer.id)
-      setHistory(res.data)
-      setShowHistory(true)
-    } catch (e) {
-      addToast('Failed to load history', 'error')
-    }
-  }
-
   function fillSample() {
     if (!selectedServer) return
     const newForm = {}
     
-    // Auto-detect fields by name for helper sample values
     featureColumns.forEach(c => {
       let val = '0'
       const col = c.toLowerCase()
@@ -191,8 +157,6 @@ export default function Predictions() {
     setForm(newForm)
   }
 
-  const shapValues = result?.explanation_data ? JSON.parse(result.explanation_data) : null
-
   if (loading) {
     return <Loader message="Initializing global model predictors..." />
   }
@@ -201,17 +165,14 @@ export default function Predictions() {
     <div className="predictions-page fade-in">
       <div className="page-header" style={{ alignItems: 'flex-end', borderBottom: '1px solid var(--color-border)', paddingBottom: '24px', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>Patient Inference Gateway</h2>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.5px' }}>Global Inference Gateway</h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--color-text-secondary)', marginTop: '8px' }}>
-            Compute diagnostics locally. Input features remain 100% locally contained on this node.
+            Compute diagnostics using the aggregated global federated model.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button className="btn btn-secondary" onClick={fillSample} disabled={!selectedServer || featureColumns.length === 0} style={{ padding: '10px 20px', borderRadius: '12px' }}>
             <HiOutlineTemplate size={18} /> Fill Mock Patient
-          </button>
-          <button className="btn btn-secondary" onClick={loadHistory} disabled={!selectedServer} style={{ padding: '10px 20px', borderRadius: '12px' }}>
-            <HiOutlineClock size={18} /> View History
           </button>
         </div>
       </div>
@@ -227,7 +188,7 @@ export default function Predictions() {
           </h3>
 
           <div className="form-group" style={{ background: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(0,0,0,0.04)' }}>
-            <label className="form-label" style={{ fontWeight: 700, color: 'var(--color-accent-blue)', fontSize: '0.85rem', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Disease Model Pipeline</label>
+            <label className="form-label" style={{ fontWeight: 700, color: 'var(--color-accent-blue)', fontSize: '0.85rem', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Global Model Pipeline</label>
             <select
               className="form-select"
               value={selectedServer?.id || ''}
@@ -242,17 +203,17 @@ export default function Predictions() {
             </select>
           </div>
 
-          {selectedServer && featureColumns.length === 0 && (
+          {selectedServer && featureColumns.length === 0 && selectedServer.model_type !== 'cnn' && (
             <div className="empty-state" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
               <div style={{ background: 'linear-gradient(135deg, rgba(184, 157, 71, 0.2) 0%, rgba(184, 157, 71, 0.05) 100%)', padding: '20px', borderRadius: '50%', marginBottom: '20px', display: 'flex', boxShadow: '0 10px 24px rgba(184, 157, 71, 0.15)' }}>
                 <HiOutlineExclamationCircle size={48} style={{ color: 'var(--color-accent-orange)' }} />
               </div>
               <h4 style={{ fontSize: '1.2rem', color: 'var(--color-text-dark)', marginBottom: '10px', fontWeight: 800 }}>No Feature Mapping Found</h4>
-              <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '85%', fontSize: '1rem', lineHeight: 1.5 }}>Please upload a dataset to this server first to enable predictions.</p>
+              <p style={{ color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '85%', fontSize: '1rem', lineHeight: 1.5 }}>This server has not defined any tabular features.</p>
             </div>
           )}
 
-          {selectedServer && featureColumns.length > 0 && (
+          {selectedServer && (featureColumns.length > 0 || selectedServer.model_type === 'cnn') && (
             <form onSubmit={handlePredict} style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '24px' }}>
               {selectedServer?.model_type === 'cnn' ? (
                 <div className="form-group" style={{ margin: 0 }}>
@@ -304,7 +265,6 @@ export default function Predictions() {
 
         {/* Result Column */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', overflow: 'hidden', height: '100%', padding: '24px', background: 'var(--color-bg-card)', borderRadius: '24px', border: '1px solid rgba(0,0,0,0.03)', boxShadow: '0 20px 40px rgba(0,0,0,0.04)' }}>
-          {/* subtle background glow */}
           {result && (
              <div style={{
                position: 'absolute', top: '25%', left: '50%', width: '400px', height: '400px',
@@ -317,7 +277,6 @@ export default function Predictions() {
             <div className="fade-in" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div className="prediction-result" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ position: 'relative', marginBottom: '16px' }}>
-                  {/* Outer pulsating ring */}
                   <div style={{
                     position: 'absolute', top: '-16px', left: '-16px', right: '-16px', bottom: '-16px',
                     borderRadius: '50%', border: `2px solid ${result.prediction === 1 ? 'rgba(254, 145, 121, 0.2)' : 'rgba(114, 176, 171, 0.2)'}`,
@@ -331,17 +290,15 @@ export default function Predictions() {
                   {result.prediction_label}
                 </h3>
                 <p style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center', marginBottom: '16px' }}>
-                  Local Inference Diagnosis Result
+                  Global Inference Diagnosis Result
                 </p>
 
-                {/* Text Explanation */}
                 <div style={{ padding: '12px 20px', background: result.prediction === 1 ? 'rgba(254, 145, 121, 0.08)' : 'rgba(114, 176, 171, 0.08)', borderRadius: '12px', border: `1px solid ${result.prediction === 1 ? 'rgba(254, 145, 121, 0.2)' : 'rgba(114, 176, 171, 0.2)'}`, color: result.prediction === 1 ? 'var(--color-accent-red)' : 'var(--color-accent-green)', fontSize: '0.95rem', fontWeight: 500, textAlign: 'center', maxWidth: '85%' }}>
                   {result.prediction === 1 
                     ? `The model has identified patterns strongly consistent with ${selectedServer?.disease_type || 'a positive diagnosis'}. Medical review is recommended.`
                     : `No significant indicators of ${selectedServer?.disease_type || 'the disease'} were detected. Features appear to align with a healthy baseline.`}
                 </div>
 
-                {/* Probability details */}
                 <div style={{ marginTop: '24px', width: '100%', padding: '20px', background: 'linear-gradient(180deg, rgba(245, 243, 245, 0.6) 0%, rgba(245, 243, 245, 0.2) 100%)', backdropFilter: 'blur(12px)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: '20px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', fontSize: '1rem', fontWeight: 700 }}>
                     <span style={{ color: 'var(--color-accent-green)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -386,20 +343,20 @@ export default function Predictions() {
                   </div>
                 </div>
 
-                {/* Local SHAP values */}
-                {shapValues && (shapValues.is_image ? shapValues.plot_base64 : Object.keys(shapValues).length > 0) && (
+                {explanation && explanation.plot_base64 && (
                   <div style={{ marginTop: '24px', width: '100%', textAlign: 'left', background: '#ffffff', padding: '20px', borderRadius: '20px', boxShadow: '0 8px 24px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.04)' }}>
                     <h4 style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'var(--color-text-dark)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ background: 'linear-gradient(135deg, rgba(114, 176, 171, 0.2) 0%, rgba(114, 176, 171, 0.05) 100%)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-cyan)', display: 'flex', boxShadow: '0 4px 8px rgba(114, 176, 171, 0.1)' }}>
                         <HiOutlineSearch size={18} />
                       </div>
-                      {shapValues.is_image ? 'Visual Explainability (Grad-CAM)' : 'Feature Attributions (SHAP)'}
+                      {explanation.is_image ? 'Visual Explainability (Grad-CAM)' : 'Global Feature Attributions (SHAP)'}
                     </h4>
-                    {shapValues.is_image ? (
+                    
+                    {explanation.is_image ? (
                       <div style={{ display: 'flex', gap: '16px', background: 'rgba(0,0,0,0.02)', padding: '16px', borderRadius: '16px', border: '1px dashed rgba(0,0,0,0.1)' }}>
                         <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                           <img 
-                            src={`data:image/jpeg;base64,${shapValues.plot_base64}`} 
+                            src={`data:image/jpeg;base64,${explanation.plot_base64}`} 
                             alt="Grad-CAM" 
                             style={{ maxWidth: '100%', height: '130px', objectFit: 'contain', borderRadius: '8px' }} 
                           />
@@ -407,7 +364,7 @@ export default function Predictions() {
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                           <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text-dark)', marginBottom: '8px' }}>How to read this heatmap</h5>
                           <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                            The AI uses <strong>Grad-CAM</strong> to show which parts of the X-ray it focused on to make its diagnosis.
+                            The global AI uses <strong>Grad-CAM</strong> to show which parts of the X-ray it focused on to make its diagnosis.
                           </p>
                           <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
@@ -422,35 +379,12 @@ export default function Predictions() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {Object.entries(shapValues)
-                          .sort(([, a], [, b]) => Math.abs(b) - Math.abs(a))
-                          .slice(0, 5)
-                          .map(([feature, value]) => {
-                            const maxVal = Math.max(...Object.values(shapValues).map(Math.abs)) || 1
-                            const width = (Math.abs(value) / maxVal) * 100
-                            return (
-                              <div key={feature} style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.95rem' }}>
-                                <span style={{ width: '130px', fontWeight: 600, color: 'var(--color-text-dark)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{feature}</span>
-                                <div style={{ flex: 1, height: '14px', background: 'rgba(0,0,0,0.04)', borderRadius: '7px', position: 'relative', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)' }}>
-                                  <div style={{
-                                    position: 'absolute',
-                                    left: '50%',
-                                    right: value < 0 ? 'auto' : 'none',
-                                    transform: value < 0 ? 'translateX(-100%)' : 'none',
-                                    width: `${width / 2}%`,
-                                    height: '100%',
-                                    background: value > 0 ? 'linear-gradient(90deg, #FE9179, #F86E51)' : 'linear-gradient(90deg, #72B0AB, #4FA19A)',
-                                    borderRadius: '7px',
-                                    boxShadow: `0 2px 8px ${value > 0 ? 'rgba(254, 145, 121, 0.4)' : 'rgba(114, 176, 171, 0.4)'}`
-                                  }}></div>
-                                </div>
-                                <span style={{ width: '70px', textAlign: 'right', fontWeight: 800, fontSize: '1rem', color: value > 0 ? 'var(--color-accent-red)' : 'var(--color-accent-green)' }}>
-                                  {value > 0 ? '+' : ''}{value.toFixed(3)}
-                                </span>
-                              </div>
-                            )
-                          })}
+                      <div style={{ width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-border)', marginTop: '16px' }}>
+                        <img 
+                          src={`data:image/png;base64,${explanation.plot_base64}`} 
+                          alt="SHAP Explanation Waterfall" 
+                          style={{ width: '100%', height: 'auto', display: 'block' }}
+                        />
                       </div>
                     )}
                   </div>
@@ -487,62 +421,11 @@ export default function Predictions() {
                 </div>
               </div>
               <h4 style={{ fontSize: '1.6rem', color: 'var(--color-text-dark)', marginBottom: '16px', fontWeight: 800, letterSpacing: '-0.5px' }}>Awaiting Diagnostic Features</h4>
-              <p style={{ fontSize: '1.1rem', color: 'var(--color-text-secondary)', maxWidth: '85%', lineHeight: 1.6, textAlign: 'center' }}>Select an active disease pipeline, input the required medical metrics, and click predict to run local inference.</p>
+              <p style={{ fontSize: '1.1rem', color: 'var(--color-text-secondary)', maxWidth: '85%', lineHeight: 1.6, textAlign: 'center' }}>Select an active disease pipeline, input the required medical metrics, and click predict to run global inference.</p>
             </div>
           )}
         </div>
       </div>
-
-      {/* History Table */}
-      {showHistory && history.length > 0 && (
-        <div className="card fade-in" style={{ marginTop: '32px', padding: '32px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--color-text-bright)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ background: 'rgba(114, 176, 171, 0.1)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-violet)', display: 'flex' }}>
-                 <HiOutlineClock size={20} />
-              </div>
-              Prediction Log History
-            </h3>
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowHistory(false)} style={{ borderRadius: '8px' }}>Close Log</button>
-          </div>
-          <div style={{ overflowX: 'auto', background: 'var(--color-bg-secondary)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th style={{ padding: '16px' }}>Prediction ID</th>
-                  <th style={{ padding: '16px' }}>Result Class</th>
-                  <th style={{ padding: '16px' }}>Model Confidence</th>
-                  <th style={{ padding: '16px' }}>Probability (Positive)</th>
-                  <th style={{ padding: '16px' }}>Inputs Captured</th>
-                  <th style={{ padding: '16px' }}>Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map(p => (
-                  <tr key={p.id}>
-                    <td style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>#{p.id}</td>
-                    <td style={{ padding: '16px' }}>
-                      <span className={`badge ${p.prediction === 1 ? 'badge-error' : 'badge-active'}`} style={{ padding: '6px 12px' }}>
-                        {p.prediction_label}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px', fontWeight: 700, color: 'var(--color-text-bright)' }}>
-                      {(p.confidence * 100).toFixed(1)}%
-                    </td>
-                    <td style={{ padding: '16px' }}>{(p.probability_positive * 100).toFixed(1)}%</td>
-                    <td style={{ padding: '16px', fontSize: '0.8rem', fontFamily: 'monospace', maxWidth: '280px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: 'var(--color-text-muted)' }}>
-                      {p.input_data}
-                    </td>
-                    <td style={{ padding: '16px', opacity: 0.7, fontSize: '0.85rem' }}>
-                      {p.created_at ? new Date(p.created_at).toLocaleString() : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

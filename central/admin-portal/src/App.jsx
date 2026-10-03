@@ -12,6 +12,7 @@ import Models from './pages/Models'
 import Metrics from './pages/Metrics'
 import Explainability from './pages/Explainability'
 import TrainingHistory from './pages/TrainingHistory'
+import GlobalPredictions from './pages/GlobalPredictions'
 import Profile from './pages/Profile'
 import Register from './pages/Register'
 import UserDashboard from './pages/UserDashboard'
@@ -63,6 +64,7 @@ function AppRoutes() {
         <Route path="models" element={<ProtectedRoute allowedRoles={['ADMIN']}><Models /></ProtectedRoute>} />
         <Route path="metrics" element={<ProtectedRoute allowedRoles={['ADMIN']}><Metrics /></ProtectedRoute>} />
         <Route path="explainability" element={<ProtectedRoute allowedRoles={['ADMIN']}><Explainability /></ProtectedRoute>} />
+        <Route path="global-predictions" element={<ProtectedRoute allowedRoles={['ADMIN']}><GlobalPredictions /></ProtectedRoute>} />
         
         {/* Public User Routes */}
         <Route path="user-dashboard" element={<ProtectedRoute allowedRoles={['PUBLIC_USER']}><UserDashboard /></ProtectedRoute>} />

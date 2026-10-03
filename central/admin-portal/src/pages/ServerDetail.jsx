@@ -287,16 +287,60 @@ export default function ServerDetail() {
             {/* Realtime stream logs terminal */}
             {(logs.length > 0) && (
               <div style={{ marginTop: '24px' }}>
-                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '12px' }}>
-                  <HiOutlineTerminal size={18} style={{ color: 'var(--color-accent-blue)' }} /> Real-time Execution Console
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '16px' }}>
+                  <div style={{ background: 'linear-gradient(135deg, rgba(82, 113, 255, 0.2) 0%, rgba(82, 113, 255, 0.05) 100%)', padding: '8px', borderRadius: '10px', color: 'var(--color-accent-blue)', display: 'flex' }}>
+                    <HiOutlineTerminal size={20} />
+                  </div>
+                  Real-time Execution Console
                 </h4>
-                <div style={{ height: '240px', background: '#FAFAFD', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--color-text-primary)', overflowY: 'auto' }}>
-                  {logs.map((log, idx) => (
-                    <div key={idx} style={{ marginBottom: '6px', whiteSpace: 'pre-wrap', color: log.includes('[ERROR]') ? 'var(--color-accent-red)' : log.includes('[WARNING]') ? 'var(--color-accent-orange)' : 'var(--color-text-primary)' }}>
-                      {log}
-                    </div>
-                  ))}
-                  <div ref={logTerminalEndRef} />
+                <div style={{ 
+                  height: '280px', 
+                  background: '#0F172A', // Slate 900
+                  borderRadius: '16px', 
+                  padding: '20px', 
+                  fontFamily: '"Fira Code", "JetBrains Mono", monospace', 
+                  fontSize: '0.85rem', 
+                  color: '#E2E8F0', // Slate 200
+                  overflowY: 'auto',
+                  boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.1)',
+                  border: '1px solid #1E293B',
+                  position: 'relative'
+                }}>
+                  {/* Mac-like terminal header dots */}
+                  <div style={{ display: 'flex', gap: '8px', position: 'absolute', top: '16px', right: '20px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EF4444' }}></div>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B' }}></div>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10B981' }}></div>
+                  </div>
+                  
+                  <div style={{ marginTop: '12px' }}>
+                    {logs.map((log, idx) => {
+                      let color = '#94A3B8'; // default slate 400
+                      let fontWeight = 400;
+                      if (log.includes('[ERROR]')) color = '#F87171'; // red 400
+                      else if (log.includes('[WARNING]')) color = '#FBBF24'; // amber 400
+                      else if (log.includes('[SYSTEM]')) { color = '#38BDF8'; fontWeight = 600; } // sky 400
+                      else if (log.includes('successfully') || log.includes('✅')) { color = '#34D399'; fontWeight = 600; } // emerald 400
+                      else if (log.includes('===') || log.includes('---')) color = '#A78BFA'; // violet 400
+
+                      return (
+                        <div key={idx} style={{ 
+                          marginBottom: '8px', 
+                          whiteSpace: 'pre-wrap', 
+                          color, 
+                          fontWeight,
+                          lineHeight: '1.5',
+                          display: 'flex',
+                          gap: '12px',
+                          animation: 'fadeIn 0.3s ease-in-out'
+                        }}>
+                          <span style={{ color: '#475569', userSelect: 'none' }}>{`>`}</span>
+                          <span>{log}</span>
+                        </div>
+                      )
+                    })}
+                    <div ref={logTerminalEndRef} />
+                  </div>
                 </div>
               </div>
             )}

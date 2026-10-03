@@ -9,6 +9,8 @@ from app.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.disease_server import DiseaseServer
+from fastapi import File, UploadFile, Form
+from app.services.ai_service import predict_image, explain_image
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
 
@@ -51,4 +53,44 @@ async def make_prediction(
         confidence=pred_result["confidence"],
         probability_positive=pred_result["probability_positive"],
         probability_negative=pred_result["probability_negative"]
+    )
+
+@router.post("/predict-image", response_model=PredictionResponse)
+async def make_image_prediction(
+    server_id: int = Form(...),
+    image: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Make a prediction on an image using the global PyTorch model."""
+    server_res = await db.execute(select(DiseaseServer).where(DiseaseServer.id == server_id))
+    server = server_res.scalar_one_or_none()
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    if server.model_type != 'cnn':
+        raise HTTPException(status_code=400, detail="This server does not support image models")
+
+    model = load_global_model(server_id)
+    if not model:
+        raise HTTPException(status_code=400, detail="Global model not available for this server yet.")
+
+    image_bytes = await image.read()
+    plot_base64 = None
+    try:
+        pred_result = predict_image(model, image_bytes)
+        try:
+            plot_base64 = explain_image(model, image_bytes)
+        except Exception as e:
+            print(f"Explain image failed: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+    return PredictionResponse(
+        prediction=pred_result["prediction"],
+        prediction_label=pred_result["prediction_label"],
+        confidence=pred_result["confidence"],
+        probability_positive=pred_result["probability_positive"],
+        probability_negative=pred_result["probability_negative"],
+        plot_base64=plot_base64
     )
