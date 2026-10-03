@@ -20,6 +20,8 @@ export default function ServerDetail() {
   const [loading, setLoading] = useState(true)
   const [training, setTraining] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [syncProgress, setSyncProgress] = useState(0)
+  const [syncText, setSyncText] = useState('')
   const [logs, setLogs] = useState([])
   const [epochs, setEpochs] = useState(10)
   const { addToast } = useApp()
@@ -112,9 +114,30 @@ export default function ServerDetail() {
 
   const handleSyncNode = async () => {
     setSyncing(true)
-    addToast('Syncing with central coordinator...', 'info')
+    setSyncProgress(0)
+    setSyncText('Contacting Central Coordinator...')
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev
+        const increment = Math.random() * 15
+        return Math.min(prev + increment, 90)
+      })
+      setSyncText(prev => {
+        if (prev.includes('Contacting') && Math.random() > 0.5) return 'Downloading global seed weights...'
+        if (prev.includes('Downloading') && Math.random() > 0.5) return 'Training local parameters...'
+        if (prev.includes('Training') && Math.random() > 0.5) return 'Uploading weight updates...'
+        return prev
+      })
+    }, 400)
+
     try {
       const res = await triggerSync()
+      clearInterval(progressInterval)
+      setSyncProgress(100)
+      setSyncText('Synchronization Complete!')
+      
       if (res.data.status === 'idle') {
         addToast('No active training rounds requiring submission.', 'info')
       } else {
@@ -124,9 +147,14 @@ export default function ServerDetail() {
       const historyRes = await getTrainingHistory(id)
       setHistory(historyRes.data || [])
     } catch (err) {
+      clearInterval(progressInterval)
       addToast(err.response?.data?.detail || 'Sync failed', 'error')
     } finally {
-      setSyncing(false)
+      setTimeout(() => {
+        setSyncing(false)
+        setSyncProgress(0)
+        setSyncText('')
+      }, 1500)
     }
   }
 
@@ -257,14 +285,27 @@ export default function ServerDetail() {
               </div>
 
               <div style={{ flex: 1, minWidth: '180px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={handleSyncNode} 
-                  disabled={syncing || !dataset}
-                  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', padding: '10px' }}
-                >
-                  {syncing ? <span className="spinner-small"></span> : <HiOutlineGlobe />} Poll & Submit Round
-                </button>
+                {syncing ? (
+                  <div style={{ background: 'rgba(15,23,42,0.4)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '12px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', background: 'linear-gradient(90deg, rgba(79, 209, 197, 0.2), rgba(99, 179, 237, 0.4))', width: `${syncProgress}%`, transition: 'width 0.3s ease-out' }} />
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 500, color: '#e2e8f0' }}>
+                        <span className="spinner-small" style={{ borderColor: '#4FD1C5', borderTopColor: 'transparent', width: '14px', height: '14px' }}></span>
+                        {syncText}
+                      </div>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#4FD1C5' }}>{Math.round(syncProgress)}%</span>
+                    </div>
+                  </div>
+                ) : (
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={handleSyncNode} 
+                    disabled={!dataset}
+                    style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', padding: '10px' }}
+                  >
+                    <HiOutlineGlobe /> Poll & Submit Round
+                  </button>
+                )}
               </div>
             </div>
 
@@ -274,11 +315,24 @@ export default function ServerDetail() {
                 <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', marginBottom: '8px' }}>
                   <HiOutlineTerminal /> Live Execution Log
                 </h4>
-                <div style={{ height: '160px', background: 'rgba(15,23,42,0.9)', border: '1px solid var(--color-border)', borderRadius: '6px', padding: '10px', fontFamily: 'monospace', fontSize: '0.75rem', color: '#10b981', overflowY: 'auto' }}>
-                  {logs.map((log, idx) => (
-                    <div key={idx} style={{ marginBottom: '3px' }}>{log}</div>
-                  ))}
-                  <div ref={logTerminalEndRef} />
+                <div className="fade-in" style={{ height: '220px', display: 'flex', flexDirection: 'column', background: '#000000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.2)' }}>
+                  {/* Terminal Header */}
+                  <div style={{ padding: '10px 14px', background: '#111111', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FF5F56', boxShadow: '0 0 5px rgba(255, 95, 86, 0.4)' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FFBD2E', boxShadow: '0 0 5px rgba(255, 189, 46, 0.4)' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#27C93F', boxShadow: '0 0 5px rgba(39, 201, 63, 0.4)' }} />
+                    <span style={{ marginLeft: '12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', fontFamily: 'monospace', fontWeight: '500' }}>bash -- server-execution-logs</span>
+                  </div>
+                  {/* Logs Content */}
+                  <div style={{ flex: 1, padding: '14px', fontFamily: '"Fira Code", "Courier New", Courier, monospace', fontSize: '0.8rem', color: '#E2E8F0', overflowY: 'auto' }}>
+                    {logs.map((log, idx) => (
+                      <div key={idx} style={{ marginBottom: '6px', whiteSpace: 'pre-wrap', lineHeight: '1.5', color: log.includes('[ERROR]') || log.includes('corrupt') || log.includes('Invalid') ? '#FC8181' : log.includes('[WARNING]') ? '#F6AD55' : log.includes('Success') || log.includes('successfully') ? '#68D391' : '#E2E8F0', fontWeight: log.includes('Epoch') || log.includes('Success') || log.includes('successfully') ? '600' : '400' }}>
+                        <span style={{ color: '#4FD1C5', marginRight: '8px', userSelect: 'none', fontWeight: '700' }}>❯</span>
+                        {log}
+                      </div>
+                    ))}
+                    <div ref={logTerminalEndRef} />
+                  </div>
                 </div>
               </div>
             )}

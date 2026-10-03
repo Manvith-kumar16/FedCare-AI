@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
     HOSPITAL_ID: int = int(os.getenv("HOSPITAL_ID", "1"))
-    CENTRAL_API_URL: str = os.getenv("CENTRAL_API_URL", "http://localhost:8000")
+    CENTRAL_API_URL: str = os.getenv("CENTRAL_API_URL", "https://fedcare-ai.onrender.com")
     FL_LOCAL_EPOCHS: int = int(os.getenv("FL_LOCAL_EPOCHS", "10"))
 
     CORS_ORIGINS: list[str] = [

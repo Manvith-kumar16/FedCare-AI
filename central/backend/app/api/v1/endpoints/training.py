@@ -24,9 +24,9 @@ from app.models.training_log import TrainingLog
 from app.api.deps import get_current_active_admin
 from app.core import settings
 from app.services.fl_coordinator import (
-    aggregate_xgboost_ensemble,
-    aggregate_logistic_regression,
-    aggregate_metrics
+    aggregate_cnn,
+    aggregate_metrics,
+    SimpleCNN
 )
 
 router = APIRouter(prefix="/training", tags=["Training Orchestration"])
@@ -135,19 +135,10 @@ async def start_training_round(
     )
     if not mv_check.scalar_one_or_none():
         # Create an untrained base model and save it to act as seed
-        import pickle
-        if server.model_type == ModelType.LOGISTIC_REGRESSION:
-            from sklearn.linear_model import LogisticRegression
-            seed_model = LogisticRegression(random_state=42)
-            # fit dummy data to initialize
-            seed_model.fit(np.zeros((2, 8)), np.array([0, 1]))
-        else:
-            from xgboost import XGBClassifier
-            seed_model = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric="logloss")
-            seed_model.fit(np.zeros((2, 8)), np.array([0, 1]))
-            
-        with open(global_model_path, "wb") as f:
-            pickle.dump(seed_model, f)
+        import torch
+        seed_model = SimpleCNN(num_classes=2)
+        state_dict = {k: v.cpu() for k, v in seed_model.state_dict().items()}
+        torch.save(state_dict, global_model_path)
             
         seed_hash = calculate_file_sha256(global_model_path)
         
@@ -240,36 +231,18 @@ async def trigger_aggregation(
 
     try:
         # 3. Perform model aggregation
-        import pickle
         import torch
-        from app.services.fl_coordinator import aggregate_cnn
         
-        if server.model_type == ModelType.LOGISTIC_REGRESSION:
-            global_model = aggregate_logistic_regression(updates)
-        elif server.model_type == ModelType.CNN:
-            global_model = aggregate_cnn(updates)
-        else:
-            global_model = aggregate_xgboost_ensemble(updates)
-
-        # Extract feature columns and save to the server
-        if hasattr(global_model, "feature_names_in_"):
-            server.feature_columns = json.dumps(list(global_model.feature_names_in_))
-        elif server.model_type == ModelType.CNN:
-            server.feature_columns = json.dumps(["Image"])
+        global_model = aggregate_cnn(updates)
+        server.feature_columns = json.dumps(["Image"])
 
         # 4. Save global model file
         dest_dir = os.path.join(settings.MODELS_DIR, f"server_{server_id}")
         global_path = os.path.join(dest_dir, f"global_model_v{server.current_round}.pkl")
         latest_path = os.path.join(dest_dir, "global_model.pkl")
 
-        if server.model_type == ModelType.CNN:
-            torch.save(global_model, global_path)
-            torch.save(global_model, latest_path)
-        else:
-            with open(global_path, "wb") as f:
-                pickle.dump(global_model, f)
-            with open(latest_path, "wb") as f:
-                pickle.dump(global_model, f)
+        torch.save(global_model, global_path)
+        torch.save(global_model, latest_path)
 
         # Calculate hash
         model_hash = calculate_file_sha256(global_path)

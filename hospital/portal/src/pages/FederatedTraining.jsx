@@ -13,6 +13,8 @@ export default function FederatedTraining() {
   const [datasets, setDatasets] = useState([])
   const [history, setHistory] = useState([])
   const [syncing, setSyncing] = useState(false)
+  const [syncProgress, setSyncProgress] = useState(0)
+  const [syncStep, setSyncStep] = useState('')
   const [syncResult, setSyncResult] = useState(null)
   const [loading, setLoading] = useState(true)
   const { addToast } = useApp()
@@ -48,11 +50,34 @@ export default function FederatedTraining() {
 
   const handleSyncNode = async () => {
     setSyncing(true)
+    setSyncProgress(0)
+    setSyncStep('Contacting Central Coordinator...')
     setSyncResult(null)
     addToast('Contacting central coordinator and polling active rounds...', 'info')
     
+    // Simulate loading progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 8; // Increment random amount
+      if (progress > 95) progress = 95; // Cap at 95% until complete
+      
+      setSyncProgress(Math.floor(progress));
+      
+      if (progress < 30) setSyncStep('Contacting Central Coordinator...')
+      else if (progress < 60) setSyncStep('Querying active training rounds...')
+      else if (progress < 85) setSyncStep('Downloading global seed weights...')
+      else setSyncStep('Training local parameters...')
+    }, 400);
+
     try {
       const res = await triggerSync()
+      
+      // Force progress to 100% on success
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+      setSyncStep('Uploading weight updates...')
+      await new Promise(r => setTimeout(r, 600)); // Show 100% briefly
+      
       setSyncResult(res.data)
       
       if (res.data.status === 'idle') {
@@ -68,6 +93,7 @@ export default function FederatedTraining() {
       const fedHist = (historyRes.data || []).filter(h => h.round_number > 0)
       setHistory(fedHist)
     } catch (err) {
+      clearInterval(progressInterval);
       const msg = err.response?.data?.detail || 'Synchronization execution failed'
       addToast(msg, 'error')
       setSyncResult({
@@ -101,23 +127,30 @@ export default function FederatedTraining() {
               Manually trigger synchronization. The local node will contact the coordinator, query active rounds for joined disease servers, download weight seeds, train local parameters locally, and upload weight updates.
             </p>
 
-            <button 
-              className="btn btn-primary" 
-              onClick={handleSyncNode}
-              disabled={syncing || servers.length === 0}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', fontSize: '1rem' }}
-            >
-              {syncing ? (
-                <>
-                  <span className="spinner-small"></span> Syncing Node...
-                </>
-              ) : (
-                <>
-                  <HiOutlineGlobe size={20} />
-                  Synchronize Node Now
-                </>
-              )}
-            </button>
+            {!syncing ? (
+              <button 
+                className="btn btn-primary" 
+                onClick={handleSyncNode}
+                disabled={servers.length === 0}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', fontSize: '1rem', width: 'fit-content' }}
+              >
+                <HiOutlineGlobe size={20} />
+                Synchronize Node Now
+              </button>
+            ) : (
+              <div className="fade-in" style={{ marginTop: '8px', background: 'rgba(114, 176, 171, 0.08)', padding: '16px 20px', borderRadius: '12px', border: '1px solid rgba(114, 176, 171, 0.2)', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-accent-blue)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span className="spinner-small" style={{ width: '16px', height: '16px', borderColor: 'rgba(114, 176, 171, 0.3)', borderTopColor: 'var(--color-accent-blue)', borderWidth: '2px' }}></span>
+                    {syncStep}
+                  </div>
+                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>{syncProgress}%</span>
+                </div>
+                <div style={{ width: '100%', height: '8px', background: 'rgba(0,0,0,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${syncProgress}%`, height: '100%', background: 'var(--gradient-accent)', borderRadius: '4px', transition: 'width 0.4s ease-out' }} />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sync Result Box */}

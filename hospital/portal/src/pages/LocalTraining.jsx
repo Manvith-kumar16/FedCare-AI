@@ -324,17 +324,28 @@ export default function LocalTraining() {
             )}
 
             {activeTab === 'logs' && (
-              <div className="fade-in" style={{ height: '100%', background: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-text-primary)', overflowY: 'auto' }}>
-                {logs.length === 0 ? (
-                  <div style={{ color: 'var(--color-text-muted)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Execution terminal idle. Logs will display here during run.</div>
-                ) : (
-                  logs.map((log, idx) => (
-                    <div key={idx} style={{ marginBottom: '6px', whiteSpace: 'pre-wrap', color: log.includes('[ERROR]') ? 'var(--color-accent-red)' : log.includes('[WARNING]') ? 'var(--color-accent-orange)' : 'var(--color-text-primary)' }}>
-                      {log}
-                    </div>
-                  ))
-                )}
-                <div ref={logTerminalEndRef} />
+              <div className="fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#000000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5), 0 4px 15px rgba(0,0,0,0.2)' }}>
+                {/* Terminal Header */}
+                <div style={{ padding: '12px 16px', background: '#111111', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F56', boxShadow: '0 0 5px rgba(255, 95, 86, 0.4)' }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E', boxShadow: '0 0 5px rgba(255, 189, 46, 0.4)' }} />
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27C93F', boxShadow: '0 0 5px rgba(39, 201, 63, 0.4)' }} />
+                  <span style={{ marginLeft: '12px', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontFamily: 'monospace', fontWeight: '500' }}>bash -- training-logs</span>
+                </div>
+                {/* Logs Content */}
+                <div style={{ flex: 1, padding: '16px', fontFamily: '"Fira Code", "Courier New", Courier, monospace', fontSize: '0.85rem', color: '#E2E8F0', overflowY: 'auto' }}>
+                  {logs.length === 0 ? (
+                    <div style={{ color: 'rgba(255,255,255,0.3)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Execution terminal idle. Logs will display here during run.</div>
+                  ) : (
+                    logs.map((log, idx) => (
+                      <div key={idx} style={{ marginBottom: '8px', whiteSpace: 'pre-wrap', lineHeight: '1.5', color: log.includes('[ERROR]') ? '#FC8181' : log.includes('[WARNING]') ? '#F6AD55' : log.includes('Validation Acc') || log.includes('Success') ? '#68D391' : '#E2E8F0', fontWeight: log.includes('Epoch') || log.includes('Success') ? '600' : '400' }}>
+                        <span style={{ color: '#4FD1C5', marginRight: '8px', userSelect: 'none', fontWeight: '700' }}>❯</span>
+                        {log}
+                      </div>
+                    ))
+                  )}
+                  <div ref={logTerminalEndRef} />
+                </div>
               </div>
             )}
           </div>
